@@ -1,0 +1,143 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace VisualCutterForm.Lib.Flow.Nodes
+{
+    [NodeCategory("运算", "代码运算")]
+    public class ComputationNode : FlowNode
+    {
+        [NodeProperty("源代码", Category = "运算")]
+        public string SourceCode { get; set; } =
+@"public class UserCode
+{
+    // ---- 输入: 系统根据同名 Pin 自动填充 ----
+    public OpenCvSharp.Mat Source;
+
+    // ---- 输出: 系统执行后根据同名 Pin 自动读取 ----
+    public OpenCvSharp.Mat Result;
+
+    // 注入 FlowContext 对象 (自动赋值)
+    public VisualCutterForm.Lib.Flow.FlowContext Context;
+
+    public void Execute()
+    {
+        // Context.Log(""message"")      —— 使用 Context 输出日志
+        // Context.LogWarning(""warn"")  —— 输出警告
+        // Context.LogError(""error"")   —— 输出错误
+
+        // Result = Source.Clone();
+    }
+}";
+
+        [NodeProperty("额外引用", Category = "运算")]
+        public string ExtraReferences { get; set; } = "";
+
+        [NodeProperty("NuGet包", Category = "运算")]
+        public string NuGetPackages { get; set; } = "";
+
+        private static readonly CSharpScriptCompiler _compiler = new CSharpScriptCompiler();
+
+        private object _compiledInstance;
+        private Type _compiledType;
+        private string _lastError;
+        private List<string> _compileErrors = new List<string>();
+
+        public bool IsDebug { get; set; } = true;
+
+        public string LastError => _lastError;
+        public IReadOnlyList<string> CompileErrors => _compileErrors.AsReadOnly();
+
+        public bool Compile()
+        {
+            _lastError = null;
+            _compileErrors = new List<string>();
+            _compiledInstance = null;
+            _compiledType = null;
+
+            var result = _compiler.Compile(SourceCode, ExtraReferences, NuGetPackages, IsDebug);
+            _compileErrors = result.Diagnostics ?? new List<string>();
+            _lastError = result.Error;
+
+            if (result.Error != null)
+                return false;
+
+            _compiledType = result.CompiledType;
+            _compiledInstance = result.CompiledInstance;
+            return true;
+        }
+
+        public List<string> GetUserFields()
+        {
+            if (_compiledType == null) return new List<string>();
+
+            return _compiledType.GetFields(BindingFlags.Public | BindingFlags.Instance)
+                .Select(f => f.Name)
+                .ToList();
+        }
+
+        public override async Task ExecuteAsync(FlowContext context, CancellationToken cancellationToken)
+        {
+            if (_compiledType == null || _compiledInstance == null)
+            {
+                var ok = Compile();
+                if (!ok)
+                    throw new InvalidOperationException($"编译失败:\n{_lastError}");
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var ctxField = _compiledType.GetField("Context", BindingFlags.Public | BindingFlags.Instance);
+            ctxField?.SetValue(_compiledInstance, context);
+
+            BindInputsToCompiled(context);
+            BindInputsToProperties(context);
+
+            var execMethod = _compiledType.GetMethod("Execute");
+            if (execMethod == null)
+                throw new InvalidOperationException("UserCode 类缺少 Execute() 方法。");
+
+            execMethod.Invoke(_compiledInstance, null);
+
+            ReadOutputsFromCompiled(context);
+            WriteOutputsFromProperties(context);
+        }
+
+        private void BindInputsToCompiled(FlowContext context)
+        {
+            if (_compiledType == null || _compiledInstance == null) return;
+
+            foreach (var pin in Inputs)
+            {
+                if (!pin.IsConnected) continue;
+
+                var field = _compiledType.GetField(pin.Name, BindingFlags.Public | BindingFlags.Instance);
+                if (field == null) continue;
+
+                var val = pin.GetValue(context);
+                if (val != null && field.FieldType.IsAssignableFrom(val.GetType()))
+                {
+                    field.SetValue(_compiledInstance, val);
+                }
+            }
+        }
+
+        private void ReadOutputsFromCompiled(FlowContext context)
+        {
+            if (_compiledType == null || _compiledInstance == null) return;
+
+            foreach (var pin in Outputs)
+            {
+                var field = _compiledType.GetField(pin.Name, BindingFlags.Public | BindingFlags.Instance);
+                if (field == null) continue;
+
+                var val = field.GetValue(_compiledInstance);
+                if (val != null)
+                    pin.SetValue(context, val);
+            }
+        }
+    }
+}

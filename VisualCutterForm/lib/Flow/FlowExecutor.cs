@@ -1,0 +1,278 @@
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using VisualCutterForm.Lib.Flow.Data;
+using VisualCutterForm.Lib.Flow.Nodes;
+
+namespace VisualCutterForm.Lib.Flow
+{
+    public class FlowExecutor : IDisposable
+    {
+        private FlowGraph _graph;
+        private readonly ConcurrentDictionary<Guid, Task> _runningTasks = new ConcurrentDictionary<Guid, Task>();
+        private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _runningCts = new ConcurrentDictionary<Guid, CancellationTokenSource>();
+        private readonly Dictionary<Guid, (ImageFifo fifo, EventHandler<Bitmap> handler)> _hardTriggerBindings
+            = new Dictionary<Guid, (ImageFifo, EventHandler<Bitmap>)>();
+        private VisionController _visionController;
+        private volatile bool _disposed;
+
+        public FlowGraph Graph => _graph;
+        public bool IsRunning { get; private set; }
+
+        public event EventHandler<string> LogMessage;
+        public event EventHandler<Exception> ExecutionError;
+
+        public FlowExecutor(VisionController visionController)
+        {
+            _visionController = visionController ?? throw new ArgumentNullException(nameof(visionController));
+        }
+
+        public void LoadGraph(FlowGraph graph)
+        {
+            StopAsync().Wait();
+            _graph = graph;
+            _graph.WireAllConnections();
+
+            foreach (var sg in _graph.SubGraphs)
+            {
+                if (sg.Trigger == SubGraphTrigger.AlwaysRunning)
+                {
+                    StartSubGraph(sg);
+                }
+            }
+        }
+
+        public void Start()
+        {
+            if (_graph == null) return;
+            IsRunning = true;
+
+            foreach (var sg in _graph.SubGraphs)
+            {
+                if (sg.Trigger == SubGraphTrigger.HardCameraTrigger)
+                {
+                    BindHardCameraTrigger(sg);
+                }
+            }
+        }
+
+        public void Stop()
+        {
+            StopAsync().Wait();
+        }
+
+        public async Task StopAsync()
+        {
+            IsRunning = false;
+
+            UnbindHardCameraTriggers();
+
+            foreach (var kv in _runningCts)
+            {
+                try { kv.Value.Cancel(); } catch { }
+            }
+
+            var tasks = _runningTasks.Values.ToArray();
+            if (tasks.Length > 0)
+            {
+                var allTasks = Task.WhenAll(tasks);
+                var timeout = Task.Delay(3000);
+                var completed = await Task.WhenAny(allTasks, timeout);
+                if (completed == timeout)
+                {
+                    LogMessage?.Invoke(this, "[警告] 部分节点未能在3秒内停止");
+                }
+            }
+
+            _runningTasks.Clear();
+            _runningCts.Clear();
+            foreach (var sg in _graph?.SubGraphs ?? Enumerable.Empty<FlowSubGraph>())
+                sg.IsRunning = false;
+        }
+
+        public async Task TriggerSubGraph(Guid subGraphId)
+        {
+            var sg = _graph?.FindSubGraph(subGraphId);
+            if (sg == null) return;
+
+            if (sg.Trigger == SubGraphTrigger.AlwaysRunning)
+                return;
+
+            await RunSubGraphOnce(sg, CancellationToken.None);
+        }
+
+        public async Task TriggerSubGraphByName(string name)
+        {
+            var sg = _graph?.FindSubGraphByName(name);
+            if (sg != null)
+                await RunSubGraphOnce(sg, CancellationToken.None);
+        }
+
+        public void OnCommunicationTrigger(Guid nodeId, SerialTriggerRule rule)
+        {
+            if (_graph == null) return;
+
+            foreach (var sg in _graph.SubGraphs)
+            {
+                bool shouldTrigger = false;
+
+                if (sg.Trigger == SubGraphTrigger.CommunicationTrigger
+                    && rule.TargetSubGraphId.HasValue
+                    && rule.TargetSubGraphId.Value == sg.Id)
+                {
+                    shouldTrigger = true;
+                }
+
+                if (shouldTrigger)
+                {
+                    var _ = RunSubGraphOnce(sg, CancellationToken.None);
+                }
+            }
+
+            if (rule.TargetSubGraphId.HasValue)
+            {
+                var _ = TriggerSubGraph(rule.TargetSubGraphId.Value);
+            }
+        }
+
+        private void StartSubGraph(FlowSubGraph sg)
+        {
+            var cts = new CancellationTokenSource();
+            var token = cts.Token;
+
+            var task = Task.Run(async () =>
+            {
+                while (!_disposed && IsRunning && sg.IsRunning && !token.IsCancellationRequested)
+                {
+                    try
+                    {
+                        await RunSubGraphOnce(sg, token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        ExecutionError?.Invoke(this, ex);
+                    }
+                    await Task.Delay(10, token);
+                }
+            }, token);
+
+            _runningTasks.TryAdd(sg.Id, task);
+            _runningCts.TryAdd(sg.Id, cts);
+            sg.IsRunning = true;
+        }
+
+        private void BindHardCameraTrigger(FlowSubGraph sg)
+        {
+            var cameraSerial = FindCameraSerialInSubGraph(sg);
+            if (string.IsNullOrEmpty(cameraSerial)) return;
+
+            var fifo = _visionController?.GetFifo(cameraSerial);
+            if (fifo == null) return;
+
+            var capturedSg = sg;
+            void handler(object s, Bitmap frame)
+            {
+                if (!_disposed && IsRunning)
+                {
+                    try
+                    {
+                        RunSubGraphOnce(capturedSg, CancellationToken.None).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        ExecutionError?.Invoke(this, ex);
+                    }
+                }
+            }
+
+            fifo.FrameEnqueued += handler;
+            _hardTriggerBindings[sg.Id] = (fifo, handler);
+        }
+
+        private void UnbindHardCameraTriggers()
+        {
+            foreach (var kv in _hardTriggerBindings)
+            {
+                kv.Value.fifo.FrameEnqueued -= kv.Value.handler;
+            }
+            _hardTriggerBindings.Clear();
+        }
+
+        private string FindCameraSerialInSubGraph(FlowSubGraph sg)
+        {
+            foreach (var node in sg.Nodes)
+            {
+                if (node is CameraAcquisitionNode camNode)
+                {
+                    if (!string.IsNullOrEmpty(camNode.CameraSerial))
+                        return camNode.CameraSerial;
+                    return _visionController?.GetFirstActiveSerial() ?? "";
+                }
+            }
+            return _visionController?.GetFirstActiveSerial() ?? "";
+        }
+
+        private async Task RunSubGraphOnce(FlowSubGraph sg, CancellationToken cancellationToken)
+        {
+            var context = new FlowContext(sg.Id.ToString());
+            context.SetVariable("VisionController", _visionController);
+            context.OnLog += msg => LogMessage?.Invoke(this, $"[信息] {msg}");
+            context.OnLogWarning += msg => LogMessage?.Invoke(this, $"[警告] {msg}");
+            context.OnLogError += msg => LogMessage?.Invoke(this, $"[错误] {msg}");
+
+            var ordered = sg.GetTopologicalOrder();
+
+            foreach (var node in ordered.Where(n => !n.IsBackgroundWorker))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var sw = Stopwatch.StartNew();
+                try
+                {
+                    node.BindInputsToProperties(context);
+                    await node.ExecuteAsync(context, cancellationToken);
+                    node.WriteOutputsFromProperties(context);
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    var msg = $"节点 [{node.Name}] 执行失败: {ex.Message}";
+                    LogMessage?.Invoke(this, msg);
+                    ExecutionError?.Invoke(this, new InvalidOperationException(msg, ex));
+                }
+                finally
+                {
+                    sw.Stop();
+                    node.LastExecutionTimeMs = sw.Elapsed.TotalMilliseconds;
+                }
+            }
+        }
+
+        public void Dispose()
+        {
+            _disposed = true;
+            Stop();
+            UnbindHardCameraTriggers();
+            foreach (var cts in _runningCts.Values)
+                cts.Dispose();
+            _runningCts.Clear();
+        }
+
+        private void Log(string message)
+        {
+            LogMessage?.Invoke(this, message);
+        }
+    }
+}

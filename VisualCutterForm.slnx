@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="SetupVisualCutter/SetupVisualCutter.vdproj" Type="Installer">
+    <Build Solution="Release|*" />
+  </Project>
+  <Project Path="VisualCutterForm/VisualCutterForm.csproj" Id="eb7c9dc2-99ef-41fd-9fa8-1b86e0a77086" />
+</Solution>

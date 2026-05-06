@@ -1,0 +1,32 @@
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# Build outputs
+bin/
+obj/
+SetupVisualCutter/Release/
+
+# NuGet packages
+packages/
+*.nupkg
+*.nuget.props
+*.nuget.targets
+project.lock.json
+
+# Config / runtime data (user-specific)
+config.ini
+*.flow.bak
+*.json.bak
+
+# OS junk
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Temp files
+~$*

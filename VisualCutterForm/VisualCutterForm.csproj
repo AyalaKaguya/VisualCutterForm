@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{EB7C9DC2-99EF-41FD-9FA8-1B86E0A77086}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>VisualCutterForm</RootNamespace>
+    <AssemblyName>VisualCutterForm</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="MvCameraControl.Net">
+      <HintPath>C:\Program Files (x86)\MVS\Development\DotNet\AnyCpu\MvCameraControl.Net.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Form1.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form1.Designer.cs">
+      <DependentUpon>Form1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Form1.resx">
+      <DependentUpon>Form1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <Compile Include="Lib\ICamera.cs" />
+    <Compile Include="Lib\CameraInfo.cs" />
+    <Compile Include="Lib\CameraManager.cs" />
+    <Compile Include="Lib\MvsCamera.cs" />
+    <Compile Include="Lib\SerialPortAdapter.cs" />
+    <Compile Include="Lib\VisionController.cs" />
+    <Compile Include="Lib\IniFile.cs" />
+    <Compile Include="Lib\AppConfig.cs" />
+    <Compile Include="Lib\CameraSettings.cs" />
+    <Compile Include="Lib\CameraSettingsStore.cs" />
+    <Compile Include="Lib\ImageFifo.cs" />
+    <Compile Include="Lib\LogRingBuffer.cs" />
+    <Compile Include="Lib\UserRole.cs" />
+    <Compile Include="CameraSettingsDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Lib\Flow\NodeAttributes.cs" />
+    <Compile Include="Lib\Flow\NodePin.cs" />
+    <Compile Include="Lib\Flow\NodeConnection.cs" />
+    <Compile Include="Lib\Flow\FlowNode.cs" />
+    <Compile Include="Lib\Flow\FlowContext.cs" />
+    <Compile Include="Lib\Flow\NodeFactory.cs" />
+    <Compile Include="Lib\Flow\ImageConverter.cs" />
+    <Compile Include="Lib\Flow\Data\AcquisitionResult.cs" />
+    <Compile Include="Lib\Flow\Data\SerialTriggerRule.cs" />
+    <Compile Include="Lib\Flow\Nodes\CameraAcquisitionNode.cs" />
+    <Compile Include="Lib\Flow\Nodes\FileAcquisitionNode.cs" />
+    <Compile Include="Lib\Flow\Nodes\SerialSendNode.cs" />
+    <Compile Include="Lib\Flow\Nodes\SerialReceiveNode.cs" />
+    <Compile Include="Lib\Flow\Nodes\ComputationNode.cs" />
+    <Compile Include="Lib\Flow\Nodes\ImageDisplayNode.cs" />
+    <Compile Include="Lib\Flow\Nodes\CSharpScriptCompiler.cs" />
+    <Compile Include="Lib\Flow\FlowSubGraph.cs" />
+    <Compile Include="Lib\Flow\FlowGraph.cs" />
+    <Compile Include="Lib\Flow\FlowExecutor.cs" />
+    <Compile Include="Lib\Flow\FlowSerializer.cs" />
+    <Compile Include="Lib\Flow\PinTypeResolver.cs" />
+    <Compile Include="Lib\Flow\ServiceProvider.cs" />
+    <Compile Include="Lib\Flow\IFlowServiceProvider.cs" />
+    <Compile Include="Form\FlowEditor\FlowNodeView.cs" />
+    <Compile Include="Form\FlowEditor\FlowCanvas.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Form\FlowEditor\FlowToolbox.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Form\FlowEditor\FlowPropertyInspector.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Form\FlowEditor\FlowEditorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form\LoginForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form\DefaultLoginForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form\CodeEditorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form\ReferenceManager.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Lib\Flow\" />
+    <Folder Include="Lib\Flow\Data\" />
+    <Folder Include="Lib\Flow\Nodes\" />
+    <Folder Include="Form\FlowEditor\" />
+    <Folder Include="Form\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="lib\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="OpenCvSharp4.Windows" Version="4.8.0.20230708" />
+    <PackageReference Include="System.IO.Ports" Version="8.0.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="NuGet.Protocol" Version="6.12.1" />
+    <PackageReference Include="FCTB" Version="2.16.24" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

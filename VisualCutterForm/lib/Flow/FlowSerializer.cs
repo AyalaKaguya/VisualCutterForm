@@ -1,0 +1,258 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Newtonsoft.Json;
+
+namespace VisualCutterForm.Lib.Flow
+{
+    public static class FlowSerializer
+    {
+        public static string Serialize(FlowGraph graph)
+        {
+            var settings = new JsonSerializerSettings
+            {
+                Formatting = Formatting.Indented,
+                TypeNameHandling = TypeNameHandling.Auto,
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            };
+
+            return JsonConvert.SerializeObject(SerializeGraph(graph), settings);
+        }
+
+        public static void SerializeToFile(FlowGraph graph, string filePath)
+        {
+            var json = Serialize(graph);
+            File.WriteAllText(filePath, json);
+        }
+
+        public static FlowGraph Deserialize(string json)
+        {
+            var settings = new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.Auto,
+            };
+
+            var sGraph = JsonConvert.DeserializeObject<SerializedGraph>(json, settings);
+            return DeserializeGraph(sGraph);
+        }
+
+        public static FlowGraph DeserializeFromFile(string filePath)
+        {
+            var json = File.ReadAllText(filePath);
+            return Deserialize(json);
+        }
+
+        private static SerializedGraph SerializeGraph(FlowGraph graph)
+        {
+            return new SerializedGraph
+            {
+                Name = graph.Name,
+                Version = graph.Version,
+                CreatedAt = graph.CreatedAt,
+                SubGraphs = graph.SubGraphs.Select(SerializeSubGraph).ToList(),
+            };
+        }
+
+        private static FlowGraph DeserializeGraph(SerializedGraph s)
+        {
+            var graph = new FlowGraph
+            {
+                Name = s.Name,
+                Version = s.Version,
+                CreatedAt = s.CreatedAt,
+            };
+
+            foreach (var sg in s.SubGraphs)
+            {
+                var subGraph = DeserializeSubGraph(sg);
+                graph.SubGraphs.Add(subGraph);
+            }
+
+            graph.WireAllConnections();
+            return graph;
+        }
+
+        private static SerializedSubGraph SerializeSubGraph(FlowSubGraph sg)
+        {
+            return new SerializedSubGraph
+            {
+                Id = sg.Id,
+                Name = sg.Name,
+                Trigger = sg.Trigger.ToString(),
+                Nodes = sg.Nodes.Select(SerializeNode).ToList(),
+                Connections = sg.Connections.Select(c => new SerializedConnection
+                {
+                    Id = c.Id,
+                    FromNodeId = c.FromNodeId,
+                    FromPinName = c.FromPinName,
+                    ToNodeId = c.ToNodeId,
+                    ToPinName = c.ToPinName,
+                }).ToList(),
+            };
+        }
+
+        private static FlowSubGraph DeserializeSubGraph(SerializedSubGraph s)
+        {
+            var sg = new FlowSubGraph
+            {
+                Id = s.Id,
+                Name = s.Name,
+                Trigger = Enum.TryParse(s.Trigger, out SubGraphTrigger trigger)
+                    ? trigger : SubGraphTrigger.SoftManualTrigger,
+            };
+
+            foreach (var sn in s.Nodes)
+            {
+                var node = NodeFactory.CreateNode(sn.NodeTypeName);
+                node.Id = sn.Id;
+                node.Name = sn.Name ?? node.Name;
+                node.NodeX = sn.NodeX;
+                node.NodeY = sn.NodeY;
+
+                foreach (var pv in sn.Properties)
+                {
+                    try { node.SetNodeProperty(pv.Key, pv.Value); }
+                    catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Deserialize prop error: {ex.Message}"); }
+                }
+
+                if (sn.UserPins != null)
+                {
+                    foreach (var sp in sn.UserPins)
+                    {
+                        if (sp == null || string.IsNullOrEmpty(sp.Name)) continue;
+
+                        var type = PinTypeResolver.Resolve(sp.TypeName);
+                        if (type == null) continue;
+
+                        if (sp.IsInput)
+                        {
+                            var pin = node.AddInputPin(sp.Name, type);
+                            if (pin is InputPin inp && sp.DefaultValue != null)
+                            {
+                                try { inp.DefaultValue = Convert.ChangeType(sp.DefaultValue, type); }
+                                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Deserialize default value error: {ex.Message}"); }
+                            }
+                        }
+                        else
+                        {
+                            node.AddOutputPin(sp.Name, type);
+                        }
+                    }
+                }
+
+                sg.Nodes.Add(node);
+            }
+
+            foreach (var sc in s.Connections)
+            {
+                sg.Connections.Add(new NodeConnection
+                {
+                    Id = sc.Id,
+                    FromNodeId = sc.FromNodeId,
+                    FromPinName = sc.FromPinName,
+                    ToNodeId = sc.ToNodeId,
+                    ToPinName = sc.ToPinName,
+                });
+            }
+
+            return sg;
+        }
+
+        private static SerializedNode SerializeNode(FlowNode node)
+        {
+            var props = new Dictionary<string, object>();
+            foreach (var pd in node.GetNodeProperties())
+            {
+                var val = pd.Getter();
+                if (val != null)
+                {
+                    var isDefault = pd.DefaultValue != null && val.Equals(pd.DefaultValue);
+                    if (!isDefault)
+                        props[pd.Name] = val;
+                }
+                else if (pd.DefaultValue != null)
+                {
+                    props[pd.Name] = val;
+                }
+            }
+
+            var userPins = new List<SerializedPin>();
+            foreach (var pin in node.Inputs.Where(p => p.UserDefined))
+            {
+                userPins.Add(new SerializedPin
+                {
+                    Name = pin.Name,
+                    TypeName = pin.TypeDisplayName,
+                    IsInput = true,
+                    DefaultValue = (pin is InputPin inp) ? inp.DefaultValue : null,
+                });
+            }
+            foreach (var pin in node.Outputs.Where(p => p.UserDefined))
+            {
+                userPins.Add(new SerializedPin
+                {
+                    Name = pin.Name,
+                    TypeName = pin.TypeDisplayName,
+                    IsInput = false,
+                });
+            }
+
+            return new SerializedNode
+            {
+                Id = node.Id,
+                NodeTypeName = node.GetType().FullName,
+                Name = node.Name,
+                NodeX = node.NodeX,
+                NodeY = node.NodeY,
+                Properties = props,
+                UserPins = userPins.Count > 0 ? userPins : null,
+            };
+        }
+
+        private class SerializedGraph
+        {
+            public string Name;
+            public string Version;
+            public DateTime CreatedAt;
+            public List<SerializedSubGraph> SubGraphs;
+        }
+
+        private class SerializedSubGraph
+        {
+            public Guid Id;
+            public string Name;
+            public string Trigger;
+            public List<SerializedNode> Nodes;
+            public List<SerializedConnection> Connections;
+        }
+
+        private class SerializedNode
+        {
+            public Guid Id;
+            public string NodeTypeName;
+            public string Name;
+            public double NodeX;
+            public double NodeY;
+            public Dictionary<string, object> Properties;
+            public List<SerializedPin> UserPins;
+        }
+
+        private class SerializedConnection
+        {
+            public Guid Id;
+            public Guid FromNodeId;
+            public string FromPinName;
+            public Guid ToNodeId;
+            public string ToPinName;
+        }
+
+        private class SerializedPin
+        {
+            public string Name;
+            public string TypeName;
+            public bool IsInput;
+            public object DefaultValue;
+        }
+    }
+}
