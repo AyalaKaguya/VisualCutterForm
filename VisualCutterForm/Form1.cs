@@ -759,8 +759,20 @@ namespace VisualCutterForm
         {
             RebuildDisplayNodeList();
             _lastCameraFrameRef = null;
+
+            var source = _cmbSubGraph.SelectedItem?.ToString();
+            if (source == "相机实时" && !string.IsNullOrEmpty(_selectedCamera))
+            {
+                var raw = _vision?.PeekLatestNoClone(_selectedCamera);
+                if (raw != null)
+                {
+                    _lastCameraFrameRef = raw;
+                    ShowPreview(new Bitmap(raw));
+                }
+            }
+
             if (_suppressViewSave) return;
-            _config.ViewSource = _cmbSubGraph.SelectedItem?.ToString() ?? "";
+            _config.ViewSource = source ?? "";
             _config.ViewNode = "";
             _config.SaveDebounced();
         }
@@ -787,11 +799,20 @@ namespace VisualCutterForm
         {
             var dn = GetSelectedDisplayNode();
             if (dn != null)
-                dn.MarkViewed();
+            {
+                ShowPreview(dn.GetPreviewBitmap());
+            }
 
             if (_suppressViewSave) return;
             _config.ViewNode = _cmbDisplayNode.SelectedItem?.ToString() ?? "";
             _config.SaveDebounced();
+        }
+
+        private void ShowPreview(Bitmap bmp)
+        {
+            var old = _previewBox.Image;
+            _previewBox.Image = bmp;
+            old?.Dispose();
         }
 
         private void OnPreviewTimerTick(object sender, EventArgs e)
@@ -806,9 +827,7 @@ namespace VisualCutterForm
                     if (raw != null && raw != _lastCameraFrameRef)
                     {
                         _lastCameraFrameRef = raw;
-                        var old = _previewBox.Image;
-                        _previewBox.Image = new Bitmap(raw);
-                        old?.Dispose();
+                        ShowPreview(new Bitmap(raw));
                         return;
                     }
                 }
@@ -821,9 +840,7 @@ namespace VisualCutterForm
                     var bmp = dn.GetPreviewBitmap();
                     if (bmp != null)
                     {
-                        var old = _previewBox.Image;
-                        _previewBox.Image = bmp;
-                        old?.Dispose();
+                        ShowPreview(bmp);
                         dn.MarkViewed();
                         return;
                     }
