@@ -133,11 +133,6 @@ namespace VisualCutterForm.Lib.Flow.Nodes
                         result.InputFields[field.Name] = field;
                         result.OutputFields[field.Name] = field;
                     }
-
-                    result.CompiledInstance = Activator.CreateInstance(result.CompiledType);
-                    if (result.ExecuteMethod != null)
-                        result.ExecuteDelegate = (Action)Delegate.CreateDelegate(
-                            typeof(Action), result.CompiledInstance, result.ExecuteMethod);
                 }
             }
             catch (Exception ex)

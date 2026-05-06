@@ -69,7 +69,10 @@ namespace VisualCutterForm.Lib.Flow.Nodes
 
             _compileResult = result;
             _compiledType = result.CompiledType;
-            _compiledInstance = result.CompiledInstance;
+            _compiledInstance = Activator.CreateInstance(result.CompiledType);
+            if (result.ExecuteMethod != null)
+                result.ExecuteDelegate = (Action)Delegate.CreateDelegate(
+                    typeof(Action), _compiledInstance, result.ExecuteMethod);
             return true;
         }
 
