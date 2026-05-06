@@ -4,7 +4,6 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using VisualCutterForm.Lib.Flow;
-using VisualCutterForm.Lib.Flow.Data;
 
 namespace VisualCutterForm.FlowEditor
 {
@@ -90,8 +89,7 @@ namespace VisualCutterForm.FlowEditor
                         (int)(pinY / zoom) - offset.Y));
 
                     g.FillEllipse(Node.Inputs[i].IsConnected ? PinConnectedBrush : PinDisconnectedBrush, pinRect);
-                    var pinLabel = FormatPinLabel(Node.Inputs[i]);
-                    g.DrawString(pinLabel, textFont, TextBrush,
+                    g.DrawString(Node.Inputs[i].Name, textFont, TextBrush,
                         new RectangleF(bounds.X + 20, y, bounds.Width - 24, RowHeight * zoom), strFmt);
                 }
 
@@ -110,8 +108,7 @@ namespace VisualCutterForm.FlowEditor
                     g.FillEllipse(Node.Outputs[i].Targets.Count > 0 ? PinConnectedBrush : PinDisconnectedBrush, pinRect);
 
                     strFmt.Alignment = StringAlignment.Far;
-                    var pinLabel = FormatPinLabel(Node.Outputs[i]);
-                    g.DrawString(pinLabel, textFont, TextBrush,
+                    g.DrawString(Node.Outputs[i].Name, textFont, TextBrush,
                         new RectangleF(bounds.X + 4, y, bounds.Width - 24, RowHeight * zoom), strFmt);
                     strFmt.Alignment = StringAlignment.Near;
                 }
@@ -184,31 +181,6 @@ namespace VisualCutterForm.FlowEditor
             var cat = Node.Category ?? "";
             int hash = Math.Abs(cat.GetHashCode());
             return CategoryColors[hash % CategoryColors.Length];
-        }
-
-        private static string FormatPinLabel(NodePin pin)
-        {
-            var valText = FormatPinValue(pin.LastValue);
-            return valText == null ? pin.Name : $"{pin.Name} = {valText}";
-        }
-
-        private static string FormatPinValue(object val)
-        {
-            if (val == null) return null;
-            if (val is OpenCvSharp.Mat m && !m.IsDisposed && !m.Empty())
-                return $"Mat {m.Width}x{m.Height}";
-            if (val is Bitmap bmp)
-                return $"Bitmap {bmp.Width}x{bmp.Height}";
-            if (val is AcquisitionResult ar)
-                return $"AcqResult {ar.Width}x{ar.Height}";
-            if (val is string s)
-                return s.Length > 20 ? $"\"{s.Substring(0, 18)}…\"" : $"\"{s}\"";
-            if (val is int i) return i.ToString();
-            if (val is float f) return f.ToString("0.##");
-            if (val is double d) return d.ToString("0.##");
-            if (val is bool b) return b.ToString();
-            if (val is long l) return l.ToString();
-            return $"({val.GetType().Name})";
         }
     }
 }

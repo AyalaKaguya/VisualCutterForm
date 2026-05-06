@@ -230,6 +230,8 @@ namespace VisualCutterForm.FlowEditor
                 }
                 y += 22;
 
+                y += AddPinValueRow(w, y, pin);
+
                 if (!pin.IsConnected)
                 {
                     var defLabel = new Label
@@ -282,9 +284,48 @@ namespace VisualCutterForm.FlowEditor
                     _scrollPanel.Controls.Add(btn);
                 }
                 y += 22;
+
+                y += AddPinValueRow(w, y, pin);
             }
 
             return y - startY;
+        }
+
+        private int AddPinValueRow(int w, int y, NodePin pin)
+        {
+            var valText = FormatInspectorPinValue(pin.LastValue);
+            if (valText == null) return 0;
+
+            var lbl = new Label
+            {
+                Text = $"  值: {valText}",
+                Location = new Point(16, y + 2),
+                Size = new Size(Math.Min(w - 32, 160), 16),
+                ForeColor = Color.FromArgb(180, 180, 180),
+                Font = new Font("Microsoft YaHei", 7.5F),
+                AutoSize = true,
+            };
+            _scrollPanel.Controls.Add(lbl);
+            return 20;
+        }
+
+        private static string FormatInspectorPinValue(object val)
+        {
+            if (val == null) return null;
+            if (val is OpenCvSharp.Mat m && !m.IsDisposed && !m.Empty())
+                return $"Mat {m.Width}x{m.Height}";
+            if (val is System.Drawing.Bitmap bmp)
+                return $"Bitmap {bmp.Width}x{bmp.Height}";
+            if (val is Lib.Flow.Data.AcquisitionResult ar)
+                return $"AcqResult {ar.Width}x{ar.Height}";
+            if (val is string s)
+                return s.Length > 30 ? $"\"{s.Substring(0, 28)}…\"" : $"\"{s}\"";
+            if (val is int i) return i.ToString();
+            if (val is float f) return f.ToString("0.##");
+            if (val is double d) return d.ToString("0.##");
+            if (val is bool b) return b.ToString();
+            if (val is long l) return l.ToString();
+            return $"({val.GetType().Name})";
         }
 
         private Control CreateDefaultEditor(InputPin pin, int w)
