@@ -46,4 +46,4 @@ Do not hand-edit these auto-generated files:
 
 ## Constraints
 - No CI/CD, linter, or formatter configured
-- Not a git repo (`git init` before first commit)
+- `.csproj` uses explicit `<Compile Include="...">` entries (old format). Every new `.cs` file must be manually added to `VisualCutterForm/VisualCutterForm.csproj` or it won't be compiled.
