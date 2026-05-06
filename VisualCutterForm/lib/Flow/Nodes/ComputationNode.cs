@@ -44,6 +44,7 @@ namespace VisualCutterForm.Lib.Flow.Nodes
         private CSharpScriptCompiler.CompileResult _compileResult;
         private object _compiledInstance;
         private Type _compiledType;
+        private Action _executeDelegate;
         private string _lastError;
         private List<string> _compileErrors = new List<string>();
 
@@ -70,8 +71,9 @@ namespace VisualCutterForm.Lib.Flow.Nodes
             _compileResult = result;
             _compiledType = result.CompiledType;
             _compiledInstance = Activator.CreateInstance(result.CompiledType);
+            _executeDelegate = null;
             if (result.ExecuteMethod != null)
-                result.ExecuteDelegate = (Action)Delegate.CreateDelegate(
+                _executeDelegate = (Action)Delegate.CreateDelegate(
                     typeof(Action), _compiledInstance, result.ExecuteMethod);
             return true;
         }
@@ -101,8 +103,8 @@ namespace VisualCutterForm.Lib.Flow.Nodes
             BindInputsToCompiled(context);
             BindInputsToProperties(context);
 
-            if (_compileResult.ExecuteDelegate != null)
-                _compileResult.ExecuteDelegate();
+            if (_executeDelegate != null)
+                _executeDelegate();
             else if (_compileResult.ExecuteMethod == null)
                 throw new InvalidOperationException("UserCode 类缺少 Execute() 方法。");
             else

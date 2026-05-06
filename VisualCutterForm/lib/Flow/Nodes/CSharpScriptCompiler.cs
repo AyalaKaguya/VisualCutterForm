@@ -37,7 +37,6 @@ namespace VisualCutterForm.Lib.Flow.Nodes
             public Dictionary<string, FieldInfo> InputFields { get; set; }
             public Dictionary<string, FieldInfo> OutputFields { get; set; }
             public FieldInfo ContextField { get; set; }
-            public Action ExecuteDelegate { get; set; }
         }
 
         public CompileResult Compile(string sourceCode, string extraReferences, string nugetPackages, bool debug)
