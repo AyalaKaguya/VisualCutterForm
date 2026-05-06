@@ -135,6 +135,57 @@ namespace VisualCutterForm.FlowEditor
             Invalidate();
         }
 
+        private void RemoveConnection(NodeConnection conn)
+        {
+            if (conn == null || _subGraph == null) return;
+
+            var fromNode = _subGraph.FindNode(conn.FromNodeId);
+            var toNode = _subGraph.FindNode(conn.ToNodeId);
+
+            if (fromNode != null && toNode != null)
+            {
+                var inPin = toNode.FindInput(conn.ToPinName);
+                inPin?.Disconnect();
+            }
+
+            _subGraph.Connections.Remove(conn);
+            ConnectionDeleted?.Invoke(conn);
+            Invalidate();
+        }
+
+        private NodeConnection HitTestConnection(Point screenPoint)
+        {
+            if (_subGraph == null) return null;
+            const int hitRadius = 8;
+
+            foreach (var conn in _subGraph.Connections)
+            {
+                var fromView = FindView(_subGraph.FindNode(conn.FromNodeId));
+                var toView = FindView(_subGraph.FindNode(conn.ToNodeId));
+                if (fromView == null || toView == null) continue;
+
+                int fromIdx = fromView.Node.Outputs.FindIndex(o => o.Name == conn.FromPinName);
+                int toIdx = toView.Node.Inputs.FindIndex(i => i.Name == conn.ToPinName);
+                if (fromIdx < 0 || toIdx < 0) continue;
+                if (fromIdx >= fromView.OutputPinLocations.Count ||
+                    toIdx >= toView.InputPinLocations.Count) continue;
+
+                var p1 = fromView.OutputPinLocations[fromIdx];
+                var p2 = toView.InputPinLocations[toIdx];
+
+                int mx = (p1.X + p2.X) / 2;
+                int my = (p1.Y + p2.Y) / 2;
+
+                int sx = (int)((mx + _offset.X) * _zoom);
+                int sy = (int)((my + _offset.Y) * _zoom);
+
+                double dist = Math.Sqrt(Math.Pow(screenPoint.X - sx, 2) + Math.Pow(screenPoint.Y - sy, 2));
+                if (dist <= hitRadius * _zoom)
+                    return conn;
+            }
+            return null;
+        }
+
         public FlowNodeView FindView(FlowNode node)
         {
             if (node == null) return null;
@@ -269,6 +320,16 @@ namespace VisualCutterForm.FlowEditor
                         return;
                     }
                 }
+
+                var hitConn = HitTestConnection(e.Location);
+                if (hitConn != null)
+                {
+                    var ctx = new ContextMenuStrip();
+                    ctx.Items.Add("删除连线", null, (s2, e2) => RemoveConnection(hitConn));
+                    ctx.Show(this, e.Location);
+                    return;
+                }
+
                 return;
             }
 
