@@ -113,6 +113,7 @@
     <Compile Include="Lib\Flow\Nodes\SerialReceiveNode.cs" />
     <Compile Include="Lib\Flow\Nodes\ComputationNode.cs" />
     <Compile Include="Lib\Flow\Nodes\ImageDisplayNode.cs" />
+    <Compile Include="Lib\Flow\Nodes\AcqResultToMatNode.cs" />
     <Compile Include="Lib\Flow\Nodes\CSharpScriptCompiler.cs" />
     <Compile Include="Lib\Flow\FlowSubGraph.cs" />
     <Compile Include="Lib\Flow\FlowGraph.cs" />
