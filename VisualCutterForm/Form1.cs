@@ -18,7 +18,7 @@ namespace VisualCutterForm
         private MenuStrip _menuStrip;
         private StatusStrip _statusStrip;
         private ToolStripStatusLabel _statusLabel;
-        private PictureBox _previewBox;
+        private ImageViewer _previewBox;
         private ToolStripMenuItem _miCameraSelect;
         private ToolStripMenuItem _miCameraSettings;
         private ToolStripMenuItem _miSerialConnect;
@@ -284,10 +284,9 @@ namespace VisualCutterForm
                 UpdateMenuState();
             };
 
-            _previewBox = new PictureBox
+            _previewBox = new ImageViewer
             {
                 Dock = DockStyle.Fill,
-                SizeMode = PictureBoxSizeMode.Zoom,
                 BackColor = Color.FromArgb(40, 40, 40),
             };
 

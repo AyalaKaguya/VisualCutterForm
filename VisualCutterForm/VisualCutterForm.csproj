@@ -140,6 +140,9 @@
     <Compile Include="Form\FlowEditor\FlowEditorForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Form\ImageViewer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="Form\LoginForm.cs">
       <SubType>Form</SubType>
     </Compile>
