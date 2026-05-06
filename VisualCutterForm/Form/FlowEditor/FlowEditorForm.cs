@@ -38,7 +38,9 @@ namespace VisualCutterForm.FlowEditor
 
             InitializeForm();
 
-            _graph.AddSubGraph("子图1", SubGraphTrigger.SoftManualTrigger);
+            if (_graph.SubGraphs.Count == 0)
+                _graph.AddSubGraph("子图1", SubGraphTrigger.SoftManualTrigger);
+
             _canvas.SubGraph = _graph.SubGraphs[0];
             _tabSubGraphs.TabPages.Add(new TabPage(_graph.SubGraphs[0].Name) { Tag = _graph.SubGraphs[0].Id });
             _tabSubGraphs.SelectedTab = _tabSubGraphs.TabPages[0];
