@@ -445,26 +445,19 @@ namespace VisualCutterForm.FlowEditor
             var sg = _graph.FindSubGraph(id);
             if (sg == null) return;
 
-            using (var form = new Form
+            var newName = ShowInputDialog("重命名子图", "新名称:", sg.Name);
+            if (!string.IsNullOrWhiteSpace(newName))
             {
-                Width = 300, Height = 150, FormBorderStyle = FormBorderStyle.FixedDialog,
-                StartPosition = FormStartPosition.CenterParent, Text = "重命名子图",
-                MaximizeBox = false, MinimizeBox = false
-            })
-            {
-                var lbl = new Label { Text = "新名称:", Left = 10, Top = 20, Width = 60 };
-                var txt = new TextBox { Left = 80, Top = 18, Width = 180, Text = sg.Name };
-                var btnOk = new Button { Text = "确定", Left = 80, Width = 80, Top = 50, DialogResult = DialogResult.OK };
-                var btnCancel = new Button { Text = "取消", Left = 170, Width = 80, Top = 50, DialogResult = DialogResult.Cancel };
-                form.Controls.AddRange(new Control[] { lbl, txt, btnOk, btnCancel });
-                form.AcceptButton = btnOk;
-                form.CancelButton = btnCancel;
+                sg.Name = newName;
+                _tabSubGraphs.SelectedTab.Text = sg.Name;
+            }
+        }
 
-                if (form.ShowDialog() == DialogResult.OK && !string.IsNullOrWhiteSpace(txt.Text))
-                {
-                    sg.Name = txt.Text.Trim();
-                    _tabSubGraphs.SelectedTab.Text = sg.Name;
-                }
+        private static string ShowInputDialog(string title, string prompt, string initialValue)
+        {
+            using (var dlg = new InputDialog(title, prompt, initialValue))
+            {
+                return dlg.InputText;
             }
         }
 

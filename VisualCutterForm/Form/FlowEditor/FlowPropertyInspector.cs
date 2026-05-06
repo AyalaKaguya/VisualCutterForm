@@ -12,7 +12,6 @@ namespace VisualCutterForm.FlowEditor
         private Label _lblNodeType;
         private FlowNode _selectedNode;
         private FlowSubGraph _selectedSubGraph;
-        private Dictionary<string, Control> _editors = new Dictionary<string, Control>();
         private TextBox _txtNewPinName;
         private ComboBox _cmbNewPinType;
         private Button _btnAddInput;
@@ -371,7 +370,6 @@ namespace VisualCutterForm.FlowEditor
                 _selectedNode.OnPinsChanged -= OnNodePinsChanged;
 
             _selectedNode = node;
-            _editors.Clear();
 
             if (node == null)
             {
@@ -407,12 +405,11 @@ namespace VisualCutterForm.FlowEditor
             _lblNodeType.Text = $"子图 · {sg.Nodes.Count} 个节点";
 
             _scrollPanel.Controls.Clear();
-            _editors.Clear();
 
             var innerWidth = _scrollPanel.ClientSize.Width - 16;
             var y = 4;
 
-            AddSubGraphPropertyRow(innerWidth, ref y, "触发模式", TriggerDisplayName(sg.Trigger));
+            AddSubGraphPropertyRow(innerWidth, ref y, "触发模式", sg.Trigger.ToDisplayName());
             AddSubGraphPropertyRow(innerWidth, ref y, "节点数", sg.Nodes.Count.ToString());
             AddSubGraphPropertyRow(innerWidth, ref y, "连线数", sg.Connections.Count.ToString());
             AddSubGraphPropertyRow(innerWidth, ref y, "ID", sg.Id.ToString("N").Substring(0, 8));
@@ -441,18 +438,6 @@ namespace VisualCutterForm.FlowEditor
             _scrollPanel.Controls.Add(lbl);
             _scrollPanel.Controls.Add(val);
             y += 22;
-        }
-
-        private static string TriggerDisplayName(SubGraphTrigger trigger)
-        {
-            switch (trigger)
-            {
-                case SubGraphTrigger.HardCameraTrigger: return "相机触发";
-                case SubGraphTrigger.SoftManualTrigger: return "手动触发";
-                case SubGraphTrigger.CommunicationTrigger: return "通讯触发";
-                case SubGraphTrigger.AlwaysRunning: return "持续运行";
-                default: return trigger.ToString();
-            }
         }
 
         private void OnNodePinsChanged(FlowNode node)

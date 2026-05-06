@@ -24,6 +24,7 @@ namespace VisualCutterForm
         private readonly FlowNode _node;
         private List<string> _dllRefs;
         private List<string> _nugetPkgs;
+        private Brush _kwBrush, _cmBrush, _stBrush, _nuBrush;
 
         public string SourceCode => _editor.Text;
         public string ExtraReferences => string.Join(";", _dllRefs);
@@ -297,14 +298,14 @@ public class UserCode
             _editor.IsChanged = false;
 
             // C# syntax highlight styles
-            var kwBrush = new SolidBrush(Color.FromArgb(86, 156, 214));
-            var cmBrush = new SolidBrush(Color.FromArgb(87, 166, 74));
-            var stBrush = new SolidBrush(Color.FromArgb(214, 157, 133));
-            var nuBrush = new SolidBrush(Color.FromArgb(181, 206, 168));
-            var keywordStyle = new TextStyle(kwBrush, null, FontStyle.Regular);
-            var commentStyle = new TextStyle(cmBrush, null, FontStyle.Regular);
-            var stringStyle = new TextStyle(stBrush, null, FontStyle.Regular);
-            var numberStyle = new TextStyle(nuBrush, null, FontStyle.Regular);
+            _kwBrush = new SolidBrush(Color.FromArgb(86, 156, 214));
+            _cmBrush = new SolidBrush(Color.FromArgb(87, 166, 74));
+            _stBrush = new SolidBrush(Color.FromArgb(214, 157, 133));
+            _nuBrush = new SolidBrush(Color.FromArgb(181, 206, 168));
+            var keywordStyle = new TextStyle(_kwBrush, null, FontStyle.Regular);
+            var commentStyle = new TextStyle(_cmBrush, null, FontStyle.Regular);
+            var stringStyle = new TextStyle(_stBrush, null, FontStyle.Regular);
+            var numberStyle = new TextStyle(_nuBrush, null, FontStyle.Regular);
 
             // apply syntax to full text initially
             _editor.Range.ClearStyle(keywordStyle, commentStyle, stringStyle, numberStyle);
@@ -604,6 +605,15 @@ public class UserCode
             _logBox.SelectionColor = color;
             _logBox.AppendText(text + "\n");
             _logBox.ScrollToCaret();
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            _kwBrush?.Dispose();
+            _cmBrush?.Dispose();
+            _stBrush?.Dispose();
+            _nuBrush?.Dispose();
+            base.OnFormClosing(e);
         }
     }
 }

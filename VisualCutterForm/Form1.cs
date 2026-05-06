@@ -482,7 +482,7 @@ namespace VisualCutterForm
             foreach (var sg in _flowGraph.SubGraphs)
             {
                 var sgCaptured = sg;
-                var label = $"{sgCaptured.Name} ({TriggerDisplayName(sgCaptured.Trigger)})";
+                var label = $"{sgCaptured.Name} ({sgCaptured.Trigger.ToDisplayName()})";
                 var miItem = new ToolStripMenuItem(label, null, async (s, e) =>
                 {
                     _flowExecutor.LoadGraph(_flowGraph);
@@ -493,18 +493,6 @@ namespace VisualCutterForm
                 });
                 miItem.Enabled = canRun;
                 miRun.DropDownItems.Add(miItem);
-            }
-        }
-
-        private static string TriggerDisplayName(SubGraphTrigger trigger)
-        {
-            switch (trigger)
-            {
-                case SubGraphTrigger.HardCameraTrigger: return "相机触发";
-                case SubGraphTrigger.SoftManualTrigger: return "手动触发";
-                case SubGraphTrigger.CommunicationTrigger: return "通讯触发";
-                case SubGraphTrigger.AlwaysRunning: return "持续运行";
-                default: return trigger.ToString();
             }
         }
 
@@ -608,7 +596,7 @@ namespace VisualCutterForm
                 _config.LastCameraIndex = index;
                 _config.LastCameraSerial = serial;
                 _config.LastCameraList = string.Join(",", _activeCameras);
-                _config.Save();
+                _config.SaveDebounced();
 
                 UpdateMenuState();
             }
@@ -767,7 +755,7 @@ namespace VisualCutterForm
             if (_suppressViewSave) return;
             _config.ViewSource = _cmbSubGraph.SelectedItem?.ToString() ?? "";
             _config.ViewNode = "";
-            _config.Save();
+            _config.SaveDebounced();
         }
 
         private ImageDisplayNode GetSelectedDisplayNode()
@@ -796,7 +784,7 @@ namespace VisualCutterForm
 
             if (_suppressViewSave) return;
             _config.ViewNode = _cmbDisplayNode.SelectedItem?.ToString() ?? "";
-            _config.Save();
+            _config.SaveDebounced();
         }
 
         private void OnPreviewTimerTick(object sender, EventArgs e)
@@ -863,7 +851,7 @@ namespace VisualCutterForm
                 _flowGraph = FlowSerializer.DeserializeFromFile(path, warnings);
                 _flowExecutor.LoadGraph(_flowGraph);
                 _config.FlowFilePath = path;
-                _config.Save();
+                _config.SaveDebounced();
                 RebuildViewSelector();
                 OnStatusChanged(this, $"流程已加载: {System.IO.Path.GetFileName(path)}");
                 if (warnings.Count > 0)

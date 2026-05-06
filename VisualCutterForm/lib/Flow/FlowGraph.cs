@@ -6,8 +6,10 @@ namespace VisualCutterForm.Lib.Flow
 {
     public class FlowGraph
     {
+        public const string CurrentVersion = "1.1";
+
         public string Name { get; set; } = "流程图";
-        public string Version { get; set; } = "1.0";
+        public string Version { get; set; } = CurrentVersion;
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public List<FlowSubGraph> SubGraphs { get; set; } = new List<FlowSubGraph>();
 

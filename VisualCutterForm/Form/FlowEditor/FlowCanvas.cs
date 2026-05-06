@@ -26,6 +26,8 @@ namespace VisualCutterForm.FlowEditor
         private int _connectFromPinIndex;
         private bool _connectIsOutput;
         private float _zoom = 1f;
+        private readonly Pen _connectPen = new Pen(Color.FromArgb(46, 204, 113), 1.5f);
+        private readonly Pen _dashPen = new Pen(Color.FromArgb(46, 204, 113), 2f) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash };
 
         private readonly Font _font = new Font("Microsoft YaHei", 9F);
 
@@ -183,13 +185,10 @@ namespace VisualCutterForm.FlowEditor
             if (_isConnecting)
             {
                 var end = PointToClient(MousePosition);
-                using (var pen = new Pen(Color.FromArgb(46, 204, 113), 2f) { DashStyle = DashStyle.Dash })
-                {
-                    var start = new Point(
-                        (int)((_connectStart.X + _offset.X) * _zoom),
-                        (int)((_connectStart.Y + _offset.Y) * _zoom));
-                    g.DrawLine(pen, start, end);
-                }
+                var start = new Point(
+                    (int)((_connectStart.X + _offset.X) * _zoom),
+                    (int)((_connectStart.Y + _offset.Y) * _zoom));
+                g.DrawLine(_dashPen, start, end);
             }
         }
 
@@ -197,47 +196,44 @@ namespace VisualCutterForm.FlowEditor
         {
             if (_subGraph == null) return;
 
-            using (var pen = new Pen(Color.FromArgb(46, 204, 113), 1.5f))
+            foreach (var conn in _subGraph.Connections)
             {
-                foreach (var conn in _subGraph.Connections)
+                var fromView = FindView(_subGraph.FindNode(conn.FromNodeId));
+                var toView = FindView(_subGraph.FindNode(conn.ToNodeId));
+                if (fromView == null || toView == null) continue;
+
+                var fromPin = fromView.Node.FindOutput(conn.FromPinName);
+                var toPin = toView.Node.FindInput(conn.ToPinName);
+                if (fromPin == null || toPin == null) continue;
+
+                int fromIdx = fromView.Node.Outputs.IndexOf(fromPin);
+                int toIdx = toView.Node.Inputs.IndexOf(toPin);
+                if (fromIdx < 0 || toIdx < 0) continue;
+
+                if (fromIdx >= fromView.OutputPinLocations.Count ||
+                    toIdx >= toView.InputPinLocations.Count) continue;
+
+                var p1 = fromView.OutputPinLocations[fromIdx];
+                var p2 = toView.InputPinLocations[toIdx];
+
+                int x1 = (int)((p1.X + _offset.X) * _zoom);
+                int y1 = (int)((p1.Y + _offset.Y) * _zoom);
+                int x2 = (int)((p2.X + _offset.X) * _zoom);
+                int y2 = (int)((p2.Y + _offset.Y) * _zoom);
+
+                int cx = Math.Abs(x2 - x1) / 2;
+                using (var gp = new GraphicsPath())
                 {
-                    var fromView = FindView(_subGraph.FindNode(conn.FromNodeId));
-                    var toView = FindView(_subGraph.FindNode(conn.ToNodeId));
-                    if (fromView == null || toView == null) continue;
-
-                    var fromPin = fromView.Node.FindOutput(conn.FromPinName);
-                    var toPin = toView.Node.FindInput(conn.ToPinName);
-                    if (fromPin == null || toPin == null) continue;
-
-                    int fromIdx = fromView.Node.Outputs.IndexOf(fromPin);
-                    int toIdx = toView.Node.Inputs.IndexOf(toPin);
-                    if (fromIdx < 0 || toIdx < 0) continue;
-
-                    if (fromIdx >= fromView.OutputPinLocations.Count ||
-                        toIdx >= toView.InputPinLocations.Count) continue;
-
-                    var p1 = fromView.OutputPinLocations[fromIdx];
-                    var p2 = toView.InputPinLocations[toIdx];
-
-                    int x1 = (int)((p1.X + _offset.X) * _zoom);
-                    int y1 = (int)((p1.Y + _offset.Y) * _zoom);
-                    int x2 = (int)((p2.X + _offset.X) * _zoom);
-                    int y2 = (int)((p2.Y + _offset.Y) * _zoom);
-
-                    int cx = Math.Abs(x2 - x1) / 2;
-                    using (var gp = new GraphicsPath())
-                    {
-                        gp.AddBezier(x1, y1,
-                            x1 + cx, y1,
-                            x2 - cx, y2,
-                            x2, y2);
-                        g.DrawPath(pen, gp);
-                    }
-
-                    int midX = (x1 + x2) / 2;
-                    int midY = (y1 + y2) / 2;
-                    g.FillEllipse(Brushes.White, midX - 3, midY - 3, 6, 6);
+                    gp.AddBezier(x1, y1,
+                        x1 + cx, y1,
+                        x2 - cx, y2,
+                        x2, y2);
+                    g.DrawPath(_connectPen, gp);
                 }
+
+                int midX = (x1 + x2) / 2;
+                int midY = (y1 + y2) / 2;
+                g.FillEllipse(Brushes.White, midX - 3, midY - 3, 6, 6);
             }
         }
 

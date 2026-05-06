@@ -37,7 +37,7 @@ namespace VisualCutterForm.Lib.Flow
         {
             get
             {
-                return GetType().GetCustomAttribute<NodeBackgroundAttribute>() != null;
+                return GetMetadata().IsBackground;
             }
         }
 
@@ -62,6 +62,7 @@ namespace VisualCutterForm.Lib.Flow
             return _metadataCache.GetOrAdd(GetType(), t =>
             {
                 var meta = new NodeMetadata();
+                meta.IsBackground = t.GetCustomAttribute<NodeBackgroundAttribute>() != null;
                 meta.Properties = t.GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
                 foreach (var p in meta.Properties)
@@ -288,6 +289,7 @@ namespace VisualCutterForm.Lib.Flow
 
         internal class NodeMetadata
         {
+            public bool IsBackground;
             public PropertyInfo[] Properties;
             public readonly Dictionary<PropertyInfo, NodeInputAttribute> InputAttrs
                 = new Dictionary<PropertyInfo, NodeInputAttribute>();

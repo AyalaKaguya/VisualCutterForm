@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading;
 
 namespace VisualCutterForm.Lib
 {
@@ -7,6 +8,7 @@ namespace VisualCutterForm.Lib
     {
         private readonly IniFile _ini;
         private CameraSettingsStore _cameraStore;
+        private Timer _debounceTimer;
 
         private const string SECTION_GENERAL = "General";
         private const string SECTION_SERIAL = "Serial";
@@ -60,6 +62,17 @@ namespace VisualCutterForm.Lib
             _ini.Write(SECTION_LOGIN, "EngineerPassword", EngineerPassword);
             _ini.Write(SECTION_LOGIN, "UserPassword", UserPassword);
             _ini.WriteInt(SECTION_LOGIN, "DefaultRole", (int)DefaultRole);
+        }
+
+        public void SaveDebounced(int delayMs = 300)
+        {
+            _debounceTimer?.Dispose();
+            _debounceTimer = new Timer(_ =>
+            {
+                _debounceTimer?.Dispose();
+                _debounceTimer = null;
+                Save();
+            }, null, delayMs, Timeout.Infinite);
         }
 
         public void Reload()

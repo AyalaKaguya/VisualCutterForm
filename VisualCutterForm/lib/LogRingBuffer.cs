@@ -32,13 +32,14 @@ namespace VisualCutterForm.Lib
 
         private static void TrimHead(RichTextBox rtb)
         {
-            while (rtb.Lines.Length > MaxLines + 1)
-            {
-                var idx = rtb.GetFirstCharIndexFromLine(1);
-                if (idx <= 0) break;
-                rtb.Select(0, idx);
-                rtb.SelectedText = "";
-            }
+            var lineCount = rtb.Lines.Length;
+            if (lineCount <= MaxLines + 1) return;
+
+            var removeCount = lineCount - MaxLines + 50;
+            var idx = rtb.GetFirstCharIndexFromLine(removeCount);
+            if (idx <= 0) return;
+            rtb.Select(0, idx);
+            rtb.SelectedText = "";
         }
     }
 }

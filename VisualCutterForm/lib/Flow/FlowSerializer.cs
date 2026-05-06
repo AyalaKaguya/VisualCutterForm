@@ -59,9 +59,12 @@ namespace VisualCutterForm.Lib.Flow
             var graph = new FlowGraph
             {
                 Name = s.Name,
-                Version = s.Version,
+                Version = FlowGraph.CurrentVersion,
                 CreatedAt = s.CreatedAt,
             };
+
+            if (s.Version != FlowGraph.CurrentVersion)
+                warnings?.Add($"流程版本从 {s.Version ?? "?"} 升级到 {FlowGraph.CurrentVersion}");
 
             foreach (var sg in s.SubGraphs)
             {

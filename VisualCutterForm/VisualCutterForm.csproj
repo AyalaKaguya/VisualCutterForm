@@ -120,6 +120,7 @@
     <Compile Include="Lib\Flow\FlowSerializer.cs" />
     <Compile Include="Lib\Flow\PinTypeResolver.cs" />
     <Compile Include="Lib\Flow\ServiceProvider.cs" />
+    <Compile Include="Lib\Flow\TriggerExtensions.cs" />
     <Compile Include="Lib\Flow\IFlowServiceProvider.cs" />
     <Compile Include="Form\FlowEditor\FlowNodeView.cs" />
     <Compile Include="Form\FlowEditor\FlowCanvas.cs">
@@ -127,6 +128,9 @@
     </Compile>
     <Compile Include="Form\FlowEditor\FlowToolbox.cs">
       <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Form\FlowEditor\InputDialog.cs">
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="Form\FlowEditor\FlowPropertyInspector.cs">
       <SubType>UserControl</SubType>

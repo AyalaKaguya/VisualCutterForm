@@ -10,6 +10,7 @@ namespace VisualCutterForm.Lib
     {
         private readonly CameraManager _cameraManager;
         private readonly Dictionary<string, CameraSlot> _slots;
+        private readonly Dictionary<ICamera, string> _cameraToSerial = new Dictionary<ICamera, string>();
         private readonly Dictionary<string, ISerialPort> _serialPorts;
         private readonly CameraSettingsStore _settingsStore;
         private volatile bool _disposed;
@@ -132,6 +133,7 @@ namespace VisualCutterForm.Lib
             };
 
             _slots[serial] = slot;
+            _cameraToSerial[camera] = serial;
 
             ApplySettings(camera, settings);
             NotifyStatus($"Camera opened: {camera.Name}");
@@ -147,6 +149,7 @@ namespace VisualCutterForm.Lib
             slot.Camera.ImageGrabbed -= OnCameraImageGrabbed;
             slot.Camera.Dispose();
 
+            _cameraToSerial.Remove(slot.Camera);
             slot.Fifo.Dispose();
             _slots.Remove(serialNumber);
 
@@ -345,13 +348,10 @@ namespace VisualCutterForm.Lib
 
         private void OnCameraImageGrabbed(object sender, Bitmap bitmap)
         {
-            foreach (var kv in _slots)
+            if (_cameraToSerial.TryGetValue((ICamera)sender, out var serial)
+                && _slots.TryGetValue(serial, out var slot))
             {
-                if (kv.Value.Camera == sender)
-                {
-                    kv.Value.Fifo.Enqueue(bitmap);
-                    break;
-                }
+                slot.Fifo.Enqueue(bitmap);
             }
         }
 
