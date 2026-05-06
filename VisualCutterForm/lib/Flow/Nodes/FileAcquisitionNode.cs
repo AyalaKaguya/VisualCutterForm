@@ -73,6 +73,7 @@ namespace VisualCutterForm.Lib.Flow.Nodes
                 SourceFilePath = path,
                 Timestamp = DateTime.Now,
             };
+            mat.Dispose();
         }
 
         private void EnsureFileList()

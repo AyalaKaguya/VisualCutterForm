@@ -64,6 +64,7 @@ namespace VisualCutterForm.Lib.Flow.Nodes
                         Timestamp = DateTime.Now,
                         TriggerModeUsed = "HardTrigger",
                     };
+                    mat.Dispose();
                 }
             }
             else
@@ -83,6 +84,7 @@ namespace VisualCutterForm.Lib.Flow.Nodes
                             Timestamp = DateTime.Now,
                             TriggerModeUsed = "SoftTrigger",
                         };
+                        mat.Dispose();
                     }
                 }
             }

@@ -44,6 +44,7 @@ namespace VisualCutterForm
         private ComboBox _cmbDisplayNode;
         private System.Windows.Forms.Timer _previewTimer;
         private bool _suppressViewSave;
+        private object _lastCameraFrameRef;
         private UserRole _currentRole = UserRole.None;
 
         public Form1()
@@ -752,6 +753,7 @@ namespace VisualCutterForm
         private void OnSourceSelectionChanged(object sender, EventArgs e)
         {
             RebuildDisplayNodeList();
+            _lastCameraFrameRef = null;
             if (_suppressViewSave) return;
             _config.ViewSource = _cmbSubGraph.SelectedItem?.ToString() ?? "";
             _config.ViewNode = "";
@@ -790,17 +792,18 @@ namespace VisualCutterForm
         private void OnPreviewTimerTick(object sender, EventArgs e)
         {
             var source = _cmbSubGraph.SelectedItem?.ToString();
-            var oldImg = _previewBox.Image;
 
             if (source == "相机实时")
             {
                 if (!string.IsNullOrEmpty(_selectedCamera))
                 {
-                    var bmp = _vision?.PeekLatestFromFifo(_selectedCamera);
-                    if (bmp != null)
+                    var raw = _vision?.PeekLatestNoClone(_selectedCamera);
+                    if (raw != null && raw != _lastCameraFrameRef)
                     {
-                        _previewBox.Image = bmp;
-                        oldImg?.Dispose();
+                        _lastCameraFrameRef = raw;
+                        var old = _previewBox.Image;
+                        _previewBox.Image = new Bitmap(raw);
+                        old?.Dispose();
                         return;
                     }
                 }
@@ -808,20 +811,19 @@ namespace VisualCutterForm
             else
             {
                 var dn = GetSelectedDisplayNode();
-                if (dn != null)
+                if (dn != null && dn.IsModified)
                 {
                     var bmp = dn.GetPreviewBitmap();
                     if (bmp != null)
                     {
+                        var old = _previewBox.Image;
                         _previewBox.Image = bmp;
-                        oldImg?.Dispose();
+                        old?.Dispose();
+                        dn.MarkViewed();
                         return;
                     }
                 }
             }
-
-            _previewBox.Image = null;
-            oldImg?.Dispose();
         }
 
         #endregion

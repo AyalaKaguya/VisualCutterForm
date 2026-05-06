@@ -118,6 +118,14 @@ namespace VisualCutterForm.Lib
             }
         }
 
+        public Bitmap PeekLatestNoClone()
+        {
+            lock (_lock)
+            {
+                return _latestFrame;
+            }
+        }
+
         public void Clear()
         {
             lock (_lock)

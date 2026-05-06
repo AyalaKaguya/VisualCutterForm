@@ -215,6 +215,13 @@ namespace VisualCutterForm.Lib
             return slot.Fifo.PeekLatest();
         }
 
+        public Bitmap PeekLatestNoClone(string serialNumber)
+        {
+            if (!_slots.TryGetValue(serialNumber, out var slot))
+                return null;
+            return slot.Fifo.PeekLatestNoClone();
+        }
+
         public ImageFifo GetFifo(string serialNumber)
         {
             if (_slots.TryGetValue(serialNumber, out var slot))
