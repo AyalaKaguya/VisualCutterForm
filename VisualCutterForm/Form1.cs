@@ -154,11 +154,16 @@ namespace VisualCutterForm
             });
             _miFlowEditor = new ToolStripMenuItem("流程图编辑器...", null, (s, e) =>
             {
-                using (var editor = new FlowEditor.FlowEditorForm(_vision))
+                using (var editor = new FlowEditor.FlowEditorForm(_flowExecutor, _flowGraph, _vision))
                 {
                     if (_flowGraph != null)
                         editor.LoadGraphData(_flowGraph);
                     editor.ShowDialog(this);
+                    if (_flowGraph != null)
+                    {
+                        _flowExecutor.LoadGraph(_flowGraph);
+                        _flowExecutor.Start();
+                    }
                     RebuildViewSelector();
                 }
             });

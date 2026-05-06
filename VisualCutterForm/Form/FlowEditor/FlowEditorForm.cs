@@ -16,7 +16,6 @@ namespace VisualCutterForm.FlowEditor
         private ToolStrip _runToolbar;
         private FlowGraph _graph;
         private FlowExecutor _executor;
-        private VisionController _visionController;
         private FlowCanvas _canvas;
         private RichTextBox _logBox;
         private FlowPropertyInspector _inspector;
@@ -29,12 +28,13 @@ namespace VisualCutterForm.FlowEditor
         private bool _syncingTriggerCombo;
         private bool _runningContinuous;
         private SplitContainer _mainSplit;
+        private VisionController _visionController;
 
-        public FlowEditorForm(VisionController visionController)
+        public FlowEditorForm(FlowExecutor executor, FlowGraph graph, VisionController visionController)
         {
-            _visionController = visionController ?? throw new ArgumentNullException(nameof(visionController));
-            _executor = new FlowExecutor(visionController);
-            _graph = new FlowGraph();
+            _executor = executor ?? throw new ArgumentNullException(nameof(executor));
+            _graph = graph ?? new FlowGraph();
+            _visionController = visionController;
 
             InitializeForm();
 
@@ -574,7 +574,11 @@ namespace VisualCutterForm.FlowEditor
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            _executor?.Dispose();
+            if (_executor != null)
+            {
+                _executor.LogMessage -= OnExecLog;
+                _executor.ExecutionError -= OnExecError;
+            }
             base.OnFormClosing(e);
         }
 
