@@ -7,6 +7,7 @@ namespace VisualCutterForm.Lib
     public class IniFile
     {
         private readonly string _path;
+        private readonly object _writeLock = new object();
 
         public IniFile(string path)
         {
@@ -40,7 +41,10 @@ namespace VisualCutterForm.Lib
 
         public void Write(string section, string key, string value)
         {
-            WritePrivateProfileString(section, key, value, _path);
+            lock (_writeLock)
+            {
+                WritePrivateProfileString(section, key, value, _path);
+            }
         }
 
         public void WriteInt(string section, string key, int value)
@@ -67,12 +71,18 @@ namespace VisualCutterForm.Lib
 
         public void DeleteKey(string section, string key)
         {
-            WritePrivateProfileString(section, key, null, _path);
+            lock (_writeLock)
+            {
+                WritePrivateProfileString(section, key, null, _path);
+            }
         }
 
         public void DeleteSection(string section)
         {
-            WritePrivateProfileString(section, null, null, _path);
+            lock (_writeLock)
+            {
+                WritePrivateProfileString(section, null, null, _path);
+            }
         }
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]

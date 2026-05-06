@@ -41,6 +41,7 @@ namespace VisualCutterForm.Lib.Flow.Nodes
 
         private static readonly CSharpScriptCompiler _compiler = new CSharpScriptCompiler();
 
+        private CSharpScriptCompiler.CompileResult _compileResult;
         private object _compiledInstance;
         private Type _compiledType;
         private string _lastError;
@@ -57,6 +58,7 @@ namespace VisualCutterForm.Lib.Flow.Nodes
             _compileErrors = new List<string>();
             _compiledInstance = null;
             _compiledType = null;
+            _compileResult = null;
 
             var result = _compiler.Compile(SourceCode, ExtraReferences, NuGetPackages, IsDebug);
             _compileErrors = result.Diagnostics ?? new List<string>();
@@ -65,6 +67,7 @@ namespace VisualCutterForm.Lib.Flow.Nodes
             if (result.Error != null)
                 return false;
 
+            _compileResult = result;
             _compiledType = result.CompiledType;
             _compiledInstance = result.CompiledInstance;
             return true;
@@ -90,17 +93,15 @@ namespace VisualCutterForm.Lib.Flow.Nodes
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var ctxField = _compiledType.GetField("Context", BindingFlags.Public | BindingFlags.Instance);
-            ctxField?.SetValue(_compiledInstance, context);
+            _compileResult.ContextField?.SetValue(_compiledInstance, context);
 
             BindInputsToCompiled(context);
             BindInputsToProperties(context);
 
-            var execMethod = _compiledType.GetMethod("Execute");
-            if (execMethod == null)
+            if (_compileResult.ExecuteMethod == null)
                 throw new InvalidOperationException("UserCode 类缺少 Execute() 方法。");
 
-            execMethod.Invoke(_compiledInstance, null);
+            _compileResult.ExecuteMethod.Invoke(_compiledInstance, null);
 
             ReadOutputsFromCompiled(context);
             WriteOutputsFromProperties(context);
@@ -108,31 +109,29 @@ namespace VisualCutterForm.Lib.Flow.Nodes
 
         private void BindInputsToCompiled(FlowContext context)
         {
-            if (_compiledType == null || _compiledInstance == null) return;
+            if (_compileResult?.InputFields == null || _compiledInstance == null) return;
 
             foreach (var pin in Inputs)
             {
                 if (!pin.IsConnected) continue;
 
-                var field = _compiledType.GetField(pin.Name, BindingFlags.Public | BindingFlags.Instance);
-                if (field == null) continue;
+                if (!_compileResult.InputFields.TryGetValue(pin.Name, out var field))
+                    continue;
 
                 var val = pin.GetValue(context);
                 if (val != null && field.FieldType.IsAssignableFrom(val.GetType()))
-                {
                     field.SetValue(_compiledInstance, val);
-                }
             }
         }
 
         private void ReadOutputsFromCompiled(FlowContext context)
         {
-            if (_compiledType == null || _compiledInstance == null) return;
+            if (_compileResult?.OutputFields == null || _compiledInstance == null) return;
 
             foreach (var pin in Outputs)
             {
-                var field = _compiledType.GetField(pin.Name, BindingFlags.Public | BindingFlags.Instance);
-                if (field == null) continue;
+                if (!_compileResult.OutputFields.TryGetValue(pin.Name, out var field))
+                    continue;
 
                 var val = field.GetValue(_compiledInstance);
                 if (val != null)

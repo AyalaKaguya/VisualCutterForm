@@ -859,12 +859,15 @@ namespace VisualCutterForm
         {
             try
             {
-                _flowGraph = FlowSerializer.DeserializeFromFile(path);
+                var warnings = new List<string>();
+                _flowGraph = FlowSerializer.DeserializeFromFile(path, warnings);
                 _flowExecutor.LoadGraph(_flowGraph);
                 _config.FlowFilePath = path;
                 _config.Save();
                 RebuildViewSelector();
                 OnStatusChanged(this, $"流程已加载: {System.IO.Path.GetFileName(path)}");
+                if (warnings.Count > 0)
+                    AppendLog($"反序列化警告 ({warnings.Count}):\n{string.Join("\n", warnings.Take(5))}{(warnings.Count > 5 ? $"\n... 等 {warnings.Count} 条" : "")}", Color.FromArgb(241, 196, 15));
             }
             catch (Exception ex)
             {

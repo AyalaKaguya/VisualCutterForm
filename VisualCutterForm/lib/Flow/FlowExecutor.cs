@@ -16,8 +16,8 @@ namespace VisualCutterForm.Lib.Flow
         private FlowGraph _graph;
         private readonly ConcurrentDictionary<Guid, Task> _runningTasks = new ConcurrentDictionary<Guid, Task>();
         private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _runningCts = new ConcurrentDictionary<Guid, CancellationTokenSource>();
-        private readonly Dictionary<Guid, (ImageFifo fifo, EventHandler<Bitmap> handler)> _hardTriggerBindings
-            = new Dictionary<Guid, (ImageFifo, EventHandler<Bitmap>)>();
+        private readonly ConcurrentDictionary<Guid, (ImageFifo fifo, EventHandler<Bitmap> handler, SemaphoreSlim semaphore)> _hardTriggerBindings
+            = new ConcurrentDictionary<Guid, (ImageFifo, EventHandler<Bitmap>, SemaphoreSlim)>();
         private VisionController _visionController;
         private volatile bool _disposed;
 
@@ -34,7 +34,7 @@ namespace VisualCutterForm.Lib.Flow
 
         public void LoadGraph(FlowGraph graph)
         {
-            StopAsync().Wait();
+            Task.Run(() => StopAsync()).Wait();
             _graph = graph;
             _graph.WireAllConnections();
 
@@ -63,7 +63,7 @@ namespace VisualCutterForm.Lib.Flow
 
         public void Stop()
         {
-            StopAsync().Wait();
+            Task.Run(() => StopAsync()).Wait();
         }
 
         public async Task StopAsync()
@@ -117,23 +117,6 @@ namespace VisualCutterForm.Lib.Flow
         {
             if (_graph == null) return;
 
-            foreach (var sg in _graph.SubGraphs)
-            {
-                bool shouldTrigger = false;
-
-                if (sg.Trigger == SubGraphTrigger.CommunicationTrigger
-                    && rule.TargetSubGraphId.HasValue
-                    && rule.TargetSubGraphId.Value == sg.Id)
-                {
-                    shouldTrigger = true;
-                }
-
-                if (shouldTrigger)
-                {
-                    var _ = RunSubGraphOnce(sg, CancellationToken.None);
-                }
-            }
-
             if (rule.TargetSubGraphId.HasValue)
             {
                 var _ = TriggerSubGraph(rule.TargetSubGraphId.Value);
@@ -178,24 +161,29 @@ namespace VisualCutterForm.Lib.Flow
             var fifo = _visionController?.GetFifo(cameraSerial);
             if (fifo == null) return;
 
+            var semaphore = new SemaphoreSlim(1, 1);
             var capturedSg = sg;
-            void handler(object s, Bitmap frame)
+            async void handler(object s, Bitmap frame)
             {
-                if (!_disposed && IsRunning)
+                if (_disposed || !IsRunning) return;
+                if (!await semaphore.WaitAsync(0)) return;
+
+                try
                 {
-                    try
-                    {
-                        RunSubGraphOnce(capturedSg, CancellationToken.None).ConfigureAwait(false);
-                    }
-                    catch (Exception ex)
-                    {
-                        ExecutionError?.Invoke(this, ex);
-                    }
+                    await RunSubGraphOnce(capturedSg, CancellationToken.None);
+                }
+                catch (Exception ex)
+                {
+                    ExecutionError?.Invoke(this, ex);
+                }
+                finally
+                {
+                    semaphore.Release();
                 }
             }
 
             fifo.FrameEnqueued += handler;
-            _hardTriggerBindings[sg.Id] = (fifo, handler);
+            _hardTriggerBindings.TryAdd(sg.Id, (fifo, handler, semaphore));
         }
 
         private void UnbindHardCameraTriggers()
@@ -203,6 +191,7 @@ namespace VisualCutterForm.Lib.Flow
             foreach (var kv in _hardTriggerBindings)
             {
                 kv.Value.fifo.FrameEnqueued -= kv.Value.handler;
+                kv.Value.semaphore.Dispose();
             }
             _hardTriggerBindings.Clear();
         }

@@ -491,8 +491,15 @@ namespace VisualCutterForm.FlowEditor
                 {
                     try
                     {
-                        _graph = FlowSerializer.DeserializeFromFile(dlg.FileName);
+                        var warnings = new List<string>();
+                        _graph = FlowSerializer.DeserializeFromFile(dlg.FileName, warnings);
                         _executor.LoadGraph(_graph);
+
+                        if (warnings.Count > 0)
+                        {
+                            var msg = $"加载完成，但有 {warnings.Count} 个警告:\n{string.Join("\n", warnings.Take(5))}";
+                            MessageBox.Show(msg, "加载警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        }
 
                         _tabSubGraphs.TabPages.Clear();
                         foreach (var sg in _graph.SubGraphs)

@@ -512,13 +512,9 @@ namespace VisualCutterForm.FlowEditor
                                 pd.Setter(code);
                                 PropertyChanged?.Invoke(_selectedNode, pd.Name, code);
 
-                                var refsProp = _selectedNode.GetType().GetProperty("ExtraReferences");
-                                var nugetProp = _selectedNode.GetType().GetProperty("NuGetPackages");
-                                var isDbgProp = _selectedNode.GetType().GetProperty("IsDebug");
-
-                                refsProp?.SetValue(_selectedNode, editor.ExtraReferences);
-                                nugetProp?.SetValue(_selectedNode, editor.NuGetPackages);
-                                isDbgProp?.SetValue(_selectedNode, editor.IsDebug);
+                                _selectedNode.SetNodeProperty("ExtraReferences", editor.ExtraReferences);
+                                _selectedNode.SetNodeProperty("NuGetPackages", editor.NuGetPackages);
+                                _selectedNode.SetNodeProperty("IsDebug", editor.IsDebug);
 
                                 PropertyChanged?.Invoke(_selectedNode, "ExtraReferences", editor.ExtraReferences);
                                 PropertyChanged?.Invoke(_selectedNode, "NuGetPackages", editor.NuGetPackages);

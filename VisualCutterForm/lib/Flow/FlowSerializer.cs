@@ -26,7 +26,7 @@ namespace VisualCutterForm.Lib.Flow
             File.WriteAllText(filePath, json);
         }
 
-        public static FlowGraph Deserialize(string json)
+        public static FlowGraph Deserialize(string json, List<string> warnings = null)
         {
             var settings = new JsonSerializerSettings
             {
@@ -34,13 +34,13 @@ namespace VisualCutterForm.Lib.Flow
             };
 
             var sGraph = JsonConvert.DeserializeObject<SerializedGraph>(json, settings);
-            return DeserializeGraph(sGraph);
+            return DeserializeGraph(sGraph, warnings);
         }
 
-        public static FlowGraph DeserializeFromFile(string filePath)
+        public static FlowGraph DeserializeFromFile(string filePath, List<string> warnings = null)
         {
             var json = File.ReadAllText(filePath);
-            return Deserialize(json);
+            return Deserialize(json, warnings);
         }
 
         private static SerializedGraph SerializeGraph(FlowGraph graph)
@@ -54,7 +54,7 @@ namespace VisualCutterForm.Lib.Flow
             };
         }
 
-        private static FlowGraph DeserializeGraph(SerializedGraph s)
+        private static FlowGraph DeserializeGraph(SerializedGraph s, List<string> warnings = null)
         {
             var graph = new FlowGraph
             {
@@ -65,7 +65,7 @@ namespace VisualCutterForm.Lib.Flow
 
             foreach (var sg in s.SubGraphs)
             {
-                var subGraph = DeserializeSubGraph(sg);
+                var subGraph = DeserializeSubGraph(sg, warnings);
                 graph.SubGraphs.Add(subGraph);
             }
 
@@ -92,7 +92,7 @@ namespace VisualCutterForm.Lib.Flow
             };
         }
 
-        private static FlowSubGraph DeserializeSubGraph(SerializedSubGraph s)
+        private static FlowSubGraph DeserializeSubGraph(SerializedSubGraph s, List<string> warnings = null)
         {
             var sg = new FlowSubGraph
             {
@@ -113,7 +113,7 @@ namespace VisualCutterForm.Lib.Flow
                 foreach (var pv in sn.Properties)
                 {
                     try { node.SetNodeProperty(pv.Key, pv.Value); }
-                    catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Deserialize prop error: {ex.Message}"); }
+                    catch (Exception ex) { warnings?.Add($"属性 [{pv.Key}] 加载失败 [{node.Name}]: {ex.Message}"); }
                 }
 
                 if (sn.UserPins != null)
@@ -131,7 +131,7 @@ namespace VisualCutterForm.Lib.Flow
                             if (pin is InputPin inp && sp.DefaultValue != null)
                             {
                                 try { inp.DefaultValue = Convert.ChangeType(sp.DefaultValue, type); }
-                                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Deserialize default value error: {ex.Message}"); }
+                                catch (Exception ex) { warnings?.Add($"Pin默认值 [{sp.Name}] 加载失败 [{node.Name}]: {ex.Message}"); }
                             }
                         }
                         else

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
@@ -16,13 +17,15 @@ namespace VisualCutterForm.Lib.Flow.Nodes
 {
     public class CSharpScriptCompiler
     {
-        private static readonly ConcurrentDictionary<int, CompileResult> _compileCache
-            = new ConcurrentDictionary<int, CompileResult>();
+        private static readonly ConcurrentDictionary<string, CompileResult> _compileCache
+            = new ConcurrentDictionary<string, CompileResult>();
 
         private static readonly object _nugetLock = new object();
         private static readonly Dictionary<string, string> _nugetCache = new Dictionary<string, string>();
         private static readonly LinkedList<string> _nugetLru = new LinkedList<string>();
         private const int MaxNugetCacheEntries = 64;
+
+        private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
 
         public class CompileResult
         {
@@ -30,18 +33,21 @@ namespace VisualCutterForm.Lib.Flow.Nodes
             public object CompiledInstance { get; set; }
             public string Error { get; set; }
             public List<string> Diagnostics { get; set; } = new List<string>();
+            public MethodInfo ExecuteMethod { get; set; }
+            public Dictionary<string, FieldInfo> InputFields { get; set; }
+            public Dictionary<string, FieldInfo> OutputFields { get; set; }
+            public FieldInfo ContextField { get; set; }
         }
 
         public CompileResult Compile(string sourceCode, string extraReferences, string nugetPackages, bool debug)
         {
-            var hash = (sourceCode ?? "").GetHashCode();
-            if (_compileCache.TryGetValue(hash, out var cached))
+            var code = sourceCode ?? "";
+            if (_compileCache.TryGetValue(code, out var cached))
                 return cached;
 
             var result = new CompileResult();
             try
             {
-                var code = sourceCode ?? "";
                 var syntaxTree = CSharpSyntaxTree.ParseText(code);
 
                 var references = new List<MetadataReference>
@@ -53,8 +59,7 @@ namespace VisualCutterForm.Lib.Flow.Nodes
                     MetadataReference.CreateFromFile(Assembly.GetExecutingAssembly().Location),
                 };
 
-                var mscorlib = typeof(object).Assembly;
-                references.Add(MetadataReference.CreateFromFile(mscorlib.Location));
+                references.Add(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
 
                 try
                 {
@@ -81,11 +86,8 @@ namespace VisualCutterForm.Lib.Flow.Nodes
                     .WithUsings("System", "System.Collections.Generic", "System.Linq",
                         "System.Drawing", "OpenCvSharp", "System.IO");
 
-                var compilation = CSharpCompilation.Create(
-                    "Computation_" + Guid.NewGuid().ToString("N"),
-                    new[] { syntaxTree },
-                    references,
-                    compOptions);
+                var asmName = "UserCode_" + (uint)code.GetHashCode();
+                var compilation = CSharpCompilation.Create(asmName, new[] { syntaxTree }, references, compOptions);
 
                 using (var ms = new MemoryStream())
                 {
@@ -103,7 +105,7 @@ namespace VisualCutterForm.Lib.Flow.Nodes
                         result.Error = string.Join("\n", emitResult.Diagnostics
                             .Where(d => d.Severity == DiagnosticSeverity.Error)
                             .Select(d => d.ToString()));
-                        _compileCache.TryAdd(hash, result);
+                        _compileCache.TryAdd(code, result);
                         return result;
                     }
 
@@ -114,8 +116,20 @@ namespace VisualCutterForm.Lib.Flow.Nodes
                     if (result.CompiledType == null)
                     {
                         result.Error = "未找到 UserCode 类。";
-                        _compileCache.TryAdd(hash, result);
+                        _compileCache.TryAdd(code, result);
                         return result;
+                    }
+
+                    result.ContextField = result.CompiledType.GetField("Context", BindingFlags.Public | BindingFlags.Instance);
+                    result.ExecuteMethod = result.CompiledType.GetMethod("Execute");
+
+                    result.InputFields = new Dictionary<string, FieldInfo>();
+                    result.OutputFields = new Dictionary<string, FieldInfo>();
+                    foreach (var field in result.CompiledType.GetFields(BindingFlags.Public | BindingFlags.Instance))
+                    {
+                        if (field.Name == "Context") continue;
+                        result.InputFields[field.Name] = field;
+                        result.OutputFields[field.Name] = field;
                     }
 
                     result.CompiledInstance = Activator.CreateInstance(result.CompiledType);
@@ -126,7 +140,7 @@ namespace VisualCutterForm.Lib.Flow.Nodes
                 result.Error = ex.Message;
             }
 
-            _compileCache.TryAdd(hash, result);
+            _compileCache.TryAdd(code, result);
             return result;
         }
 
@@ -193,60 +207,51 @@ namespace VisualCutterForm.Lib.Flow.Nodes
 
             try
             {
-                using (var http = new HttpClient())
+                var versionsJson = Task.Run(() => _httpClient.GetStringAsync(
+                    $"https://api.nuget.org/v3-flatcontainer/{packageId.ToLowerInvariant()}/index.json")).Result;
+                if (string.IsNullOrEmpty(versionsJson))
+                    return null;
+
+                var latestVersion = JObject.Parse(versionsJson)["versions"]?.LastOrDefault()?.ToString();
+                if (string.IsNullOrEmpty(latestVersion))
+                    return null;
+
+                var nupkgBytes = Task.Run(() => _httpClient.GetByteArrayAsync(
+                    $"https://api.nuget.org/v3-flatcontainer/{packageId.ToLowerInvariant()}/{latestVersion}/{packageId.ToLowerInvariant()}.{latestVersion}.nupkg")).Result;
+                if (nupkgBytes == null || nupkgBytes.Length == 0)
+                    return null;
+
+                using (var archive = new ZipArchive(new MemoryStream(nupkgBytes), ZipArchiveMode.Read))
                 {
-                    http.Timeout = TimeSpan.FromSeconds(30);
-
-                    var versionUrl = $"https://api.nuget.org/v3-flatcontainer/{packageId.ToLowerInvariant()}/index.json";
-                    var versions = http.GetStringAsync(versionUrl).Result;
-                    if (string.IsNullOrEmpty(versions))
-                        return null;
-
-                    var latestVersion = JObject.Parse(versions)["versions"]
-                        ?.LastOrDefault()?.ToString();
-                    if (string.IsNullOrEmpty(latestVersion))
-                        return null;
-
-                    var downloadUrl = $"https://api.nuget.org/v3-flatcontainer/{packageId.ToLowerInvariant()}/{latestVersion}/{packageId.ToLowerInvariant()}.{latestVersion}.nupkg";
-                    var nupkgBytes = http.GetByteArrayAsync(downloadUrl).Result;
-                    if (nupkgBytes == null || nupkgBytes.Length == 0)
-                        return null;
-
-                    using (var archive = new ZipArchive(
-                        new MemoryStream(nupkgBytes), ZipArchiveMode.Read))
+                    foreach (var entry in archive.Entries)
                     {
-                        foreach (var entry in archive.Entries)
+                        if (entry.FullName.StartsWith("lib/") &&
+                            (entry.FullName.Contains("netstandard2") ||
+                             entry.FullName.Contains("net4") ||
+                             entry.FullName.Contains("netstandard1") ||
+                             entry.Name.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)))
                         {
-                            if (entry.FullName.StartsWith("lib/") &&
-                                (entry.FullName.Contains("netstandard2") ||
-                                 entry.FullName.Contains("net4") ||
-                                 entry.FullName.Contains("netstandard1") ||
-                                 entry.Name.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)))
+                            var dllName = entry.Name;
+                            var dllPath = Path.Combine(packagesDir, dllName);
+                            if (!File.Exists(dllPath) || new FileInfo(dllPath).Length != entry.Length)
                             {
-                                var dllName = entry.Name;
-                                var dllPath = Path.Combine(packagesDir, dllName);
-                                if (!File.Exists(dllPath) || new FileInfo(dllPath).Length != entry.Length)
-                                {
-                                    using (var entryStream = entry.Open())
-                                    using (var fileStream = File.Create(dllPath))
-                                    {
-                                        entryStream.CopyTo(fileStream);
-                                    }
-                                }
-
-                                lock (_nugetLock)
-                                {
-                                    _nugetCache[packageId] = dllPath;
-                                    _nugetLru.AddFirst(packageId);
-                                    if (_nugetLru.Count > MaxNugetCacheEntries)
-                                    {
-                                        var last = _nugetLru.Last;
-                                        _nugetCache.Remove(last.Value);
-                                        _nugetLru.RemoveLast();
-                                    }
-                                }
-                                return dllPath;
+                                using (var entryStream = entry.Open())
+                                using (var fileStream = File.Create(dllPath))
+                                    entryStream.CopyTo(fileStream);
                             }
+
+                            lock (_nugetLock)
+                            {
+                                _nugetCache[packageId] = dllPath;
+                                _nugetLru.AddFirst(packageId);
+                                if (_nugetLru.Count > MaxNugetCacheEntries)
+                                {
+                                    var last = _nugetLru.Last;
+                                    _nugetCache.Remove(last.Value);
+                                    _nugetLru.RemoveLast();
+                                }
+                            }
+                            return dllPath;
                         }
                     }
                 }
