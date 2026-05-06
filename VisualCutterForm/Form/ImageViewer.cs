@@ -22,9 +22,10 @@ namespace VisualCutterForm
         private Point _panStart;
         private Point _panScrollStart;
 
-        private const float MinZoom = 0.05f;
-        private const float MaxZoom = 20f;
+        private const float MinZoom = 0.02f;
+        private const float MaxZoom = 50f;
         private const float ZoomStep = 1.25f;
+        private const float WheelZoomStep = 1.10f;
 
         private static readonly Color DarkBg = Color.FromArgb(40, 40, 40);
 
@@ -40,10 +41,9 @@ namespace VisualCutterForm
                      ControlStyles.ResizeRedraw | ControlStyles.DoubleBuffer, true);
             BackColor = DarkBg;
 
-            // ── Toolbar at top-right ──
             _toolbarPanel = new Panel
             {
-                Size = new Size(180, 28),
+                Size = new Size(184, 28),
                 BackColor = Color.FromArgb(200, 30, 30, 30),
                 Anchor = AnchorStyles.Top | AnchorStyles.Right,
             };
@@ -52,20 +52,20 @@ namespace VisualCutterForm
             _lblZoom = new Label
             {
                 Text = "适应",
-                Location = new Point(40, 4),
-                Size = new Size(50, 20),
+                Location = new Point(38, 4),
+                Size = new Size(52, 20),
                 ForeColor = Color.FromArgb(200, 200, 200),
                 Font = new Font("Segoe UI", 8F),
                 TextAlign = ContentAlignment.MiddleCenter,
                 BackColor = Color.Transparent,
             };
-            _btnZoomIn = MakeToolBtn("+", 90);
-            _btnFit = MakeToolBtn("⊡", 130);
+            _btnZoomIn = MakeToolBtn("+", 92);
+            _btnFit = MakeToolBtn("⊡", 122);
             _btnActual = new Button
             {
                 Text = "1:1",
-                Location = new Point(152, 2),
-                Size = new Size(26, 24),
+                Location = new Point(148, 2),
+                Size = new Size(32, 24),
                 FlatStyle = FlatStyle.Flat,
                 FlatAppearance = { BorderSize = 0 },
                 ForeColor = Color.White,
@@ -94,23 +94,14 @@ namespace VisualCutterForm
 
         protected override void WndProc(ref Message m)
         {
-            if (m.Msg == 0x020A) // WM_MOUSEWHEEL
+            if (m.Msg == 0x020A && _sourceImage != null)
             {
                 var clientPos = PointToClient(MousePosition);
-                if (ClientRectangle.Contains(clientPos) && _sourceImage != null)
+                if (ClientRectangle.Contains(clientPos))
                 {
                     int delta = (short)((uint)m.WParam >> 16);
-                    if (ModifierKeys.HasFlag(Keys.Control))
-                    {
-                        float factor = delta > 0 ? 1.12f : 1f / 1.12f;
-                        ZoomAtCursor(factor, clientPos);
-                    }
-                    else if (!_fitToScreen)
-                    {
-                        _scrollOffset.Y -= delta / 2;
-                        ClampScroll();
-                        Invalidate();
-                    }
+                    float factor = delta > 0 ? WheelZoomStep : 1f / WheelZoomStep;
+                    ZoomAtCursor(factor, clientPos);
                     return;
                 }
             }
@@ -123,12 +114,12 @@ namespace VisualCutterForm
             {
                 Text = text,
                 Location = new Point(x, 2),
-                Size = new Size(32, 24),
+                Size = new Size(26, 24),
                 FlatStyle = FlatStyle.Flat,
                 FlatAppearance = { BorderSize = 0 },
                 ForeColor = Color.White,
                 BackColor = Color.Transparent,
-                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                Font = new Font("Segoe UI", 10F, FontStyle.Bold),
                 TextAlign = ContentAlignment.MiddleCenter,
             };
         }
@@ -150,18 +141,18 @@ namespace VisualCutterForm
 
         public void ZoomIn()
         {
-            _fitToScreen = false;
+            if (_sourceImage == null) return;
+            if (_fitToScreen) { _fitToScreen = false; _zoom = 1f; }
             _zoom = Math.Min(_zoom * ZoomStep, MaxZoom);
-            ClampScroll();
             UpdateLabel();
             Invalidate();
         }
 
         public void ZoomOut()
         {
-            _fitToScreen = false;
+            if (_sourceImage == null) return;
+            if (_fitToScreen) { _fitToScreen = false; _zoom = 1f; }
             _zoom = Math.Max(_zoom / ZoomStep, MinZoom);
-            ClampScroll();
             UpdateLabel();
             Invalidate();
         }
@@ -176,9 +167,10 @@ namespace VisualCutterForm
 
         public void ZoomActual()
         {
+            if (_sourceImage == null) return;
             _fitToScreen = false;
             _zoom = 1f;
-            ClampScroll();
+            _scrollOffset = Point.Empty;
             UpdateLabel();
             Invalidate();
         }
@@ -198,27 +190,23 @@ namespace VisualCutterForm
             float oldZoom = _zoom;
             _zoom = Math.Max(MinZoom, Math.Min(MaxZoom, _zoom * factor));
 
-            float relX = (cursorPos.X + _scrollOffset.X) / oldZoom;
-            float relY = (cursorPos.Y + _scrollOffset.Y) / oldZoom;
+            int imgCenterX = (ClientSize.Width - (int)(_sourceImage.Width * oldZoom)) / 2;
+            int imgCenterY = (ClientSize.Height - (int)(_sourceImage.Height * oldZoom)) / 2;
+
+            float imgX = cursorPos.X - imgCenterX + _scrollOffset.X;
+            float imgY = cursorPos.Y - imgCenterY + _scrollOffset.Y;
+
+            float ratio = _zoom / oldZoom;
+
+            int newCenterX = (ClientSize.Width - (int)(_sourceImage.Width * _zoom)) / 2;
+            int newCenterY = (ClientSize.Height - (int)(_sourceImage.Height * _zoom)) / 2;
 
             _scrollOffset = new Point(
-                (int)(relX * _zoom - cursorPos.X),
-                (int)(relY * _zoom - cursorPos.Y));
+                (int)(imgX * ratio - cursorPos.X + newCenterX),
+                (int)(imgY * ratio - cursorPos.Y + newCenterY));
 
-            ClampScroll();
             UpdateLabel();
             Invalidate();
-        }
-
-        private void ClampScroll()
-        {
-            if (_sourceImage == null) return;
-            int imgW = (int)(_sourceImage.Width * _zoom);
-            int imgH = (int)(_sourceImage.Height * _zoom);
-            _scrollOffset.X = Math.Max(0, Math.Min(_scrollOffset.X, imgW - ClientSize.Width));
-            _scrollOffset.Y = Math.Max(0, Math.Min(_scrollOffset.Y, imgH - ClientSize.Height));
-            if (imgW <= ClientSize.Width) _scrollOffset.X = 0;
-            if (imgH <= ClientSize.Height) _scrollOffset.Y = 0;
         }
 
         private void UpdateLabel()
@@ -251,9 +239,6 @@ namespace VisualCutterForm
                 int x = (ClientSize.Width - imgW) / 2 - _scrollOffset.X;
                 int y = (ClientSize.Height - imgH) / 2 - _scrollOffset.Y;
 
-                if (imgW < ClientSize.Width) x = (ClientSize.Width - imgW) / 2;
-                if (imgH < ClientSize.Height) y = (ClientSize.Height - imgH) / 2;
-
                 g.DrawImage(_sourceImage, x, y, imgW, imgH);
             }
         }
@@ -275,7 +260,6 @@ namespace VisualCutterForm
             _scrollOffset = new Point(
                 _panScrollStart.X + (_panStart.X - e.X),
                 _panScrollStart.Y + (_panStart.Y - e.Y));
-            ClampScroll();
             Invalidate();
         }
 
