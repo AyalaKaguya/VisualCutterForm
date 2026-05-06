@@ -230,6 +230,10 @@ namespace VisualCutterForm.Lib.Flow
                     node.BindInputsToProperties(context);
                     await node.ExecuteAsync(context, cancellationToken);
                     node.WriteOutputsFromProperties(context);
+                    foreach (var pin in node.Inputs)
+                        pin.LastValue = pin.GetValue(context);
+                    foreach (var pin in node.Outputs)
+                        pin.LastValue = context.GetPinValue(pin);
                 }
                 catch (OperationCanceledException)
                 {

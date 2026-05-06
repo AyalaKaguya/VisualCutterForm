@@ -12,6 +12,7 @@ namespace VisualCutterForm.Lib.Flow
         public FlowNode Owner { get; set; }
         public bool IsConnected { get; protected set; }
         public bool UserDefined { get; set; }
+        public object LastValue { get; set; }
         public abstract bool IsInput { get; }
         public abstract bool IsOutput { get; }
 
