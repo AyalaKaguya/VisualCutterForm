@@ -15,6 +15,7 @@ namespace VisualCutterForm.Lib.Flow
             = new ConcurrentDictionary<Type, NodeMetadata>();
 
         public Guid Id { get; set; } = Guid.NewGuid();
+        [NodeProperty("名称", Category = "通用")]
         public string Name { get; set; }
         public string Category { get; set; }
         public List<InputPin> Inputs { get; } = new List<InputPin>();

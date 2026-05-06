@@ -600,6 +600,7 @@ namespace VisualCutterForm.FlowEditor
                 txt.TextChanged += (s, e) =>
                 {
                     pd.Setter(txt.Text);
+                    if (pd.Name == "Name") _lblNodeName.Text = txt.Text;
                     PropertyChanged?.Invoke(_selectedNode, pd.Name, txt.Text);
                 };
                 return txt;
