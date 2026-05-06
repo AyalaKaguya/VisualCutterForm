@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace VisualCutterForm.Lib.Flow
 {
@@ -20,6 +21,10 @@ namespace VisualCutterForm.Lib.Flow
         public List<NodeConnection> Connections { get; set; } = new List<NodeConnection>();
         public bool IsRunning { get; set; }
 
+        private Dictionary<Guid, FlowNode> _nodeIndex;
+        private List<FlowNode> _cachedTopoOrder;
+        private bool _topoDirty = true;
+
         public FlowSubGraph Clone()
         {
             return new FlowSubGraph
@@ -32,13 +37,26 @@ namespace VisualCutterForm.Lib.Flow
             };
         }
 
+        public void RebuildNodeIndex()
+        {
+            _nodeIndex = Nodes.ToDictionary(n => n.Id);
+            _topoDirty = true;
+        }
+
         public FlowNode FindNode(Guid nodeId)
         {
-            return Nodes.Find(n => n.Id == nodeId);
+            if (_nodeIndex == null) RebuildNodeIndex();
+            _nodeIndex.TryGetValue(nodeId, out var node);
+            return node;
         }
 
         public List<FlowNode> GetTopologicalOrder()
         {
+            if (!_topoDirty && _cachedTopoOrder != null)
+                return _cachedTopoOrder;
+
+            if (_nodeIndex == null) RebuildNodeIndex();
+
             var sorted = new List<FlowNode>();
             var visited = new HashSet<Guid>();
             var visiting = new HashSet<Guid>();
@@ -49,6 +67,8 @@ namespace VisualCutterForm.Lib.Flow
                     TopoVisit(node, sorted, visited, visiting);
             }
 
+            _cachedTopoOrder = sorted;
+            _topoDirty = false;
             return sorted;
         }
 
@@ -66,8 +86,7 @@ namespace VisualCutterForm.Lib.Flow
             {
                 if (conn.ToNodeId == node.Id)
                 {
-                    var src = Nodes.Find(n => n.Id == conn.FromNodeId);
-                    if (src != null)
+                    if (_nodeIndex.TryGetValue(conn.FromNodeId, out var src))
                         TopoVisit(src, sorted, visited, visiting);
                 }
             }
@@ -92,6 +111,8 @@ namespace VisualCutterForm.Lib.Flow
                     try { inPin.Connect(outPin); } catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Wire error [{outPin.Name}->{inPin.Name}]: {ex.Message}"); }
                 }
             }
+
+            _topoDirty = true;
         }
     }
 }

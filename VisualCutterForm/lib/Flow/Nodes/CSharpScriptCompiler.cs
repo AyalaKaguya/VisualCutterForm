@@ -37,12 +37,14 @@ namespace VisualCutterForm.Lib.Flow.Nodes
             public Dictionary<string, FieldInfo> InputFields { get; set; }
             public Dictionary<string, FieldInfo> OutputFields { get; set; }
             public FieldInfo ContextField { get; set; }
+            public Action ExecuteDelegate { get; set; }
         }
 
         public CompileResult Compile(string sourceCode, string extraReferences, string nugetPackages, bool debug)
         {
             var code = sourceCode ?? "";
-            if (_compileCache.TryGetValue(code, out var cached))
+            var key = $"{code}|{extraReferences ?? ""}|{nugetPackages ?? ""}|{debug}";
+            if (_compileCache.TryGetValue(key, out var cached))
                 return cached;
 
             var result = new CompileResult();
@@ -86,7 +88,7 @@ namespace VisualCutterForm.Lib.Flow.Nodes
                     .WithUsings("System", "System.Collections.Generic", "System.Linq",
                         "System.Drawing", "OpenCvSharp", "System.IO");
 
-                var asmName = "UserCode_" + (uint)code.GetHashCode();
+                var asmName = "UserCode_" + (uint)key.GetHashCode();
                 var compilation = CSharpCompilation.Create(asmName, new[] { syntaxTree }, references, compOptions);
 
                 using (var ms = new MemoryStream())
@@ -105,7 +107,7 @@ namespace VisualCutterForm.Lib.Flow.Nodes
                         result.Error = string.Join("\n", emitResult.Diagnostics
                             .Where(d => d.Severity == DiagnosticSeverity.Error)
                             .Select(d => d.ToString()));
-                        _compileCache.TryAdd(code, result);
+                        _compileCache.TryAdd(key, result);
                         return result;
                     }
 
@@ -116,7 +118,7 @@ namespace VisualCutterForm.Lib.Flow.Nodes
                     if (result.CompiledType == null)
                     {
                         result.Error = "未找到 UserCode 类。";
-                        _compileCache.TryAdd(code, result);
+                        _compileCache.TryAdd(key, result);
                         return result;
                     }
 
@@ -133,6 +135,9 @@ namespace VisualCutterForm.Lib.Flow.Nodes
                     }
 
                     result.CompiledInstance = Activator.CreateInstance(result.CompiledType);
+                    if (result.ExecuteMethod != null)
+                        result.ExecuteDelegate = (Action)Delegate.CreateDelegate(
+                            typeof(Action), result.CompiledInstance, result.ExecuteMethod);
                 }
             }
             catch (Exception ex)
@@ -140,7 +145,7 @@ namespace VisualCutterForm.Lib.Flow.Nodes
                 result.Error = ex.Message;
             }
 
-            _compileCache.TryAdd(code, result);
+            _compileCache.TryAdd(key, result);
             return result;
         }
 

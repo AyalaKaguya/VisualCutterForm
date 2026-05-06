@@ -98,10 +98,12 @@ namespace VisualCutterForm.Lib.Flow.Nodes
             BindInputsToCompiled(context);
             BindInputsToProperties(context);
 
-            if (_compileResult.ExecuteMethod == null)
+            if (_compileResult.ExecuteDelegate != null)
+                _compileResult.ExecuteDelegate();
+            else if (_compileResult.ExecuteMethod == null)
                 throw new InvalidOperationException("UserCode 类缺少 Execute() 方法。");
-
-            _compileResult.ExecuteMethod.Invoke(_compiledInstance, null);
+            else
+                _compileResult.ExecuteMethod.Invoke(_compiledInstance, null);
 
             ReadOutputsFromCompiled(context);
             WriteOutputsFromProperties(context);

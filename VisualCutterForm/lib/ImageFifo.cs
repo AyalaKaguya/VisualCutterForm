@@ -83,7 +83,7 @@ namespace VisualCutterForm.Lib
                 {
                     lock (_lock)
                     {
-                        Monitor.Wait(_lock, 100);
+                        Monitor.Wait(_lock, 50);
                     }
                 }
             }

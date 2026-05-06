@@ -14,6 +14,7 @@ namespace VisualCutterForm.FlowEditor
     {
         private FlowSubGraph _subGraph;
         private readonly List<FlowNodeView> _nodeViews = new List<FlowNodeView>();
+        private readonly Dictionary<Guid, FlowNodeView> _viewIndex = new Dictionary<Guid, FlowNodeView>();
 
         private Point _offset = new Point(0, 0);
         private Point _dragStart;
@@ -59,6 +60,7 @@ namespace VisualCutterForm.FlowEditor
         public void RebuildViews()
         {
             _nodeViews.Clear();
+            _viewIndex.Clear();
             if (_subGraph == null) return;
 
             var hasPos = _subGraph.Nodes.Any(n => n.NodeX != 0 || n.NodeY != 0);
@@ -72,7 +74,9 @@ namespace VisualCutterForm.FlowEditor
                 else
                     pos = new Point(x, y);
 
-                _nodeViews.Add(new FlowNodeView(node, pos));
+                var view = new FlowNodeView(node, pos);
+                _nodeViews.Add(view);
+                _viewIndex[node.Id] = view;
 
                 if (!hasPos)
                 {
@@ -94,11 +98,13 @@ namespace VisualCutterForm.FlowEditor
 
             var node = NodeFactory.CreateNode(nodeType);
             _subGraph.Nodes.Add(node);
+            _subGraph.RebuildNodeIndex();
             var canvasPos = ScreenToCanvas(location);
             node.NodeX = canvasPos.X;
             node.NodeY = canvasPos.Y;
             var view = new FlowNodeView(node, canvasPos);
             _nodeViews.Add(view);
+            _viewIndex[node.Id] = view;
             Invalidate();
             return view;
         }
@@ -123,13 +129,17 @@ namespace VisualCutterForm.FlowEditor
             }
 
             _subGraph.Nodes.Remove(view.Node);
+            _subGraph.RebuildNodeIndex();
             _nodeViews.Remove(view);
+            _viewIndex.Remove(view.Node.Id);
             Invalidate();
         }
 
         public FlowNodeView FindView(FlowNode node)
         {
-            return _nodeViews.Find(v => v.Node.Id == node.Id);
+            if (node == null) return null;
+            _viewIndex.TryGetValue(node.Id, out var view);
+            return view;
         }
 
         public void ClearSelection()

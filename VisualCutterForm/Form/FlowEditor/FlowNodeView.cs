@@ -30,6 +30,14 @@ namespace VisualCutterForm.FlowEditor
             Color.FromArgb(230, 126, 34),   // Orange
         };
 
+        private static readonly SolidBrush BgBrush = new SolidBrush(Color.FromArgb(245, 245, 245));
+        private static readonly SolidBrush ShadowBrush = new SolidBrush(Color.FromArgb(30, 0, 0, 0));
+        private static readonly SolidBrush TextBrush = new SolidBrush(Color.FromArgb(50, 50, 50));
+        private static readonly SolidBrush PinConnectedBrush = new SolidBrush(Color.FromArgb(46, 204, 113));
+        private static readonly SolidBrush PinDisconnectedBrush = new SolidBrush(Color.FromArgb(180, 180, 180));
+        private static readonly SolidBrush TimingBgBrush = new SolidBrush(Color.FromArgb(160, 40, 40, 40));
+        private static readonly SolidBrush TimingTextBrush = new SolidBrush(Color.FromArgb(46, 204, 113));
+
         public FlowNodeView(FlowNode node, Point location)
         {
             Node = node;
@@ -50,16 +58,13 @@ namespace VisualCutterForm.FlowEditor
             var bounds = ScaleBounds(offset, zoom);
             var color = GetCategoryColor();
 
-            using (var bgBrush = new SolidBrush(Color.FromArgb(245, 245, 245)))
             using (var headerBrush = new SolidBrush(color))
             using (var borderPen = new Pen(IsSelected ? Color.FromArgb(41, 128, 185) : Color.FromArgb(180, 180, 180), IsSelected ? 2f : 1f))
             using (var headerFont = new Font(font.FontFamily, font.Size * zoom, FontStyle.Bold))
             using (var textFont = new Font(font.FontFamily, font.Size * zoom * 0.85f))
-            using (var textBrush = new SolidBrush(Color.FromArgb(50, 50, 50)))
-            using (var shadowBrush = new SolidBrush(Color.FromArgb(30, 0, 0, 0)))
             {
-                g.FillRectangle(shadowBrush, bounds.X + 3, bounds.Y + 3, bounds.Width, bounds.Height);
-                g.FillRectangle(bgBrush, bounds);
+                g.FillRectangle(ShadowBrush, bounds.X + 3, bounds.Y + 3, bounds.Width, bounds.Height);
+                g.FillRectangle(BgBrush, bounds);
                 g.DrawRectangle(borderPen, bounds);
                 g.FillRectangle(headerBrush, bounds.X, bounds.Y, bounds.Width, HeaderHeight * zoom);
                 g.DrawString(Node.Name, headerFont, Brushes.White,
@@ -83,10 +88,8 @@ namespace VisualCutterForm.FlowEditor
                         (int)(pinX / zoom) - offset.X,
                         (int)(pinY / zoom) - offset.Y));
 
-                    using (var pinBrush = new SolidBrush(Node.Inputs[i].IsConnected ? Color.FromArgb(46, 204, 113) : Color.FromArgb(180, 180, 180)))
-                        g.FillEllipse(pinBrush, pinRect);
-
-                    g.DrawString(Node.Inputs[i].Name, textFont, textBrush,
+                    g.FillEllipse(Node.Inputs[i].IsConnected ? PinConnectedBrush : PinDisconnectedBrush, pinRect);
+                    g.DrawString(Node.Inputs[i].Name, textFont, TextBrush,
                         new RectangleF(bounds.X + 20, y, bounds.Width - 24, RowHeight * zoom), strFmt);
                 }
 
@@ -102,21 +105,16 @@ namespace VisualCutterForm.FlowEditor
                         (int)(pinX / zoom) - offset.X,
                         (int)(pinY / zoom) - offset.Y));
 
-                    using (var pinBrush = new SolidBrush(Node.Outputs[i].Targets.Count > 0 ? Color.FromArgb(46, 204, 113) : Color.FromArgb(180, 180, 180)))
-                        g.FillEllipse(pinBrush, pinRect);
+                    g.FillEllipse(Node.Outputs[i].Targets.Count > 0 ? PinConnectedBrush : PinDisconnectedBrush, pinRect);
 
                     strFmt.Alignment = StringAlignment.Far;
-                    g.DrawString(Node.Outputs[i].Name, textFont, textBrush,
+                    g.DrawString(Node.Outputs[i].Name, textFont, TextBrush,
                         new RectangleF(bounds.X + 4, y, bounds.Width - 24, RowHeight * zoom), strFmt);
                     strFmt.Alignment = StringAlignment.Near;
                 }
             }
         }
 
-        /// <summary>
-        /// Renders the last execution time overlay on the node.
-        /// Call after Draw() for correct z-order.
-        /// </summary>
         public void DrawTiming(Graphics g, Font font, Point offset, float zoom)
         {
             if (Node.LastExecutionTimeMs <= 0) return;
@@ -131,14 +129,12 @@ namespace VisualCutterForm.FlowEditor
                 var sz = g.MeasureString(text, timeFont);
                 var tx = bounds.Right - sz.Width - 6;
                 var ty = bounds.Y + 4;
-                using (var bg = new SolidBrush(Color.FromArgb(160, 40, 40, 40)))
-                {
-                    g.FillRectangle(bg, tx - 2, ty - 1, sz.Width + 4, sz.Height + 2);
-                }
-                using (var timeBrush = new SolidBrush(Color.FromArgb(46, 204, 113)))
-                    g.DrawString(text, timeFont, timeBrush, tx, ty);
+                g.FillRectangle(TimingBgBrush, tx - 2, ty - 1, sz.Width + 4, sz.Height + 2);
+                g.DrawString(text, timeFont, TimingTextBrush, tx, ty);
             }
         }
+
+        /// <summary>
 
         public Rectangle ScaleBounds(Point offset, float zoom)
         {
