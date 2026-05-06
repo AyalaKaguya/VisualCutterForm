@@ -4,11 +4,9 @@ using System.Windows.Forms;
 
 namespace VisualCutterForm
 {
-    public class ImageViewer : UserControl, IMessageFilter
+    public class ImageViewer : UserControl
     {
-        private readonly Panel _scrollPanel;
-        private readonly PictureBox _pictureBox;
-        private readonly Panel _toolbar;
+        private readonly Panel _toolbarPanel;
         private readonly Button _btnZoomIn;
         private readonly Button _btnZoomOut;
         private readonly Button _btnFit;
@@ -18,345 +16,270 @@ namespace VisualCutterForm
         private Bitmap _sourceImage;
         private float _zoom = 1f;
         private bool _fitToScreen = true;
+        private Point _scrollOffset;
 
         private bool _isPanning;
-        private Point _panMouseStart;
+        private Point _panStart;
         private Point _panScrollStart;
-
-        private bool _toolbarHovered;
 
         private const float MinZoom = 0.05f;
         private const float MaxZoom = 20f;
         private const float ZoomStep = 1.25f;
-        private const float WheelZoomStep = 1.12f;
-        private const int WM_MOUSEWHEEL = 0x020A;
+
+        private static readonly Color DarkBg = Color.FromArgb(40, 40, 40);
 
         public Image Image
         {
-            get => _pictureBox.Image;
+            get => _sourceImage;
             set => SetImage(value as Bitmap);
         }
 
         public ImageViewer()
         {
-            DoubleBuffered = true;
-            BackColor = Color.FromArgb(40, 40, 40);
+            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint |
+                     ControlStyles.ResizeRedraw | ControlStyles.DoubleBuffer, true);
+            BackColor = DarkBg;
 
-            _scrollPanel = new Panel
+            // ── Toolbar at top-right ──
+            _toolbarPanel = new Panel
             {
-                Dock = DockStyle.Fill,
-                AutoScroll = true,
-                BackColor = Color.FromArgb(40, 40, 40),
-            };
-            _scrollPanel.MouseDown += OnImageMouseDown;
-            _scrollPanel.MouseMove += OnImageMouseMove;
-            _scrollPanel.MouseUp += OnImageMouseUp;
-
-            _pictureBox = new PictureBox
-            {
-                Location = new Point(0, 0),
-                SizeMode = PictureBoxSizeMode.AutoSize,
-                BackColor = Color.FromArgb(40, 40, 40),
-            };
-            _pictureBox.MouseDown += OnImageMouseDown;
-            _pictureBox.MouseMove += OnImageMouseMove;
-            _pictureBox.MouseUp += OnImageMouseUp;
-            _scrollPanel.Controls.Add(_pictureBox);
-
-            _toolbar = new Panel
-            {
-                Size = new Size(170, 32),
+                Size = new Size(180, 28),
                 BackColor = Color.FromArgb(200, 30, 30, 30),
-                Visible = false,
+                Anchor = AnchorStyles.Top | AnchorStyles.Right,
             };
-            _toolbar.MouseEnter += (s, e) => _toolbarHovered = true;
-            _toolbar.MouseLeave += (s, e) => { _toolbarHovered = false; HideToolbar(); };
 
-            void StyleButton(Button b, string text, float fontSize)
-            {
-                b.FlatStyle = FlatStyle.Flat;
-                b.FlatAppearance.BorderSize = 0;
-                b.ForeColor = Color.White;
-                b.BackColor = Color.Transparent;
-                b.Font = new Font("Segoe UI", fontSize, FontStyle.Bold);
-                b.Size = new Size(32, 28);
-                b.Text = text;
-                b.TextAlign = ContentAlignment.MiddleCenter;
-                b.MouseEnter += (s, e) => _toolbarHovered = true;
-                b.MouseLeave += (s, e) => _toolbarHovered = false;
-            }
-
-            _btnZoomOut = new Button { Location = new Point(4, 2) };
-            StyleButton(_btnZoomOut, "−", 11F);
-            _btnZoomOut.Click += (s, e) => ZoomOut();
-
+            _btnZoomOut = MakeToolBtn("−", 4);
             _lblZoom = new Label
             {
                 Text = "适应",
-                Location = new Point(38, 6),
-                Size = new Size(46, 20),
+                Location = new Point(40, 4),
+                Size = new Size(50, 20),
                 ForeColor = Color.FromArgb(200, 200, 200),
                 Font = new Font("Segoe UI", 8F),
                 TextAlign = ContentAlignment.MiddleCenter,
                 BackColor = Color.Transparent,
             };
+            _btnZoomIn = MakeToolBtn("+", 90);
+            _btnFit = MakeToolBtn("⊡", 130);
+            _btnActual = new Button
+            {
+                Text = "1:1",
+                Location = new Point(152, 2),
+                Size = new Size(26, 24),
+                FlatStyle = FlatStyle.Flat,
+                FlatAppearance = { BorderSize = 0 },
+                ForeColor = Color.White,
+                BackColor = Color.Transparent,
+                Font = new Font("Segoe UI", 7F, FontStyle.Bold),
+                TextAlign = ContentAlignment.MiddleCenter,
+            };
 
-            _btnZoomIn = new Button { Location = new Point(86, 2) };
-            StyleButton(_btnZoomIn, "+", 11F);
+            _btnZoomOut.Click += (s, e) => ZoomOut();
             _btnZoomIn.Click += (s, e) => ZoomIn();
-
-            _btnFit = new Button { Location = new Point(120, 2) };
-            StyleButton(_btnFit, "⊡", 11F);
             _btnFit.Click += (s, e) => ZoomFit();
-
-            _btnActual = new Button { Location = new Point(137, 2) };
-            StyleButton(_btnActual, "1:1", 8F);
             _btnActual.Click += (s, e) => ZoomActual();
 
-            _toolbar.Controls.Add(_btnZoomOut);
-            _toolbar.Controls.Add(_lblZoom);
-            _toolbar.Controls.Add(_btnZoomIn);
-            _toolbar.Controls.Add(_btnFit);
-            _toolbar.Controls.Add(_btnActual);
+            _toolbarPanel.Controls.Add(_btnZoomOut);
+            _toolbarPanel.Controls.Add(_lblZoom);
+            _toolbarPanel.Controls.Add(_btnZoomIn);
+            _toolbarPanel.Controls.Add(_btnFit);
+            _toolbarPanel.Controls.Add(_btnActual);
+            Controls.Add(_toolbarPanel);
 
-            Controls.Add(_scrollPanel);
-            Controls.Add(_toolbar);
-
-            Resize += (s, e) => { PositionToolbar(); ApplyFitIfNeeded(); };
+            Resize += (s, e) => PositionToolbar();
+            MouseDown += OnMouseDown;
+            MouseMove += OnMouseMove;
+            MouseUp += OnMouseUp;
         }
 
-        protected override void OnHandleCreated(EventArgs e)
+        protected override void WndProc(ref Message m)
         {
-            base.OnHandleCreated(e);
-            Application.AddMessageFilter(this);
-        }
-
-        protected override void OnHandleDestroyed(EventArgs e)
-        {
-            Application.RemoveMessageFilter(this);
-            base.OnHandleDestroyed(e);
-        }
-
-        bool IMessageFilter.PreFilterMessage(ref Message m)
-        {
-            if (m.Msg == WM_MOUSEWHEEL && IsHandleCreated && Visible && !Disposing)
+            if (m.Msg == 0x020A) // WM_MOUSEWHEEL
             {
-                var screenPoint = MousePosition;
-                if (ClientRectangle.Contains(PointToClient(screenPoint)))
+                var clientPos = PointToClient(MousePosition);
+                if (ClientRectangle.Contains(clientPos) && _sourceImage != null)
                 {
                     int delta = (short)((uint)m.WParam >> 16);
-                    HandleMouseWheel(delta, PointToClient(screenPoint));
-                    return true;
+                    if (ModifierKeys.HasFlag(Keys.Control))
+                    {
+                        float factor = delta > 0 ? 1.12f : 1f / 1.12f;
+                        ZoomAtCursor(factor, clientPos);
+                    }
+                    else if (!_fitToScreen)
+                    {
+                        _scrollOffset.Y -= delta / 2;
+                        ClampScroll();
+                        Invalidate();
+                    }
+                    return;
                 }
             }
-            return false;
+            base.WndProc(ref m);
         }
 
-        protected override void OnMouseMove(MouseEventArgs e)
+        private Button MakeToolBtn(string text, int x)
         {
-            base.OnMouseMove(e);
-            if (_fitToScreen && _sourceImage != null) return;
-
-            var toolbarRect = new Rectangle(
-                ClientSize.Width - _toolbar.Width - 8,
-                ClientSize.Height - _toolbar.Height - 6,
-                _toolbar.Width + 16,
-                _toolbar.Height + 16);
-
-            if (toolbarRect.Contains(e.Location) || _toolbarHovered)
-                ShowToolbar(true);
-            else
-                HideToolbar();
+            return new Button
+            {
+                Text = text,
+                Location = new Point(x, 2),
+                Size = new Size(32, 24),
+                FlatStyle = FlatStyle.Flat,
+                FlatAppearance = { BorderSize = 0 },
+                ForeColor = Color.White,
+                BackColor = Color.Transparent,
+                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                TextAlign = ContentAlignment.MiddleCenter,
+            };
         }
 
-        protected override void OnMouseLeave(EventArgs e)
+        private void PositionToolbar()
         {
-            base.OnMouseLeave(e);
-            if (!_toolbarHovered)
-                HideToolbar();
+            _toolbarPanel.Location = new Point(
+                ClientSize.Width - _toolbarPanel.Width - 4, 4);
+            _toolbarPanel.BringToFront();
         }
 
         public void SetImage(Bitmap bmp)
         {
+            _sourceImage?.Dispose();
             _sourceImage = bmp;
-            if (bmp == null)
-            {
-                _pictureBox.Image = null;
-                HideToolbar();
-                return;
-            }
-
-            if (_fitToScreen)
-                ApplyFitZoom();
-            else
-                ApplyZoom();
+            _scrollOffset = Point.Empty;
+            Invalidate();
         }
 
         public void ZoomIn()
         {
             _fitToScreen = false;
             _zoom = Math.Min(_zoom * ZoomStep, MaxZoom);
-            ApplyZoom();
+            ClampScroll();
+            UpdateLabel();
+            Invalidate();
         }
 
         public void ZoomOut()
         {
             _fitToScreen = false;
             _zoom = Math.Max(_zoom / ZoomStep, MinZoom);
-            ApplyZoom();
+            ClampScroll();
+            UpdateLabel();
+            Invalidate();
         }
 
         public void ZoomFit()
         {
             _fitToScreen = true;
-            ApplyFitZoom();
+            _scrollOffset = Point.Empty;
+            UpdateLabel();
+            Invalidate();
         }
 
         public void ZoomActual()
         {
             _fitToScreen = false;
             _zoom = 1f;
-            ApplyZoom();
+            ClampScroll();
+            UpdateLabel();
+            Invalidate();
         }
 
-        private void ApplyFitZoom()
-        {
-            if (_sourceImage == null) return;
-            _scrollPanel.AutoScroll = false;
-            _pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
-            _pictureBox.Image = _sourceImage;
-            _pictureBox.Dock = DockStyle.Fill;
-            _pictureBox.Location = Point.Empty;
-            _lblZoom.Text = "适应";
-        }
-
-        private void ApplyFitIfNeeded()
-        {
-            if (_fitToScreen) ApplyFitZoom();
-        }
-
-        private void ApplyZoom()
-        {
-            if (_sourceImage == null) return;
-            _pictureBox.Dock = DockStyle.None;
-            _scrollPanel.AutoScroll = true;
-            _pictureBox.SizeMode = PictureBoxSizeMode.AutoSize;
-            _pictureBox.Image = _sourceImage;
-            int w = (int)(_sourceImage.Width * _zoom);
-            int h = (int)(_sourceImage.Height * _zoom);
-            _pictureBox.Size = new Size(w, h);
-            CenterImage();
-            _lblZoom.Text = $"{_zoom * 100:F0}%";
-        }
-
-        private void CenterImage()
-        {
-            int x = Math.Max(0, (_scrollPanel.ClientSize.Width - _pictureBox.Width) / 2);
-            int y = Math.Max(0, (_scrollPanel.ClientSize.Height - _pictureBox.Height) / 2);
-            _pictureBox.Location = new Point(x, y);
-        }
-
-        private void PositionToolbar()
-        {
-            _toolbar.Location = new Point(
-                ClientSize.Width - _toolbar.Width - 8,
-                ClientSize.Height - _toolbar.Height - 6);
-            _toolbar.BringToFront();
-        }
-
-        private void ShowToolbar(bool visible)
-        {
-            if (_toolbar.Visible != visible)
-            {
-                _toolbar.Visible = visible;
-                if (visible) _toolbar.BringToFront();
-            }
-        }
-
-        private void HideToolbar()
-        {
-            if (!_toolbarHovered)
-                ShowToolbar(false);
-        }
-
-        private void HandleMouseWheel(int delta, Point clientPos)
-        {
-            if (_sourceImage == null) return;
-
-            if (ModifierKeys.HasFlag(Keys.Control))
-            {
-                float factor = delta > 0 ? WheelZoomStep : 1f / WheelZoomStep;
-                ZoomAtCursor(factor, clientPos);
-            }
-            else if (!_fitToScreen)
-            {
-                _scrollPanel.AutoScrollPosition = new Point(
-                    -_scrollPanel.AutoScrollPosition.X,
-                    -_scrollPanel.AutoScrollPosition.Y - delta / 2);
-            }
-        }
-
-        private void ZoomAtCursor(float factor, Point cursorOnControl)
+        private void ZoomAtCursor(float factor, Point cursorPos)
         {
             if (_sourceImage == null) return;
 
             if (_fitToScreen)
             {
-                float fitW = (float)_scrollPanel.ClientSize.Width / _sourceImage.Width;
-                float fitH = (float)_scrollPanel.ClientSize.Height / _sourceImage.Height;
+                float fitW = (float)ClientSize.Width / _sourceImage.Width;
+                float fitH = (float)ClientSize.Height / _sourceImage.Height;
                 _zoom = Math.Min(fitW, fitH);
                 _fitToScreen = false;
-                _scrollPanel.AutoScroll = true;
-                _pictureBox.Dock = DockStyle.None;
-                _pictureBox.SizeMode = PictureBoxSizeMode.AutoSize;
-                _pictureBox.Image = _sourceImage;
             }
 
-            _pictureBox.Location = Point.Empty;
-            int oldW = _pictureBox.Width;
-            int oldH = _pictureBox.Height;
-
+            float oldZoom = _zoom;
             _zoom = Math.Max(MinZoom, Math.Min(MaxZoom, _zoom * factor));
 
-            int newW = (int)(_sourceImage.Width * _zoom);
-            int newH = (int)(_sourceImage.Height * _zoom);
-            _pictureBox.Size = new Size(newW, newH);
+            float relX = (cursorPos.X + _scrollOffset.X) / oldZoom;
+            float relY = (cursorPos.Y + _scrollOffset.Y) / oldZoom;
 
-            float relX = (float)cursorOnControl.X / oldW;
-            float relY = (float)cursorOnControl.Y / oldH;
+            _scrollOffset = new Point(
+                (int)(relX * _zoom - cursorPos.X),
+                (int)(relY * _zoom - cursorPos.Y));
 
-            int scrollX = (int)(relX * newW) - cursorOnControl.X;
-            int scrollY = (int)(relY * newH) - cursorOnControl.Y;
-
-            _scrollPanel.AutoScrollPosition = new Point(scrollX, scrollY);
-            _lblZoom.Text = $"{_zoom * 100:F0}%";
+            ClampScroll();
+            UpdateLabel();
+            Invalidate();
         }
 
-        private void OnImageMouseDown(object sender, MouseEventArgs e)
+        private void ClampScroll()
+        {
+            if (_sourceImage == null) return;
+            int imgW = (int)(_sourceImage.Width * _zoom);
+            int imgH = (int)(_sourceImage.Height * _zoom);
+            _scrollOffset.X = Math.Max(0, Math.Min(_scrollOffset.X, imgW - ClientSize.Width));
+            _scrollOffset.Y = Math.Max(0, Math.Min(_scrollOffset.Y, imgH - ClientSize.Height));
+            if (imgW <= ClientSize.Width) _scrollOffset.X = 0;
+            if (imgH <= ClientSize.Height) _scrollOffset.Y = 0;
+        }
+
+        private void UpdateLabel()
+        {
+            _lblZoom.Text = _fitToScreen ? "适应" : $"{_zoom * 100:F0}%";
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            var g = e.Graphics;
+
+            if (_sourceImage == null) return;
+
+            if (_fitToScreen)
+            {
+                float scaleW = (float)ClientSize.Width / _sourceImage.Width;
+                float scaleH = (float)ClientSize.Height / _sourceImage.Height;
+                float scale = Math.Min(scaleW, scaleH);
+                int w = (int)(_sourceImage.Width * scale);
+                int h = (int)(_sourceImage.Height * scale);
+                int x = (ClientSize.Width - w) / 2;
+                int y = (ClientSize.Height - h) / 2;
+                g.DrawImage(_sourceImage, x, y, w, h);
+            }
+            else
+            {
+                int imgW = (int)(_sourceImage.Width * _zoom);
+                int imgH = (int)(_sourceImage.Height * _zoom);
+                int x = (ClientSize.Width - imgW) / 2 - _scrollOffset.X;
+                int y = (ClientSize.Height - imgH) / 2 - _scrollOffset.Y;
+
+                if (imgW < ClientSize.Width) x = (ClientSize.Width - imgW) / 2;
+                if (imgH < ClientSize.Height) y = (ClientSize.Height - imgH) / 2;
+
+                g.DrawImage(_sourceImage, x, y, imgW, imgH);
+            }
+        }
+
+        private void OnMouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left && _sourceImage != null && !_fitToScreen)
             {
                 _isPanning = true;
-                _panMouseStart = e.Location;
-                _panScrollStart = new Point(
-                    -_scrollPanel.AutoScrollPosition.X,
-                    -_scrollPanel.AutoScrollPosition.Y);
+                _panStart = e.Location;
+                _panScrollStart = _scrollOffset;
                 Cursor = Cursors.Hand;
             }
         }
 
-        private void OnImageMouseMove(object sender, MouseEventArgs e)
+        private void OnMouseMove(object sender, MouseEventArgs e)
         {
             if (!_isPanning) return;
-
-            int dx = _panMouseStart.X - e.X;
-            int dy = _panMouseStart.Y - e.Y;
-            _scrollPanel.AutoScrollPosition = new Point(
-                _panScrollStart.X + dx,
-                _panScrollStart.Y + dy);
+            _scrollOffset = new Point(
+                _panScrollStart.X + (_panStart.X - e.X),
+                _panScrollStart.Y + (_panStart.Y - e.Y));
+            ClampScroll();
+            Invalidate();
         }
 
-        private void OnImageMouseUp(object sender, MouseEventArgs e)
+        private void OnMouseUp(object sender, MouseEventArgs e)
         {
             if (_isPanning)
             {

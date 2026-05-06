@@ -809,9 +809,7 @@ namespace VisualCutterForm
 
         private void ShowPreview(Bitmap bmp)
         {
-            var old = _previewBox.Image;
             _previewBox.Image = bmp;
-            old?.Dispose();
         }
 
         private void OnPreviewTimerTick(object sender, EventArgs e)
