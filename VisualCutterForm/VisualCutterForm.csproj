@@ -82,8 +82,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <Compile Include="Lib\ICamera.cs" />
-    <Compile Include="Lib\CameraInfo.cs" />
     <Compile Include="Lib\CameraManager.cs" />
     <Compile Include="Lib\MvsCamera.cs" />
     <Compile Include="Lib\SerialPortAdapter.cs" />
@@ -92,9 +90,7 @@
     <Compile Include="Lib\AppConfig.cs" />
     <Compile Include="Lib\CameraSettings.cs" />
     <Compile Include="Lib\CameraSettingsStore.cs" />
-    <Compile Include="Lib\ImageFifo.cs" />
     <Compile Include="Lib\LogRingBuffer.cs" />
-    <Compile Include="Lib\UserRole.cs" />
     <Compile Include="CameraSettingsDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -173,6 +169,12 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NuGet.Protocol" Version="6.12.1" />
     <PackageReference Include="FCTB" Version="2.16.24" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\VisualMaster.Api\VisualMaster.Api.csproj">
+      <Project>{afc9c44c-4155-40a6-b333-971924253c41}</Project>
+      <Name>VisualMaster.Api</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

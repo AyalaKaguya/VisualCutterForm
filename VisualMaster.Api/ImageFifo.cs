@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
 
-namespace VisualCutterForm.Lib
+namespace VisualMaster.Api
 {
     public class ImageFifo : IDisposable
     {

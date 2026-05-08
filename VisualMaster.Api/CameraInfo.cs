@@ -1,6 +1,4 @@
-using System;
-
-namespace VisualCutterForm.Lib
+namespace VisualMaster.Api
 {
     public class CameraInfo
     {

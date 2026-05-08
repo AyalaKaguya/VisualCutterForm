@@ -1,26 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO.Ports;
+using VisualMaster.Api;
 
 namespace VisualCutterForm.Lib
 {
-    public interface ISerialPort : IDisposable
-    {
-        string PortName { get; }
-        int BaudRate { get; }
-        bool IsOpen { get; }
-
-        void Open();
-        void Close();
-        void Send(string data);
-        void Send(byte[] data);
-        void SendLine(string line);
-
-        event EventHandler<string> DataReceived;
-        event EventHandler<byte[]> RawDataReceived;
-        event EventHandler<Exception> ErrorOccurred;
-    }
-
     public class SerialPortAdapter : ISerialPort
     {
         private readonly SerialPort _port;

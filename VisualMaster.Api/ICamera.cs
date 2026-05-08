@@ -1,7 +1,7 @@
 using System;
 using System.Drawing;
 
-namespace VisualCutterForm.Lib
+namespace VisualMaster.Api
 {
     public interface ICamera : IDisposable
     {
