@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using VisualMaster.Api;
 
-namespace VisualCutterForm.Lib
+namespace VisualMaster.CameraLink
 {
     public class CameraSettingsStore
     {

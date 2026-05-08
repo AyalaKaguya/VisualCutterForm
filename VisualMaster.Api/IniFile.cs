@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace VisualCutterForm.Lib
+namespace VisualMaster.Api
 {
     public class IniFile
     {

@@ -5,5 +5,6 @@
   <Project Path="VisualCutterForm/VisualCutterForm.csproj" Id="eb7c9dc2-99ef-41fd-9fa8-1b86e0a77086" />
   <Project Path="VisualMaster.Api/VisualMaster.Api.csproj" Id="afc9c44c-4155-40a6-b333-971924253c41" />
   <Project Path="VisualMaster.CameraLink/VisualMaster.CameraLink.csproj" Id="8ae7ebd1-875e-4868-9fa0-a6a89050ce98" />
-  <Project Path="VisualMaster.Flow.Api/VisualMaster.Flow.csproj" Id="5e851bf6-cab5-4edd-9fa6-25ae238a4a69" />
+  <Project Path="VisualMaster.Communication/VisualMaster.Communication.csproj" Id="dff219f5-74a2-416a-b51c-37a8929ac58d" />
+  <Project Path="VisualMaster.WorkFlow/VisualMaster.WorkFlow.csproj" Id="1d113d79-cf79-4f01-a9db-c384a9624d6a" />
 </Solution>

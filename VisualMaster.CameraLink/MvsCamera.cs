@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Threading;
 using MvCameraControl;
 
-namespace VisualCutterForm.Lib
+namespace VisualMaster.CameraLink
 {
     public class MvsCamera : ICamera
     {
@@ -177,7 +177,6 @@ namespace VisualCutterForm.Lib
             }
             catch
             {
-                // best-effort, ignore frame drops
             }
         }
 

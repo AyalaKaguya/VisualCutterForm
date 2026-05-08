@@ -1,10 +1,9 @@
 using VisualMaster.Api;
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using MvCameraControl;
 
-namespace VisualCutterForm.Lib
+namespace VisualMaster.CameraLink
 {
     public class CameraManager : IDisposable
     {

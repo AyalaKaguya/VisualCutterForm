@@ -1,4 +1,4 @@
-namespace VisualCutterForm.Lib
+namespace VisualMaster.CameraLink
 {
     public class CameraSettings
     {

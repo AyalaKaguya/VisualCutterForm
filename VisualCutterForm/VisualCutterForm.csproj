@@ -82,14 +82,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <Compile Include="Lib\CameraManager.cs" />
-    <Compile Include="Lib\MvsCamera.cs" />
     <Compile Include="Lib\SerialPortAdapter.cs" />
     <Compile Include="Lib\VisionController.cs" />
-    <Compile Include="Lib\IniFile.cs" />
     <Compile Include="Lib\AppConfig.cs" />
-    <Compile Include="Lib\CameraSettings.cs" />
-    <Compile Include="Lib\CameraSettingsStore.cs" />
     <Compile Include="Lib\LogRingBuffer.cs" />
     <Compile Include="CameraSettingsDialog.cs">
       <SubType>Form</SubType>
@@ -174,6 +169,10 @@
     <ProjectReference Include="..\VisualMaster.Api\VisualMaster.Api.csproj">
       <Project>{afc9c44c-4155-40a6-b333-971924253c41}</Project>
       <Name>VisualMaster.Api</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VisualMaster.CameraLink\VisualMaster.CameraLink.csproj">
+      <Project>{8ae7ebd1-875e-4868-9fa0-a6a89050ce98}</Project>
+      <Name>VisualMaster.CameraLink</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
