@@ -1,5 +1,6 @@
 using VisualMaster.Api;
 using System;
+using System.Windows.Forms;
 
 namespace VisualMaster.CameraLink
 {
