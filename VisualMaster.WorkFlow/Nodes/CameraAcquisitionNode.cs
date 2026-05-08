@@ -3,9 +3,10 @@ using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
 using OpenCvSharp;
-using VisualCutterForm.Lib.Flow.Data;
+using VisualMaster.Api;
+using VisualMaster.WorkFlow.Data;
 
-namespace VisualCutterForm.Lib.Flow.Nodes
+namespace VisualMaster.WorkFlow.Nodes
 {
     public enum AcquisitionTriggerMode
     {
@@ -35,7 +36,7 @@ namespace VisualCutterForm.Lib.Flow.Nodes
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var vc = context.GetVariable<VisionController>("VisionController");
+            dynamic vc = context.GetVariable<object>("VisionController");
             if (vc == null)
                 throw new InvalidOperationException("VisionController not found in context.");
 
@@ -69,7 +70,8 @@ namespace VisualCutterForm.Lib.Flow.Nodes
             }
             else
             {
-                if (vc.Slots.TryGetValue(CameraSerial, out var slot))
+                var slots = (System.Collections.Generic.IReadOnlyDictionary<string, CameraSlot>)vc.Slots;
+                if (slots.TryGetValue(CameraSerial, out var slot))
                 {
                     bool got = slot.Camera.TryGrabImage(out Bitmap bmp, TimeoutMs);
                     if (!got || bmp == null)

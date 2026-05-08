@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using OpenCvSharp;
 
-namespace VisualCutterForm.Lib.Flow.Nodes
+namespace VisualMaster.WorkFlow.Nodes
 {
     [NodeCategory("显示", "图像展示")]
     public class ImageDisplayNode : FlowNode

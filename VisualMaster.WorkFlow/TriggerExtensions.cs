@@ -1,4 +1,4 @@
-namespace VisualCutterForm.Lib.Flow
+namespace VisualMaster.WorkFlow
 {
     public static class TriggerExtensions
     {

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-namespace VisualCutterForm.Lib.Flow.Data
+namespace VisualMaster.WorkFlow.Data
 {
     public enum SerialMatchMode
     {

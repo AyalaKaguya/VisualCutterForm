@@ -87,32 +87,6 @@
     <Compile Include="CameraSettingsDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Lib\Flow\NodeAttributes.cs" />
-    <Compile Include="Lib\Flow\NodePin.cs" />
-    <Compile Include="Lib\Flow\NodeConnection.cs" />
-    <Compile Include="Lib\Flow\FlowNode.cs" />
-    <Compile Include="Lib\Flow\FlowContext.cs" />
-    <Compile Include="Lib\Flow\NodeFactory.cs" />
-    <Compile Include="Lib\Flow\ImageConverter.cs" />
-    <Compile Include="Lib\Flow\Data\AcquisitionResult.cs" />
-    <Compile Include="Lib\Flow\Data\SerialTriggerRule.cs" />
-    <Compile Include="Lib\Flow\Nodes\CameraAcquisitionNode.cs" />
-    <Compile Include="Lib\Flow\Nodes\FileAcquisitionNode.cs" />
-    <Compile Include="Lib\Flow\Nodes\SerialSendNode.cs" />
-    <Compile Include="Lib\Flow\Nodes\SerialReceiveNode.cs" />
-    <Compile Include="Lib\Flow\Nodes\ComputationNode.cs" />
-    <Compile Include="Lib\Flow\Nodes\ImageDisplayNode.cs" />
-    <Compile Include="Lib\Flow\Nodes\AcqResultToMatNode.cs" />
-    <Compile Include="Lib\Flow\Nodes\OpenCvOperators.cs" />
-    <Compile Include="Lib\Flow\Nodes\CSharpScriptCompiler.cs" />
-    <Compile Include="Lib\Flow\FlowSubGraph.cs" />
-    <Compile Include="Lib\Flow\FlowGraph.cs" />
-    <Compile Include="Lib\Flow\FlowExecutor.cs" />
-    <Compile Include="Lib\Flow\FlowSerializer.cs" />
-    <Compile Include="Lib\Flow\PinTypeResolver.cs" />
-    <Compile Include="Lib\Flow\ServiceProvider.cs" />
-    <Compile Include="Lib\Flow\TriggerExtensions.cs" />
-    <Compile Include="Lib\Flow\IFlowServiceProvider.cs" />
     <Compile Include="Form\FlowEditor\FlowNodeView.cs" />
     <Compile Include="Form\FlowEditor\FlowCanvas.cs">
       <SubType>UserControl</SubType>
@@ -175,6 +149,10 @@
     <ProjectReference Include="..\VisualMaster.Communication\VisualMaster.Communication.csproj">
       <Project>{dff219f5-74a2-416a-b51c-37a8929ac58d}</Project>
       <Name>VisualMaster.Communication</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VisualMaster.WorkFlow\VisualMaster.WorkFlow.csproj">
+      <Project>{1d113d79-cf79-4f01-a9db-c384a9624d6a}</Project>
+      <Name>VisualMaster.WorkFlow</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,3 +1,4 @@
+using VisualMaster.WorkFlow;
 using VisualMaster.Api;
 using VisualMaster.CameraLink;
 using VisualMaster.Communication;
@@ -10,8 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using VisualCutterForm.Lib;
-using VisualCutterForm.Lib.Flow;
-using VisualCutterForm.Lib.Flow.Nodes;
+using VisualMaster.WorkFlow.Nodes;
 using VisualCutterForm.FlowEditor;
 
 namespace VisualCutterForm

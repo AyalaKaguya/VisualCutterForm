@@ -44,7 +44,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CameraSettings.cs" />
     <Compile Include="CameraSettingsStore.cs" />
     <Compile Include="MvsCamera.cs" />
     <Compile Include="CameraManager.cs" />

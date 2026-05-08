@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using FastColoredTextBoxNS;
-using VisualCutterForm.Lib.Flow;
+using VisualMaster.WorkFlow;
 
 namespace VisualCutterForm
 {
@@ -202,8 +202,8 @@ public class UserCode
             // using statements
             sb.AppendLine("using System;");
             sb.AppendLine("using OpenCvSharp;");
-            sb.AppendLine("using VisualCutterForm.Lib.Flow;");
-            sb.AppendLine("using VisualCutterForm.Lib.Flow.Data;");
+            sb.AppendLine("using VisualMaster.WorkFlow;");
+            sb.AppendLine("using VisualMaster.WorkFlow.Data;");
             sb.AppendLine();
 
             sb.AppendLine(DefaultTemplate);
@@ -265,7 +265,7 @@ public class UserCode
             if (t == typeof(Bitmap)) return "Bitmap";
             if (t == typeof(OpenCvSharp.Mat)) return "Mat";
             if (t == typeof(OpenCvSharp.Point2d)) return "Point2d";
-            if (t == typeof(Lib.Flow.Data.AcquisitionResult)) return "AcquisitionResult";
+            if (t == typeof(VisualMaster.WorkFlow.Data.AcquisitionResult)) return "AcquisitionResult";
             if (t != null) return t.Name;
             return "object";
         }
@@ -522,7 +522,7 @@ public class UserCode
             if (t == typeof(Bitmap)) return "Bitmap";
             if (t == typeof(OpenCvSharp.Mat)) return "Mat";
             if (t == typeof(OpenCvSharp.Point2d)) return "Point2d";
-            if (t == typeof(Lib.Flow.Data.AcquisitionResult)) return "AcqResult";
+            if (t == typeof(VisualMaster.WorkFlow.Data.AcquisitionResult)) return "AcqResult";
             return t?.Name ?? "?";
         }
 
@@ -559,7 +559,7 @@ public class UserCode
 
             try
             {
-                var node = new Lib.Flow.Nodes.ComputationNode
+                var node = new VisualMaster.WorkFlow.Nodes.ComputationNode
                 {
                     SourceCode = _editor.Text,
                     ExtraReferences = ExtraReferences,

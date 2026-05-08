@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace VisualCutterForm.Lib.Flow
+namespace VisualMaster.WorkFlow
 {
     public static class FlowSerializer
     {

@@ -1,10 +1,11 @@
+using VisualMaster.Api;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using VisualCutterForm.Lib.Flow.Data;
+using VisualMaster.WorkFlow.Data;
 
-namespace VisualCutterForm.Lib.Flow.Nodes
+namespace VisualMaster.WorkFlow.Nodes
 {
     [NodeCategory("通信", "串口接收")]
     [NodeBackground]
@@ -43,7 +44,7 @@ namespace VisualCutterForm.Lib.Flow.Nodes
         {
             StopListening();
 
-            var vc = context.GetVariable<VisionController>("VisionController");
+            dynamic vc = context.GetVariable<object>("VisionController");
             if (vc == null)
                 throw new InvalidOperationException("VisionController not found in context.");
 
@@ -52,8 +53,11 @@ namespace VisualCutterForm.Lib.Flow.Nodes
                 vc.ConnectSerial(SerialPort, BaudRate);
             }
 
-            if (!vc.IsSerialOpen(SerialPort) ||
-                !vc.SerialPorts.TryGetValue(SerialPort, out var serialPort))
+            var ports = (System.Collections.Generic.IReadOnlyDictionary<string, ISerialPort>)vc.SerialPorts;
+            if (!vc.IsSerialOpen(SerialPort))
+                throw new InvalidOperationException($"Serial port {SerialPort} is not connected.");
+            ISerialPort serialPort;
+            if (!ports.TryGetValue(SerialPort, out serialPort))
                 throw new InvalidOperationException($"Serial port {SerialPort} is not connected.");
 
             _cts = new CancellationTokenSource();
@@ -132,7 +136,7 @@ namespace VisualCutterForm.Lib.Flow.Nodes
 
         private void HandleMatch(SerialTriggerRule rule, string text, byte[] data, FlowContext context)
         {
-            var vc = context.GetVariable<VisionController>("VisionController");
+            dynamic vc = context.GetVariable<object>("VisionController");
 
             if (rule.AutoResponseEnabled && vc != null)
             {

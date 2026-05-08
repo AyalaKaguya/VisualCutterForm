@@ -387,14 +387,5 @@ namespace VisualCutterForm.Lib
         {
             StatusChanged?.Invoke(this, message);
         }
-
-        public class CameraSlot
-        {
-            public ICamera Camera { get; set; }
-            public ImageFifo Fifo { get; set; }
-            public CameraSettings Settings { get; set; }
-            public CameraInfo Info { get; set; }
-            public bool IsGrabbing { get; set; }
-        }
     }
 }

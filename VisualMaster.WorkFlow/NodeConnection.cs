@@ -1,6 +1,6 @@
 using System;
 
-namespace VisualCutterForm.Lib.Flow
+namespace VisualMaster.WorkFlow
 {
     public class NodeConnection
     {

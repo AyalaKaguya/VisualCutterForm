@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Newtonsoft.Json.Linq;
 
-namespace VisualCutterForm.Lib.Flow.Nodes
+namespace VisualMaster.WorkFlow.Nodes
 {
     public class CSharpScriptCompiler
     {

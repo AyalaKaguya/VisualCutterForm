@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using VisualCutterForm.Lib.Flow.Data;
+using VisualMaster.WorkFlow.Data;
 
-namespace VisualCutterForm.Lib.Flow.Nodes
+namespace VisualMaster.WorkFlow.Nodes
 {
     [NodeCategory("通信", "串口发送")]
     public class SerialSendNode : FlowNode
@@ -23,7 +23,7 @@ namespace VisualCutterForm.Lib.Flow.Nodes
 
         public override async Task ExecuteAsync(FlowContext context, CancellationToken cancellationToken)
         {
-            var vc = context.GetVariable<VisionController>("VisionController");
+            dynamic vc = context.GetVariable<object>("VisionController");
             if (vc == null)
                 throw new InvalidOperationException("VisionController not found in context.");
 

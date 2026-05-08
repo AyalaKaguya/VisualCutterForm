@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace VisualCutterForm.Lib.Flow
+namespace VisualMaster.WorkFlow
 {
     public class ServiceProvider
     {

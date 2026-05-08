@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using OpenCvSharp;
 
-namespace VisualCutterForm.Lib.Flow.Nodes
+namespace VisualMaster.WorkFlow.Nodes
 {
     [NodeCategory("OpenCV", "高斯模糊")]
     public class CvGaussianBlurNode : FlowNode

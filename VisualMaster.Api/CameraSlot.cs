@@ -1,4 +1,4 @@
-namespace VisualMaster.CameraLink
+namespace VisualMaster.Api
 {
     public class CameraSettings
     {
@@ -23,5 +23,14 @@ namespace VisualMaster.CameraLink
         {
             return (CameraSettings)MemberwiseClone();
         }
+    }
+
+    public class CameraSlot
+    {
+        public ICamera Camera { get; set; }
+        public ImageFifo Fifo { get; set; }
+        public CameraSettings Settings { get; set; }
+        public CameraInfo Info { get; set; }
+        public bool IsGrabbing { get; set; }
     }
 }

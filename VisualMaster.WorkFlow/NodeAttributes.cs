@@ -1,6 +1,6 @@
 using System;
 
-namespace VisualCutterForm.Lib.Flow
+namespace VisualMaster.WorkFlow
 {
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
     public class NodeInputAttribute : Attribute

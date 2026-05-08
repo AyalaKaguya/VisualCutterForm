@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using VisualCutterForm.Lib.Flow.Data;
+using VisualMaster.WorkFlow.Data;
 
-namespace VisualCutterForm.Lib.Flow
+namespace VisualMaster.WorkFlow
 {
     public abstract class NodePin
     {

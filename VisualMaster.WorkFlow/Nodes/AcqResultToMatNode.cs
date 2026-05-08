@@ -1,9 +1,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 using OpenCvSharp;
-using VisualCutterForm.Lib.Flow.Data;
+using VisualMaster.WorkFlow.Data;
 
-namespace VisualCutterForm.Lib.Flow.Nodes
+namespace VisualMaster.WorkFlow.Nodes
 {
     [NodeCategory("转换", "取像结果转Mat")]
     public class AcqResultToMatNode : FlowNode

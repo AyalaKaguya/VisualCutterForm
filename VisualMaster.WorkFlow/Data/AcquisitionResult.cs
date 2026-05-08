@@ -2,7 +2,7 @@ using System;
 using System.Drawing;
 using OpenCvSharp;
 
-namespace VisualCutterForm.Lib.Flow.Data
+namespace VisualMaster.WorkFlow.Data
 {
     public class AcquisitionResult : IDisposable
     {

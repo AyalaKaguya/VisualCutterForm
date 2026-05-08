@@ -1,8 +1,8 @@
 using VisualMaster.Api;
 using System.Threading.Tasks;
-using VisualCutterForm.Lib.Flow.Data;
+using VisualMaster.WorkFlow.Data;
 
-namespace VisualCutterForm.Lib.Flow
+namespace VisualMaster.WorkFlow
 {
     public interface IFlowServiceProvider
     {
@@ -11,7 +11,7 @@ namespace VisualCutterForm.Lib.Flow
         bool IsSerialOpen(string portName);
         void ConnectSerial(string portName, int baudRate);
         void OutputResult(string portName, object data);
-        VisionController.CameraSlot GetCameraSlot(string serial);
+        CameraSlot GetCameraSlot(string serial);
         bool TriggerCommunication(string portName, SerialTriggerRule rule);
         void OnSerialDataReceived(string portName, string data);
     }

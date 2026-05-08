@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
-using VisualCutterForm.Lib.Flow;
+using VisualMaster.WorkFlow;
 
 namespace VisualCutterForm.FlowEditor
 {
@@ -316,7 +316,7 @@ namespace VisualCutterForm.FlowEditor
                 return $"Mat {m.Width}x{m.Height}";
             if (val is System.Drawing.Bitmap bmp)
                 return $"Bitmap {bmp.Width}x{bmp.Height}";
-            if (val is Lib.Flow.Data.AcquisitionResult ar)
+            if (val is VisualMaster.WorkFlow.Data.AcquisitionResult ar)
                 return $"AcqResult {ar.Width}x{ar.Height}";
             if (val is string s)
                 return s.Length > 30 ? $"\"{s.Substring(0, 28)}…\"" : $"\"{s}\"";

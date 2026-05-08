@@ -7,10 +7,10 @@ using System.Drawing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using VisualCutterForm.Lib.Flow.Data;
-using VisualCutterForm.Lib.Flow.Nodes;
+using VisualMaster.WorkFlow.Data;
+using VisualMaster.WorkFlow.Nodes;
 
-namespace VisualCutterForm.Lib.Flow
+namespace VisualMaster.WorkFlow
 {
     public class FlowExecutor : IDisposable
     {
@@ -19,7 +19,7 @@ namespace VisualCutterForm.Lib.Flow
         private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _runningCts = new ConcurrentDictionary<Guid, CancellationTokenSource>();
         private readonly ConcurrentDictionary<Guid, (ImageFifo fifo, EventHandler<Bitmap> handler, SemaphoreSlim semaphore)> _hardTriggerBindings
             = new ConcurrentDictionary<Guid, (ImageFifo, EventHandler<Bitmap>, SemaphoreSlim)>();
-        private VisionController _visionController;
+        private dynamic _visionController;
         private volatile bool _disposed;
 
         public FlowGraph Graph => _graph;
@@ -28,7 +28,7 @@ namespace VisualCutterForm.Lib.Flow
         public event EventHandler<string> LogMessage;
         public event EventHandler<Exception> ExecutionError;
 
-        public FlowExecutor(VisionController visionController)
+        public FlowExecutor(dynamic visionController)
         {
             _visionController = visionController ?? throw new ArgumentNullException(nameof(visionController));
         }
@@ -159,7 +159,7 @@ namespace VisualCutterForm.Lib.Flow
             var cameraSerial = FindCameraSerialInSubGraph(sg);
             if (string.IsNullOrEmpty(cameraSerial)) return;
 
-            var fifo = _visionController?.GetFifo(cameraSerial);
+            ImageFifo fifo = _visionController?.GetFifo(cameraSerial);
             if (fifo == null) return;
 
             var semaphore = new SemaphoreSlim(1, 1);
