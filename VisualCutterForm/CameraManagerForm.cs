@@ -76,24 +76,25 @@ namespace VisualCutterForm
             };
             _slotListBox.SelectedIndexChanged += OnSlotSelected;
 
-            var slotBtnPanel = new FlowLayoutPanel
+            var slotBtnPanel = new Panel
             {
                 Dock = DockStyle.Top,
-                FlowDirection = FlowDirection.LeftToRight,
-                Height = 30,
-                Padding = new Padding(4, 3, 4, 0),
+                Height = 50,
+                Padding = new Padding(4, 2, 4, 0),
             };
 
-            _btnAddSlot = new Button { Text = "添加槽位", Size = new Size(75, 24), FlatStyle = FlatStyle.Flat };
+            _btnAddSlot = new Button { Text = "添加", Size = new Size(80, 22), FlatStyle = FlatStyle.Flat };
             _btnAddSlot.FlatAppearance.BorderSize = 1;
+            _btnAddSlot.Dock = DockStyle.Top;
             _btnAddSlot.Click += (s, e) =>
             {
                 _vision.AddSlot($"相机{_vision.CameraManager.Slots.Count + 1}");
                 RefreshSlotList();
             };
 
-            _btnRemoveSlot = new Button { Text = "删除槽位", Size = new Size(75, 24), FlatStyle = FlatStyle.Flat, Enabled = false };
+            _btnRemoveSlot = new Button { Text = "删除", Size = new Size(80, 22), FlatStyle = FlatStyle.Flat, Enabled = false };
             _btnRemoveSlot.FlatAppearance.BorderSize = 1;
+            _btnRemoveSlot.Dock = DockStyle.Top;
             _btnRemoveSlot.Click += (s, e) =>
             {
                 if (_selectedSlot != null)
@@ -104,8 +105,8 @@ namespace VisualCutterForm
                 }
             };
 
-            slotBtnPanel.Controls.Add(_btnAddSlot);
             slotBtnPanel.Controls.Add(_btnRemoveSlot);
+            slotBtnPanel.Controls.Add(_btnAddSlot);
 
             var slotPanel = new Panel { Dock = DockStyle.Fill, Padding = new Padding(4) };
             var lblSlot = new Label
@@ -246,7 +247,8 @@ namespace VisualCutterForm
             {
                 Dock = DockStyle.Fill,
                 Orientation = Orientation.Vertical,
-                SplitterDistance = 90,
+                SplitterDistance = 100,
+                Panel1MinSize = 80,
             };
             _tab2Split.Panel1.Controls.Add(slotPanel);
             _tab2Split.Panel2.Controls.Add(settingsPanel);
