@@ -82,11 +82,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <Compile Include="Lib\VisionController.cs" />
-    <Compile Include="Lib\AppConfig.cs" />
     <Compile Include="CameraSettingsDialog.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Lib\VisionController.cs" />
+    <Compile Include="Lib\AppConfig.cs" />
     <Compile Include="Form\FlowEditor\FlowNodeView.cs" />
     <Compile Include="Form\FlowEditor\FlowCanvas.cs">
       <SubType>UserControl</SubType>
@@ -119,16 +119,8 @@
       <SubType>Form</SubType>
     </Compile>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Lib\Flow\" />
-    <Folder Include="Lib\Flow\Data\" />
-    <Folder Include="Lib\Flow\Nodes\" />
-    <Folder Include="Form\FlowEditor\" />
-    <Folder Include="Form\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="lib\" />
-  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup />
   <ItemGroup>
     <PackageReference Include="OpenCvSharp4.Windows" Version="4.8.0.20230708" />
     <PackageReference Include="System.IO.Ports" Version="8.0.0" />
