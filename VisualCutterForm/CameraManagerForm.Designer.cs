@@ -67,14 +67,19 @@ namespace VisualCutterForm
 
             _btnAddSlot = new Button { Text = "添加", Size = new Size(80, 22), FlatStyle = FlatStyle.Flat };
             _btnAddSlot.FlatAppearance.BorderSize = 1;
+            _btnAddSlot.Dock = DockStyle.Top;
 
             _btnRemoveSlot = new Button { Text = "删除", Size = new Size(80, 22), FlatStyle = FlatStyle.Flat, Enabled = false };
             _btnRemoveSlot.FlatAppearance.BorderSize = 1;
+            _btnRemoveSlot.Dock = DockStyle.Top;
 
             slotBtnPanel.Controls.Add(_btnRemoveSlot);
             slotBtnPanel.Controls.Add(_btnAddSlot);
 
-            var slotPanel = new Panel { Dock = DockStyle.Fill, Padding = new Padding(4) };
+            var slotPanel = new Panel { 
+                Dock = DockStyle.Fill, 
+                Padding = new Padding(4),
+            };
             var lblSlot = new Label
             {
                 Text = "槽位",
