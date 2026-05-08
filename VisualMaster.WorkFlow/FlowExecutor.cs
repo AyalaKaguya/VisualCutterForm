@@ -15,12 +15,11 @@ namespace VisualMaster.WorkFlow
     public class FlowExecutor : IDisposable
     {
         private FlowGraph _graph;
-        private readonly ICameraManager _cameraManager;
-        private readonly object _visionController;
         private readonly ConcurrentDictionary<Guid, Task> _runningTasks = new ConcurrentDictionary<Guid, Task>();
         private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _runningCts = new ConcurrentDictionary<Guid, CancellationTokenSource>();
         private readonly ConcurrentDictionary<Guid, (ImageFifo fifo, EventHandler<Bitmap> handler, SemaphoreSlim semaphore)> _hardTriggerBindings
             = new ConcurrentDictionary<Guid, (ImageFifo, EventHandler<Bitmap>, SemaphoreSlim)>();
+        private dynamic _visionController;
         private volatile bool _disposed;
 
         public FlowGraph Graph => _graph;
@@ -29,10 +28,9 @@ namespace VisualMaster.WorkFlow
         public event EventHandler<string> LogMessage;
         public event EventHandler<Exception> ExecutionError;
 
-        public FlowExecutor(ICameraManager cameraManager, object visionController = null)
+        public FlowExecutor(dynamic visionController)
         {
-            _cameraManager = cameraManager ?? throw new ArgumentNullException(nameof(cameraManager));
-            _visionController = visionController;
+            _visionController = visionController ?? throw new ArgumentNullException(nameof(visionController));
         }
 
         public void LoadGraph(FlowGraph graph)
@@ -158,22 +156,22 @@ namespace VisualMaster.WorkFlow
 
         private void BindHardCameraTrigger(FlowSubGraph sg)
         {
-            var slotId = FindSlotIdInSubGraph(sg);
+            var slotId = FindCameraSlotIdInSubGraph(sg);
             if (string.IsNullOrEmpty(slotId)) return;
 
-            var slot = _cameraManager.GetSlot(slotId);
-            if (slot?.Fifo == null) return;
+            ImageFifo fifo = _visionController?.GetFifo(slotId);
+            if (fifo == null) return;
 
             var semaphore = new SemaphoreSlim(1, 1);
             var capturedSg = sg;
-            void handler(object s, Bitmap frame)
+            async void handler(object s, Bitmap frame)
             {
                 if (_disposed || !IsRunning) return;
-                if (!semaphore.WaitAsync(0).GetAwaiter().GetResult()) return;
+                if (!await semaphore.WaitAsync(0)) return;
 
                 try
                 {
-                    RunSubGraphOnce(capturedSg, CancellationToken.None).GetAwaiter().GetResult();
+                    await RunSubGraphOnce(capturedSg, CancellationToken.None);
                 }
                 catch (Exception ex)
                 {
@@ -185,8 +183,8 @@ namespace VisualMaster.WorkFlow
                 }
             }
 
-            slot.Fifo.FrameEnqueued += handler;
-            _hardTriggerBindings.TryAdd(sg.Id, (slot.Fifo, handler, semaphore));
+            fifo.FrameEnqueued += handler;
+            _hardTriggerBindings.TryAdd(sg.Id, (fifo, handler, semaphore));
         }
 
         private void UnbindHardCameraTriggers()
@@ -199,7 +197,7 @@ namespace VisualMaster.WorkFlow
             _hardTriggerBindings.Clear();
         }
 
-        private string FindSlotIdInSubGraph(FlowSubGraph sg)
+        private string FindCameraSlotIdInSubGraph(FlowSubGraph sg)
         {
             foreach (var node in sg.Nodes)
             {
@@ -207,18 +205,15 @@ namespace VisualMaster.WorkFlow
                 {
                     if (!string.IsNullOrEmpty(camNode.SlotId))
                         return camNode.SlotId;
-                    break;
+                    return _visionController?.GetFirstSlotId() ?? "";
                 }
             }
-
-            var firstSlot = _cameraManager.Slots.FirstOrDefault();
-            return firstSlot?.SlotId ?? "";
+            return _visionController?.GetFirstSlotId() ?? "";
         }
 
         private async Task RunSubGraphOnce(FlowSubGraph sg, CancellationToken cancellationToken)
         {
             var context = new FlowContext(sg.Id.ToString());
-            context.SetVariable("CameraManager", _cameraManager);
             context.SetVariable("VisionController", _visionController);
             context.OnLog += msg => LogMessage?.Invoke(this, $"[信息] {msg}");
             context.OnLogWarning += msg => LogMessage?.Invoke(this, $"[警告] {msg}");

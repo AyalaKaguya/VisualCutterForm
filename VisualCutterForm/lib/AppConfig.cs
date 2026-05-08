@@ -39,10 +39,6 @@ namespace VisualCutterForm.Lib
             if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
 
-            _ini.Write(SECTION_GENERAL, "LastCameraSerial", LastCameraSerial ?? "");
-            _ini.Write(SECTION_GENERAL, "LastCameraModel", LastCameraModel ?? "");
-            _ini.WriteInt(SECTION_GENERAL, "LastCameraIndex", LastCameraIndex);
-            _ini.Write(SECTION_GENERAL, "LastCameraList", LastCameraList ?? "");
             _ini.WriteInt(SECTION_GENERAL, "AutoStart", AutoStart ? 1 : 0);
 
             _ini.Write(SECTION_SERIAL, "PortName", SerialPortName ?? "");
@@ -75,10 +71,6 @@ namespace VisualCutterForm.Lib
 
         public void Reload()
         {
-            LastCameraSerial = _ini.Read(SECTION_GENERAL, "LastSerial", "");
-            LastCameraModel = _ini.Read(SECTION_GENERAL, "LastModel", "");
-            LastCameraIndex = _ini.ReadInt(SECTION_GENERAL, "LastIndex", -1);
-            LastCameraList = _ini.Read(SECTION_GENERAL, "LastCameraList", "");
             AutoStart = _ini.ReadInt(SECTION_GENERAL, "AutoStart", 0) == 1;
 
             SerialPortName = _ini.Read(SECTION_SERIAL, "PortName", "COM1");
@@ -98,10 +90,6 @@ namespace VisualCutterForm.Lib
             DefaultRole = (UserRole)_ini.ReadInt(SECTION_LOGIN, "DefaultRole", 0);
         }
 
-        public string LastCameraSerial { get; set; }
-        public string LastCameraModel { get; set; }
-        public int LastCameraIndex { get; set; } = -1;
-        public string LastCameraList { get; set; } = "";
         public bool AutoStart { get; set; }
 
         public string SerialPortName { get; set; } = "COM1";

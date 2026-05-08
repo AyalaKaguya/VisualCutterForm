@@ -26,9 +26,6 @@ namespace VisualMaster.WorkFlow.Nodes
         [NodeProperty("超时(ms)", Category = "取像", DefaultValue = 3000, Min = 100, Max = 60000)]
         public int TimeoutMs { get; set; } = 3000;
 
-        [NodeProperty("等待帧", Category = "取像", DefaultValue = 0, Min = 0, Max = 100)]
-        public int SkipFrames { get; set; } = 0;
-
         [NodeOutput("取像结果", Description = "AcquisitionResult")]
         public AcquisitionResult Result { get; set; }
 
@@ -36,20 +33,29 @@ namespace VisualMaster.WorkFlow.Nodes
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var manager = context.GetVariable<ICameraManager>("CameraManager");
-            if (manager == null)
-                throw new InvalidOperationException("CameraManager not found in context.");
+            dynamic vc = context.GetVariable<object>("VisionController");
+            if (vc == null)
+                throw new InvalidOperationException("VisionController not found in context.");
 
-            var slot = manager.GetSlot(SlotId);
+            CameraSlot slot = null;
+            if (!string.IsNullOrEmpty(SlotId))
+            {
+                slot = vc.GetSlotById(SlotId);
+            }
             if (slot == null)
-                throw new InvalidOperationException($"Camera slot '{SlotId}' not found.");
+            {
+                slot = vc.GetFirstSlot();
+            }
+            if (slot == null)
+                throw new InvalidOperationException("No camera slot available.");
 
             if (Trigger == AcquisitionTriggerMode.HardTrigger)
             {
-                if (slot.Fifo == null)
+                var fifo = vc.GetFifo(slot.SlotId);
+                if (fifo == null)
                     throw new InvalidOperationException("Camera FIFO not available.");
 
-                var bmp = slot.Fifo.TryDequeue(TimeoutMs);
+                var bmp = fifo.TryDequeue(TimeoutMs);
                 if (bmp == null)
                     throw new TimeoutException("Timeout waiting for frame from camera.");
 
@@ -58,7 +64,7 @@ namespace VisualMaster.WorkFlow.Nodes
                     var mat = ImageConverter.BitmapToMat(bmp);
                     Result = new AcquisitionResult(mat)
                     {
-                        CameraSerial = slot.AssignedSerial,
+                        CameraSerial = slot.AssignedSerial ?? slot.SlotName,
                         Timestamp = DateTime.Now,
                         TriggerModeUsed = "HardTrigger",
                     };
@@ -67,10 +73,8 @@ namespace VisualMaster.WorkFlow.Nodes
             }
             else
             {
-                if (slot.Camera == null)
-                    throw new InvalidOperationException($"Camera slot '{SlotId}' is not open.");
-
-                slot.Camera.TriggerSoftware();
+                if (!slot.IsConnected || slot.Camera == null)
+                    throw new InvalidOperationException("Camera is not connected.");
 
                 bool got = slot.Camera.TryGrabImage(out Bitmap bmp, TimeoutMs);
                 if (!got || bmp == null)
@@ -81,7 +85,7 @@ namespace VisualMaster.WorkFlow.Nodes
                     var mat = ImageConverter.BitmapToMat(bmp);
                     Result = new AcquisitionResult(mat)
                     {
-                        CameraSerial = slot.AssignedSerial,
+                        CameraSerial = slot.AssignedSerial ?? slot.SlotName,
                         Timestamp = DateTime.Now,
                         TriggerModeUsed = "SoftTrigger",
                     };

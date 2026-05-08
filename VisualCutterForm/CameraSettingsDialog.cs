@@ -4,6 +4,7 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
+using VisualCutterForm.Lib;
 
 namespace VisualCutterForm
 {
@@ -21,7 +22,7 @@ namespace VisualCutterForm
 
         private PictureBox _previewBox;
         private Timer _previewTimer;
-        private CameraManager _cameraManager;
+        private VisionController _vision;
         private string _slotId;
 
         private Label _lblModel;
@@ -29,7 +30,7 @@ namespace VisualCutterForm
         private Label _lblTransport;
         private Label _lblVersion;
 
-        private CheckBox _chkTriggerEnabled;
+        private ComboBox _cmbTriggerMode;
         private ComboBox _cmbTriggerSource;
         private ComboBox _cmbTriggerActivation;
 
@@ -50,13 +51,13 @@ namespace VisualCutterForm
         public CameraSettings Settings => _settings;
 
         public CameraSettingsDialog(CameraSettings settings, CameraInfo cameraInfo = null,
-            bool readOnly = false, CameraManager cameraManager = null, string slotId = null)
+            bool readOnly = false, VisionController vision = null, string cameraSerial = null)
         {
             _settings = settings?.Clone() as CameraSettings ?? new CameraSettings();
             _cameraInfo = cameraInfo;
             _isReadOnly = readOnly;
-            _cameraManager = cameraManager;
-            _slotId = slotId;
+            _vision = vision;
+            _slotId = cameraSerial;
 
             InitializeForm();
             PopulateCameraInfo();
@@ -185,26 +186,36 @@ namespace VisualCutterForm
             _panelTrigger = CreatePanel();
             var y = 12;
 
-            _chkTriggerEnabled = new CheckBox
+            _cmbTriggerMode = new ComboBox
             {
-                Text = "启用外部触发",
-                Location = new Point(12, y),
-                Size = new Size(200, 24),
-                Font = new Font("Microsoft YaHei", 9.5F),
-                AutoSize = true,
+                Text = "触发模式:",
+                Location = new Point(184, y + 2),
+                Size = new Size(140, 22),
+                Font = new Font("Microsoft YaHei", 9F),
+                DropDownStyle = ComboBoxStyle.DropDownList,
             };
-            _chkTriggerEnabled.CheckedChanged += (s, e) =>
+            _cmbTriggerMode.Items.AddRange(new[] { "连续采集", "软件触发", "硬件触发" });
+            _cmbTriggerMode.SelectedIndexChanged += (s, e) =>
             {
-                _cmbTriggerSource.Enabled = _chkTriggerEnabled.Checked;
-                _cmbTriggerActivation.Enabled = _chkTriggerEnabled.Checked;
+                bool isHardware = _cmbTriggerMode.SelectedIndex == 2;
+                _cmbTriggerSource.Enabled = isHardware;
+                _cmbTriggerActivation.Enabled = isHardware;
             };
-            _panelTrigger.Controls.Add(_chkTriggerEnabled);
+            _panelTrigger.Controls.Add(new Label
+            {
+                Text = "触发模式:",
+                Location = new Point(12, y + 4),
+                Size = new Size(160, 22),
+                Font = new Font("Microsoft YaHei", 9F),
+                TextAlign = ContentAlignment.MiddleRight,
+            });
+            _panelTrigger.Controls.Add(_cmbTriggerMode);
             y += 36;
 
             AddCombo(_panelTrigger, "触发源:", ref y, out _cmbTriggerSource,
-                new[] { "Line0", "Line1", "Line2", "Line3", "Software" }, 4);
+                new[] { "Line0", "Line1", "Line2", "Line3", "Software" }, 0);
             AddCombo(_panelTrigger, "触发边沿:", ref y, out _cmbTriggerActivation,
-                new[] { "RisingEdge", "FallingEdge", "LevelHigh", "LevelLow" }, 1);
+                new[] { "RisingEdge", "FallingEdge", "LevelHigh", "LevelLow" }, 0);
         }
 
         private void BuildExposurePanel()
@@ -269,7 +280,7 @@ namespace VisualCutterForm
 
             var btnSnap = new Button
             {
-                Text = "软件触发",
+                Text = "单帧触发",
                 Location = new Point(4, 4),
                 Size = new Size(80, 26),
                 FlatStyle = FlatStyle.Flat,
@@ -353,57 +364,58 @@ namespace VisualCutterForm
 
         private void OnSnapClick(object sender, EventArgs e)
         {
-            if (_cameraManager == null || string.IsNullOrEmpty(_slotId)) return;
+            if (_vision == null || string.IsNullOrEmpty(_slotId)) return;
 
             try
             {
-                var slot = _cameraManager.GetSlot(_slotId);
+                var slot = _vision.GetSlotById(_slotId);
                 if (slot?.Camera != null)
                 {
-                    slot.Camera.TriggerSoftware();
-                    var got = slot.Camera.TryGrabImage(out var grabbed, 2000);
-                    if (got && grabbed != null)
+                    var bmp = slot.Camera.TryGrabImage(out var grabbed, 2000)
+                        ? grabbed : null;
+
+                    if (bmp != null)
                     {
                         var old = _previewBox.Image;
-                        _previewBox.Image = grabbed;
+                        _previewBox.Image = bmp;
                         old?.Dispose();
 
                         var lbl = _panelDebug?.Controls.Find("lblDebugStatus", true);
-                        if (lbl.Length > 0) lbl[0].Text = $"软件触发 · {grabbed.Width}x{grabbed.Height}";
+                        if (lbl.Length > 0) lbl[0].Text = $"单帧触发 · {bmp.Width}x{bmp.Height}";
                     }
                     else
                     {
                         var lbl = _panelDebug?.Controls.Find("lblDebugStatus", true);
-                        if (lbl.Length > 0) lbl[0].Text = "软件触发超时";
+                        if (lbl.Length > 0) lbl[0].Text = "单帧触发超时";
                     }
                 }
             }
-            catch (Exception ex)
+            catch
             {
                 var lbl = _panelDebug?.Controls.Find("lblDebugStatus", true);
-                if (lbl.Length > 0) lbl[0].Text = $"软件触发失败: {ex.Message}";
+                if (lbl.Length > 0) lbl[0].Text = "单帧触发失败";
             }
         }
 
         private void OnContinuousClick(object sender, EventArgs e)
         {
-            if (_cameraManager == null || string.IsNullOrEmpty(_slotId)) return;
+            if (_vision == null || string.IsNullOrEmpty(_slotId)) return;
 
             var btn = sender as Button;
             if (btn == null) return;
 
-            var slot = _cameraManager.GetSlot(_slotId);
+            var slot = _vision.GetSlotById(_slotId);
             if (slot == null) return;
 
             if (slot.IsGrabbing)
             {
-                _cameraManager.StopGrabbing(_slotId);
+                _vision.StopAcquisition(_slotId);
                 btn.Text = "连续采集";
                 btn.BackColor = Color.FromArgb(60, 60, 60);
             }
             else
             {
-                _cameraManager.StartGrabbing(_slotId);
+                _vision.StartAcquisition(_slotId);
                 btn.Text = "停止采集";
                 btn.BackColor = Color.FromArgb(180, 50, 50);
             }
@@ -441,10 +453,6 @@ namespace VisualCutterForm
         private void StartDebugPreview()
         {
             if (_previewTimer == null) return;
-
-            var lbl = _panelDebug?.Controls.Find("lblDebugStatus", true);
-            if (lbl.Length > 0) lbl[0].Text = "正在连接...";
-
             _previewTimer.Start();
         }
 
@@ -455,7 +463,7 @@ namespace VisualCutterForm
 
         private void OnPreviewTick(object sender, EventArgs e)
         {
-            if (_cameraManager == null || string.IsNullOrEmpty(_slotId))
+            if (_vision == null || string.IsNullOrEmpty(_slotId))
             {
                 var lbl = _panelDebug?.Controls.Find("lblDebugStatus", true);
                 if (lbl.Length > 0) lbl[0].Text = "无相机连接";
@@ -464,7 +472,7 @@ namespace VisualCutterForm
 
             try
             {
-                var slot = _cameraManager.GetSlot(_slotId);
+                var slot = _vision.GetSlotById(_slotId);
                 bool grabbing = slot != null && slot.IsGrabbing;
 
                 var btnContinuous = _panelDebug?.Controls.Find("btnContinuous", true);
@@ -482,7 +490,7 @@ namespace VisualCutterForm
                     }
                 }
 
-                var bmp = slot?.Fifo?.PeekLatest();
+                var bmp = _vision.PeekLatestFromFifo(_slotId);
                 if (bmp != null)
                 {
                     var old = _previewBox.Image;
@@ -490,10 +498,10 @@ namespace VisualCutterForm
                     old?.Dispose();
                 }
 
-                var lbl = _panelDebug?.Controls.Find("lblDebugStatus", true);
-                if (lbl.Length > 0)
+                var lbls = _panelDebug?.Controls.Find("lblDebugStatus", true);
+                if (lbls.Length > 0)
                 {
-                    lbl[0].Text = grabbing
+                    lbls[0].Text = grabbing
                         ? $"连续采集 · {_previewBox.Image?.Width ?? 0}x{_previewBox.Image?.Height ?? 0}"
                         : "采集已停止";
                 }
@@ -532,15 +540,16 @@ namespace VisualCutterForm
 
         private void PopulateFromSettings()
         {
-            _chkTriggerEnabled.Checked = _settings.TriggerEnabled;
+            _cmbTriggerMode.SelectedIndex = (int)_settings.TriggerMode;
             _cmbTriggerSource.Text = _settings.TriggerSource ?? "Line0";
             _cmbTriggerActivation.Text = _settings.TriggerActivation ?? "RisingEdge";
-            _cmbTriggerSource.Enabled = _settings.TriggerEnabled;
-            _cmbTriggerActivation.Enabled = _settings.TriggerEnabled;
+            bool isHardware = _settings.TriggerMode == TriggerModeEnum.Hardware;
+            _cmbTriggerSource.Enabled = isHardware;
+            _cmbTriggerActivation.Enabled = isHardware;
 
             SetNumSafe(_numExposure, (decimal)_settings.ExposureTimeUs);
-            SetNumSafe(_numGain, (decimal)_settings.Gain);
-            _trkGain.Value = Math.Max(_trkGain.Minimum, Math.Min(_trkGain.Maximum, (int)_settings.Gain));
+            SetNumSafe(_numGain, (decimal)_settings.GainRaw);
+            _trkGain.Value = Math.Max(_trkGain.Minimum, Math.Min(_trkGain.Maximum, (int)_settings.GainRaw));
 
             SetNumSafe(_numWidth, _settings.Width);
             SetNumSafe(_numHeight, _settings.Height);
@@ -550,7 +559,7 @@ namespace VisualCutterForm
 
             if (_isReadOnly)
             {
-                _chkTriggerEnabled.Enabled = false;
+                _cmbTriggerMode.Enabled = false;
                 _cmbTriggerSource.Enabled = false;
                 _cmbTriggerActivation.Enabled = false;
                 _numExposure.Enabled = false;
@@ -566,11 +575,11 @@ namespace VisualCutterForm
 
         private void CollectToSettings()
         {
-            _settings.TriggerEnabled = _chkTriggerEnabled.Checked;
+            _settings.TriggerMode = (TriggerModeEnum)_cmbTriggerMode.SelectedIndex;
             _settings.TriggerSource = _cmbTriggerSource.Text;
             _settings.TriggerActivation = _cmbTriggerActivation.Text;
-            _settings.ExposureTimeUs = (float)_numExposure.Value;
-            _settings.Gain = (float)_numGain.Value;
+            _settings.ExposureTimeUs = (double)_numExposure.Value;
+            _settings.GainRaw = (double)_numGain.Value;
             _settings.Width = (int)_numWidth.Value;
             _settings.Height = (int)_numHeight.Value;
             _settings.OffsetX = (int)_numOffsetX.Value;

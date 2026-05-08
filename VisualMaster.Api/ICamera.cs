@@ -3,9 +3,15 @@ using System.Drawing;
 
 namespace VisualMaster.Api
 {
+    public enum TriggerModeEnum
+    {
+        Continuous,
+        Software,
+        Hardware,
+    }
+
     public interface ICamera : IDisposable
     {
-        string Name { get; }
         CameraInfo Info { get; }
         bool IsOpen { get; }
 

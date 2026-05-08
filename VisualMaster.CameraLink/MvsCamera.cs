@@ -10,19 +10,11 @@ namespace VisualMaster.CameraLink
     {
         private IDevice _device;
         private readonly CameraInfo _info;
+        private CameraSettings _appliedSettings;
         private bool _isGrabbing;
         private Bitmap _latestFrame;
         private readonly object _frameLock = new object();
         private volatile bool _disposed;
-
-        public string Name
-        {
-            get
-            {
-                if (_info == null) return "Unknown";
-                return string.IsNullOrEmpty(_info.UserDefinedName) ? _info.ModelName : _info.UserDefinedName;
-            }
-        }
 
         public CameraInfo Info => _info;
         public bool IsOpen => _device != null;
@@ -74,8 +66,6 @@ namespace VisualMaster.CameraLink
                 _latestFrame?.Dispose();
                 _latestFrame = null;
             }
-
-            Disconnected?.Invoke(this, EventArgs.Empty);
         }
 
         public void StartGrabbing()
@@ -98,6 +88,9 @@ namespace VisualMaster.CameraLink
         public void TriggerSoftware()
         {
             if (_device == null) return;
+
+            _device.Parameters.SetEnumValueByString("TriggerMode", "On");
+            _device.Parameters.SetEnumValueByString("TriggerSource", "Software");
             _device.Parameters.SetCommandValue("TriggerSoftware");
         }
 
@@ -139,19 +132,30 @@ namespace VisualMaster.CameraLink
         {
             if (_device == null || settings == null) return;
 
-            if (settings.TriggerEnabled)
+            _appliedSettings = settings;
+
+            switch (settings.TriggerMode)
             {
-                _device.Parameters.SetEnumValueByString("TriggerMode", "On");
-                _device.Parameters.SetEnumValueByString("TriggerSource", settings.TriggerSource ?? "Line0");
-                _device.Parameters.SetEnumValueByString("TriggerActivation", settings.TriggerActivation ?? "RisingEdge");
-            }
-            else
-            {
-                _device.Parameters.SetEnumValueByString("TriggerMode", "Off");
+                case TriggerModeEnum.Software:
+                    _device.Parameters.SetEnumValueByString("TriggerMode", "On");
+                    _device.Parameters.SetEnumValueByString("TriggerSource", "Software");
+                    if (!string.IsNullOrEmpty(settings.TriggerActivation))
+                        _device.Parameters.SetEnumValueByString("TriggerActivation", settings.TriggerActivation);
+                    break;
+                case TriggerModeEnum.Hardware:
+                    _device.Parameters.SetEnumValueByString("TriggerMode", "On");
+                    _device.Parameters.SetEnumValueByString("TriggerSource", settings.TriggerSource ?? "Line0");
+                    if (!string.IsNullOrEmpty(settings.TriggerActivation))
+                        _device.Parameters.SetEnumValueByString("TriggerActivation", settings.TriggerActivation);
+                    break;
+                case TriggerModeEnum.Continuous:
+                default:
+                    _device.Parameters.SetEnumValueByString("TriggerMode", "Off");
+                    break;
             }
 
-            _device.Parameters.SetFloatValue("ExposureTime", settings.ExposureTimeUs);
-            _device.Parameters.SetFloatValue("Gain", settings.Gain);
+            _device.Parameters.SetFloatValue("ExposureTime", (float)settings.ExposureTimeUs);
+            _device.Parameters.SetFloatValue("Gain", (float)settings.GainRaw);
 
             if (settings.Width > 0 && settings.Height > 0)
             {
@@ -161,6 +165,16 @@ namespace VisualMaster.CameraLink
 
             _device.Parameters.SetIntValue("OffsetX", settings.OffsetX);
             _device.Parameters.SetIntValue("OffsetY", settings.OffsetY);
+
+            if (!string.IsNullOrEmpty(settings.PixelFormat))
+                _device.Parameters.SetEnumValueByString("PixelFormat", settings.PixelFormat);
+        }
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+            Close();
         }
 
         private void OnFrameGrabbed(object sender, FrameGrabbedEventArgs e)
@@ -187,13 +201,6 @@ namespace VisualMaster.CameraLink
             catch
             {
             }
-        }
-
-        public void Dispose()
-        {
-            if (_disposed) return;
-            _disposed = true;
-            Close();
         }
     }
 }

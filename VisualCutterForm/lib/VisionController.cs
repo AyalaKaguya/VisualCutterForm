@@ -17,19 +17,12 @@ namespace VisualCutterForm.Lib
 
         public CameraManager CameraManager => _cameraManager;
         public IReadOnlyDictionary<string, ISerialPort> SerialPorts { get; }
-        public bool IsInitialized { get; private set; }
+        public bool IsInitialized => _cameraManager.IsInitialized;
 
         public event EventHandler<string> StatusChanged;
         public event EventHandler<Exception> ErrorOccurred;
 
-        public VisionController(string configFilePath)
-        {
-            _cameraManager = new CameraManager();
-            _serialPorts = new Dictionary<string, ISerialPort>();
-            SerialPorts = new ReadOnlyDictionary<string, ISerialPort>(_serialPorts);
-        }
-
-        public VisionController(IniFile iniFile)
+        public VisionController()
         {
             _cameraManager = new CameraManager();
             _serialPorts = new Dictionary<string, ISerialPort>();
@@ -41,167 +34,135 @@ namespace VisualCutterForm.Lib
         public void Initialize()
         {
             if (IsInitialized) return;
-            IsInitialized = true;
+            _cameraManager.Initialize();
             NotifyStatus("Vision system initialized.");
         }
 
         public int EnumerateCameras()
         {
+            if (!IsInitialized) Initialize();
             int count = _cameraManager.EnumerateCameras().Count;
             NotifyStatus($"Found {count} camera(s).");
             return count;
         }
 
-        public CameraSettings GetSettings(string serialNumber)
+        public CameraSlot AddSlot(string name, CameraSettings settings = null)
         {
-            var slot = _cameraManager.Slots.FirstOrDefault(s => s.AssignedSerial == serialNumber);
-            return slot?.Settings;
+            return _cameraManager.AddSlot(name, settings);
         }
 
-        public void SaveSettings(string serialNumber)
+        public void RemoveSlot(string slotId)
         {
-            var slot = _cameraManager.Slots.FirstOrDefault(s => s.AssignedSerial == serialNumber);
-            if (slot?.Settings != null)
-            {
-                slot.Settings.SerialNumber = serialNumber;
-            }
+            _cameraManager.RemoveSlot(slotId);
         }
 
-        public void SaveSettings(CameraSettings settings)
+        public void OpenSlot(string slotId, CameraInfo info)
         {
-            if (settings == null) return;
-            var slot = _cameraManager.Slots.FirstOrDefault(s => s.AssignedSerial == settings.SerialNumber);
-            if (slot != null)
-                slot.Settings = settings;
+            _cameraManager.OpenSlot(slotId, info);
+            NotifyStatus($"Camera slot opened: {slotId}");
         }
 
-        public void SaveAllSettings()
+        public void CloseSlot(string slotId)
         {
+            _cameraManager.CloseSlot(slotId);
         }
 
-        public ICamera OpenCamera(int index, CameraSettings settings = null)
+        public void StartAcquisition(string slotId)
         {
-            var cameras = _cameraManager.DiscoveredCameras;
-            if (index < 0 || index >= cameras.Count)
-                throw new ArgumentOutOfRangeException(nameof(index));
-
-            var info = cameras[index];
-            return OpenCameraByInfo(info, settings);
+            _cameraManager.StartGrabbing(slotId);
+            NotifyStatus($"Acquisition started: {slotId}");
         }
 
-        public ICamera OpenCameraByInfo(CameraInfo info, CameraSettings settings = null)
+        public void StopAcquisition(string slotId)
         {
-            if (info == null)
-                throw new ArgumentNullException(nameof(info));
-
-            var serial = info.SerialNumber;
-
-            var existing = _cameraManager.Slots.FirstOrDefault(s => s.AssignedSerial == serial);
-            if (existing != null)
-            {
-                if (!existing.IsConnected)
-                    _cameraManager.OpenSlot(existing.SlotId, info);
-                _cameraManager.StartGrabbing(existing.SlotId);
-                NotifyStatus($"Camera re-opened: {serial}");
-                return existing.Camera;
-            }
-
-            if (settings == null)
-                settings = new CameraSettings { SerialNumber = serial, ModelName = info.ModelName };
-
-            var slotName = string.IsNullOrEmpty(info.UserDefinedName) ? info.ModelName : info.UserDefinedName;
-            var slot = _cameraManager.AddSlot(slotName, settings);
-            _cameraManager.OpenSlot(slot.SlotId, info);
-            _cameraManager.StartGrabbing(slot.SlotId);
-
-            NotifyStatus($"Camera opened: {slotName}");
-            return slot.Camera;
-        }
-
-        public void CloseCamera(string serialNumber)
-        {
-            var slot = _cameraManager.Slots.FirstOrDefault(s => s.AssignedSerial == serialNumber);
-            if (slot != null)
-                _cameraManager.CloseSlot(slot.SlotId);
-            NotifyStatus($"Camera closed: {serialNumber}");
-        }
-
-        public void CloseAllCameras()
-        {
-            _cameraManager.CloseAllSlots();
-            NotifyStatus("All cameras closed.");
-        }
-
-        public void StartAcquisition(string serialNumber)
-        {
-            _cameraManager.StartGrabbing(serialNumber);
+            _cameraManager.StopGrabbing(slotId);
         }
 
         public void StartAllAcquisitions()
         {
             foreach (var slot in _cameraManager.Slots)
-                _cameraManager.StartGrabbing(slot.SlotId);
-        }
-
-        public void StopAcquisition(string serialNumber)
-        {
-            _cameraManager.StopGrabbing(serialNumber);
+            {
+                if (slot.IsConnected)
+                    _cameraManager.StartGrabbing(slot.SlotId);
+            }
         }
 
         public void StopAllAcquisitions()
         {
             foreach (var slot in _cameraManager.Slots)
+            {
                 _cameraManager.StopGrabbing(slot.SlotId);
+            }
         }
 
-        public Bitmap TryDequeueFromFifo(string serialNumber, int timeoutMs = -1)
+        public ImageFifo GetFifo(string slotId)
         {
-            var slot = _cameraManager.Slots.FirstOrDefault(s => s.AssignedSerial == serialNumber);
-            return slot?.Fifo?.TryDequeue(timeoutMs);
-        }
-
-        public Bitmap PeekLatestFromFifo(string serialNumber)
-        {
-            var slot = _cameraManager.Slots.FirstOrDefault(s => s.AssignedSerial == serialNumber);
-            return slot?.Fifo?.PeekLatest();
-        }
-
-        public Bitmap PeekLatestNoClone(string serialNumber)
-        {
-            var slot = _cameraManager.Slots.FirstOrDefault(s => s.AssignedSerial == serialNumber);
-            return slot?.Fifo?.PeekLatestNoClone();
-        }
-
-        public ImageFifo GetFifo(string serialNumber)
-        {
-            var slot = _cameraManager.Slots.FirstOrDefault(s => s.AssignedSerial == serialNumber);
+            var slot = _cameraManager.Slots.Find(s => s.SlotId == slotId);
             return slot?.Fifo;
         }
 
-        public CameraSettings GetSlotSettings(string serialNumber)
+        public CameraSlot GetSlotById(string slotId)
         {
-            var slot = _cameraManager.Slots.FirstOrDefault(s => s.AssignedSerial == serialNumber);
-            return slot?.Settings;
+            return _cameraManager.Slots.Find(s => s.SlotId == slotId);
         }
 
-        public void UpdateSlotSettings(string serialNumber, CameraSettings settings)
+        public CameraSlot GetFirstSlot()
         {
-            var slot = _cameraManager.Slots.FirstOrDefault(s => s.AssignedSerial == serialNumber);
-            if (slot == null) return;
+            return _cameraManager.Slots.Count > 0 ? _cameraManager.Slots[0] : null;
+        }
 
-            slot.Settings = settings?.Clone() as CameraSettings ?? slot.Settings;
-            slot.Fifo.Capacity = slot.Settings.FifoCapacity;
-
-            if (slot.Camera != null)
-                slot.Camera.ApplySettings(slot.Settings);
-
-            NotifyStatus($"Settings updated: {serialNumber}");
+        public string GetFirstSlotId()
+        {
+            var s = GetFirstSlot();
+            return s?.SlotId;
         }
 
         public string GetFirstActiveSerial()
         {
-            var firstSlot = _cameraManager.Slots.FirstOrDefault(s => s.IsConnected);
-            return firstSlot?.AssignedSerial;
+            foreach (var slot in _cameraManager.Slots)
+            {
+                if (slot.IsConnected)
+                    return slot.AssignedSerial;
+            }
+            return null;
+        }
+
+        public Bitmap TryDequeueFromFifo(string slotId, int timeoutMs = -1)
+        {
+            var fifo = GetFifo(slotId);
+            return fifo?.TryDequeue(timeoutMs);
+        }
+
+        public Bitmap PeekLatestFromFifo(string slotId)
+        {
+            var fifo = GetFifo(slotId);
+            return fifo?.PeekLatest();
+        }
+
+        public Bitmap PeekLatestNoClone(string slotId)
+        {
+            var fifo = GetFifo(slotId);
+            return fifo?.PeekLatestNoClone();
+        }
+
+        public CameraSettings GetSlotSettings(string slotId)
+        {
+            var slot = GetSlotById(slotId);
+            return slot?.Settings;
+        }
+
+        public void UpdateSlotSettings(string slotId, CameraSettings settings)
+        {
+            var slot = GetSlotById(slotId);
+            if (slot == null) return;
+
+            slot.Settings = settings.Clone() as CameraSettings;
+            slot.Fifo.Capacity = settings.FifoCapacity;
+
+            if (slot.Camera != null)
+                slot.Camera.ApplySettings(settings);
+
+            NotifyStatus($"Settings updated: {slotId}");
         }
 
         public void ConnectSerial(string portName, int baudRate = 9600,
@@ -301,7 +262,6 @@ namespace VisualCutterForm.Lib
             if (_disposed) return;
             _disposed = true;
 
-            _cameraManager.CloseAllSlots();
             DisconnectAllSerials();
             _cameraManager.Dispose();
         }

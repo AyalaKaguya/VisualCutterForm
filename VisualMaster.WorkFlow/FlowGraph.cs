@@ -7,7 +7,7 @@ namespace VisualMaster.WorkFlow
 {
     public class FlowGraph
     {
-        public const string CurrentVersion = "2.0";
+        public const string CurrentVersion = "1.2";
 
         public string Name { get; set; } = "流程图";
         public string Version { get; set; } = CurrentVersion;

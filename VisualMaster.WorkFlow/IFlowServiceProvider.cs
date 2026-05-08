@@ -1,4 +1,5 @@
 using VisualMaster.Api;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using VisualMaster.WorkFlow.Data;
 
@@ -14,5 +15,7 @@ namespace VisualMaster.WorkFlow
         CameraSlot GetCameraSlot(string serial);
         bool TriggerCommunication(string portName, SerialTriggerRule rule);
         void OnSerialDataReceived(string portName, string data);
+        CameraSlot GetSlotById(string slotId);
+        List<CameraSlot> GetAllCameraSlots();
     }
 }

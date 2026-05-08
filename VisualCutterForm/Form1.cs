@@ -37,7 +37,6 @@ namespace VisualCutterForm
         private VisionController _vision;
         private AppConfig _config;
         private string _selectedCamera;
-        private List<string> _activeCameras = new List<string>();
         private FlowGraph _flowGraph;
         private FlowExecutor _flowExecutor;
         private RichTextBox _logBox;
@@ -63,7 +62,7 @@ namespace VisualCutterForm
             var configPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.ini");
             _config = AppConfig.CreateDefault(AppDomain.CurrentDomain.BaseDirectory);
 
-            _vision = new VisionController(configPath);
+            _vision = new VisionController();
             _vision.StatusChanged += OnStatusChanged;
             _vision.ErrorOccurred += OnErrorOccurred;
 
@@ -73,7 +72,7 @@ namespace VisualCutterForm
 
             _vision.Initialize();
 
-            _flowExecutor = new FlowExecutor(_vision.CameraManager, _vision);
+            _flowExecutor = new FlowExecutor(_vision);
             _flowExecutor.LogMessage += (s, msg) => AppendLog(msg, Color.FromArgb(180, 180, 180));
             _flowExecutor.ExecutionError += (s, ex) => AppendLog(ex.Message, Color.FromArgb(231, 76, 60));
 
@@ -114,7 +113,6 @@ namespace VisualCutterForm
             miFile.DropDownItems.Add("保存配置(&S)", null, (s, e) =>
             {
                 _config.Save();
-                _vision.SaveAllSettings();
                 OnStatusChanged(this, "配置已保存");
             });
             miFile.DropDownItems.Add(new ToolStripSeparator());
@@ -397,44 +395,45 @@ namespace VisualCutterForm
 
         private void RebuildCameraMenu(ToolStripMenuItem miCamera)
         {
-            // remove dynamic items (everything from index 3 onwards)
             while (miCamera.DropDownItems.Count > 3)
                 miCamera.DropDownItems.RemoveAt(3);
 
-            if (_activeCameras.Count == 0)
+            var slots = _vision.CameraManager.Slots;
+            if (slots.Count == 0)
             {
-                miCamera.DropDownItems.Add(new ToolStripMenuItem("(无活跃相机)") { Enabled = false });
+                miCamera.DropDownItems.Add(new ToolStripMenuItem("(无相机槽位)") { Enabled = false });
                 return;
             }
 
-            foreach (var slot in _vision.CameraManager.Slots)
+            foreach (var slot in slots)
             {
-                var ser = slot.AssignedSerial;
-                if (string.IsNullOrEmpty(ser)) continue;
-                var name = slot.AssignedModel ?? ser;
-                var isGrabbing = slot.IsGrabbing;
+                var name = slot.IsConnected
+                    ? $"{slot.AssignedCamera?.ModelName ?? slot.SlotName} [{slot.AssignedSerial}]"
+                    : $"{slot.SlotName} (未连接)";
 
-                var sub = new ToolStripMenuItem($"{name} [{ser}]")
-                {
-                    ForeColor = isGrabbing ? Color.FromArgb(46, 204, 113) : Color.FromArgb(200, 200, 200),
-                };
+                var sub = new ToolStripMenuItem(name);
+                var slotId = slot.SlotId;
 
-                sub.DropDownItems.Add(isGrabbing ? "停止采集" : "开始采集", null, (s2, e2) =>
+                if (slot.IsConnected)
                 {
-                    if (isGrabbing)
-                        _vision.StopAcquisition(ser);
-                    else
-                        _vision.StartAcquisition(ser);
-                });
+                    sub.DropDownItems.Add(slot.IsGrabbing ? "停止采集" : "开始采集", null, (s2, e2) =>
+                    {
+                        if (slot.IsGrabbing)
+                            _vision.StopAcquisition(slotId);
+                        else
+                            _vision.StartAcquisition(slotId);
+                    });
+                }
 
                 sub.DropDownItems.Add(new ToolStripSeparator());
                 sub.DropDownItems.Add($"设定为当前预览", null, (s2, e2) =>
                 {
-                    _cameraComboBox.SelectedItem = ser;
+                    _cameraComboBox.SelectedItem = slotId;
                 });
                 sub.DropDownItems.Add($"关闭", null, (s2, e2) =>
                 {
-                    CloseCamera(ser);
+                    _vision.CloseSlot(slotId);
+                    RefreshCameraComboBox();
                 });
 
                 miCamera.DropDownItems.Add(sub);
@@ -443,18 +442,19 @@ namespace VisualCutterForm
             miCamera.DropDownItems.Add(new ToolStripSeparator());
             miCamera.DropDownItems.Add("全部开始采集", null, (s2, e2) =>
             {
-                foreach (var ser in _activeCameras)
-                    _vision.StartAcquisition(ser);
+                foreach (var slot in slots)
+                    if (slot.IsConnected) _vision.StartAcquisition(slot.SlotId);
             });
             miCamera.DropDownItems.Add("全部停止采集", null, (s2, e2) =>
             {
-                foreach (var ser in _activeCameras)
-                    _vision.StopAcquisition(ser);
+                foreach (var slot in slots)
+                    _vision.StopAcquisition(slot.SlotId);
             });
             miCamera.DropDownItems.Add("关闭全部相机", null, (s2, e2) =>
             {
-                foreach (var ser in _activeCameras.ToList())
-                    CloseCamera(ser);
+                foreach (var slot in slots.ToList())
+                    _vision.CloseSlot(slot.SlotId);
+                RefreshCameraComboBox();
             });
         }
 
@@ -544,72 +544,44 @@ namespace VisualCutterForm
         private void OnCameraSelect(object sender, EventArgs e)
         {
             _vision.EnumerateCameras();
-            var cameras = _vision.CameraManager.DiscoveredCameras;
+            var cameras = _vision.CameraManager.Cameras;
+
+            var menu = new ContextMenuStrip();
 
             if (cameras.Count == 0)
             {
-                using (var dlg = new CameraSettingsDialog(new CameraSettings(), null, readOnly: true))
+                menu.Items.Add(new ToolStripMenuItem("(未检测到相机设备)") { Enabled = false });
+            }
+            else
+            {
+                for (int i = 0; i < cameras.Count; i++)
                 {
-                    dlg.Text = "相机设置 - 无可用设备";
-                    dlg.ShowDialog(this);
+                    var info = cameras[i];
+                    var label = $"{info.ModelName} [{info.SerialNumber}] ({info.TransportTypeName})";
+                    var idx = i;
+                    menu.Items.Add(label, null, (s2, e2) => OpenOrAssignCamera(idx));
                 }
-                return;
             }
 
-            var menu = new ContextMenuStrip();
-            for (int i = 0; i < cameras.Count; i++)
-            {
-                var info = cameras[i];
-                var label = $"{info.ModelName} [{info.SerialNumber}] ({info.TransportTypeName})";
-                var idx = i;
-                var item = new ToolStripMenuItem(label, null, (s2, e2) => OpenCamera(idx));
-                menu.Items.Add(item);
-            }
-
-            if (_activeCameras.Count > 0)
-            {
-                menu.Items.Add(new ToolStripSeparator());
-                foreach (var ser in _activeCameras)
-                {
-                    var s = ser;
-                    var name = "Camera";
-                    var slotByName = _vision.CameraManager.Slots.FirstOrDefault(sl => sl.AssignedSerial == s);
-                    if (slotByName != null) name = slotByName.AssignedModel ?? s;
-                    menu.Items.Add(new ToolStripMenuItem($"关闭 {name} [{s}]", null, (s2, e2) => CloseCamera(s)));
-                }
-                menu.Items.Add(new ToolStripSeparator());
-                menu.Items.Add("关闭全部相机", null, (s2, e2) =>
-                {
-                    foreach (var s in _activeCameras.ToList())
-                        CloseCamera(s);
-                });
-            }
-            menu.Show(_miCameraSelect.GetCurrentParent(), _miCameraSelect.Bounds.Location + new Size(_miCameraSelect.Bounds.Width, 0));
+            menu.Show(_miCameraSelect.GetCurrentParent(), 
+                _miCameraSelect.Bounds.Location + new Size(_miCameraSelect.Bounds.Width, 0));
         }
 
-        private void OpenCamera(int index)
+        private void OpenOrAssignCamera(int index)
         {
             try
             {
-                var serial = _vision.CameraManager.DiscoveredCameras[index].SerialNumber;
-                if (_activeCameras.Contains(serial))
+                var info = _vision.CameraManager.Cameras[index];
+                var slot = _vision.CameraManager.Slots.Count > 0 ? _vision.CameraManager.Slots[0] : null;
+                if (slot == null)
                 {
-                    _cameraComboBox.SelectedItem = serial;
-                    OnStatusChanged(this, $"相机已打开: {serial}");
-                    return;
+                    slot = _vision.AddSlot($"相机1");
                 }
 
-                var settings = _vision.GetSettings(serial);
-                _vision.OpenCamera(index, settings);
-                _activeCameras.Add(serial);
-                _cameraComboBox.Items.Add(serial);
-                _cameraComboBox.SelectedItem = serial;
-                _config.LastCameraIndex = index;
-                _config.LastCameraSerial = serial;
-                _config.LastCameraList = string.Join(",", _activeCameras);
-                _config.SaveDebounced();
-
+                _vision.OpenSlot(slot.SlotId, info);
+                RefreshCameraComboBox();
                 UpdateMenuState();
+                OnStatusChanged(this, $"相机已连接: {info}");
             }
             catch (Exception ex)
             {
@@ -617,52 +589,41 @@ namespace VisualCutterForm
             }
         }
 
-        private void CloseCamera(string serial)
+        private void RefreshCameraComboBox()
         {
-            if (string.IsNullOrEmpty(serial)) return;
-
-            _vision.CloseCamera(serial);
-            _activeCameras.Remove(serial);
-            _cameraComboBox.Items.Remove(serial);
-            _config.LastCameraList = string.Join(",", _activeCameras);
-            _config.Save();
-
-            if (_selectedCamera == serial)
+            _cameraComboBox.Items.Clear();
+            foreach (var slot in _vision.CameraManager.Slots)
             {
-                _selectedCamera = _cameraComboBox.Items.Count > 0
-                    ? _cameraComboBox.Items[0] as string
-                    : null;
-                _cameraComboBox.SelectedItem = _selectedCamera;
+                _cameraComboBox.Items.Add(slot.SlotId);
             }
-
-            if (_activeCameras.Count == 0)
-                _previewBox.Image = null;
-
-            UpdateMenuState();
-            OnStatusChanged(this, $"相机已关闭: {serial}");
+            if (_cameraComboBox.Items.Count > 0)
+                _cameraComboBox.SelectedIndex = 0;
         }
 
         private void OnCameraSettings(object sender, EventArgs e)
         {
             if (string.IsNullOrEmpty(_selectedCamera))
             {
-                using (var dlg = new CameraSettingsDialog(new CameraSettings(), null, readOnly: true))
-                    dlg.ShowDialog();
+                using (var dlg = new CameraSettingsDialog(new CameraSettings(), null, readOnly: true, _vision, null))
+                {
+                    dlg.Text = "相机设置 - 无可用设备";
+                    dlg.ShowDialog(this);
+                }
                 return;
             }
 
-            var slot = _vision.CameraManager.Slots.FirstOrDefault(s => s.AssignedSerial == _selectedCamera);
+            var slot = _vision.GetSlotById(_selectedCamera);
             if (slot == null) return;
 
-            var slotSettings = slot.Settings ?? new CameraSettings();
+            var settings = slot.Settings ?? new CameraSettings();
             var info = slot.AssignedCamera;
 
-            using (var dlg = new CameraSettingsDialog(slotSettings, info,
-                cameraManager: _vision.CameraManager, slotId: slot.SlotId))
+            using (var dlg = new CameraSettingsDialog(settings, info, vision: _vision, cameraSerial: _selectedCamera))
             {
-                if (dlg.ShowDialog() == DialogResult.OK)
+                if (dlg.ShowDialog(this) == DialogResult.OK)
                 {
                     _vision.UpdateSlotSettings(_selectedCamera, dlg.Settings);
+                    OnStatusChanged(this, "相机设置已更新");
                 }
             }
         }
@@ -1060,8 +1021,8 @@ namespace VisualCutterForm
             sb.AppendLine($"配置文件: {_config?.FilePath ?? "无"}");
             sb.AppendLine($"登录角色: {RoleDisplayName()}");
             sb.AppendLine($"加载流程: {_config?.FlowFilePath ?? "无"}");
-            sb.AppendLine($"注册相机数: {_vision?.CameraManager?.DiscoveredCameras?.Count ?? 0}");
-            sb.AppendLine($"活跃相机: {(_activeCameras.Count > 0 ? string.Join(", ", _activeCameras) : "无")}");
+            sb.AppendLine($"注册相机数: {_vision?.CameraManager?.Cameras?.Count ?? 0}");
+            sb.AppendLine($"相机槽位: {(_vision?.CameraManager?.Slots?.Count > 0 ? string.Join(", ", _vision.CameraManager.Slots.Select(s => s.SlotName + (s.IsConnected ? $" ({s.AssignedSerial})" : " (未连接)"))) : "无")}");
             var openPorts = _vision?.SerialPorts?.Where(kv => kv.Value.IsOpen).Select(kv => kv.Key).ToList();
             sb.AppendLine($"串口状态: {(openPorts != null && openPorts.Count > 0 ? $"已连接 ({string.Join(", ", openPorts)})" : "未连接")}");
             sb.AppendLine($"日期: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
@@ -1098,7 +1059,6 @@ namespace VisualCutterForm
             _flowExecutor?.Dispose();
             _vision?.StopAllAcquisitions();
             _config?.Save();
-            _vision?.SaveAllSettings();
             _vision?.Dispose();
             base.OnFormClosing(e);
         }
