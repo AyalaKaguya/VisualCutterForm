@@ -85,6 +85,12 @@
     <Compile Include="CameraSettingsDialog.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="CameraManagerForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SerialManagerForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Lib\VisionController.cs" />
     <Compile Include="Lib\AppConfig.cs" />
     <Compile Include="Form\FlowEditor\FlowNodeView.cs" />

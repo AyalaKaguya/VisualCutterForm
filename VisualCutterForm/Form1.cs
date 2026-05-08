@@ -22,9 +22,6 @@ namespace VisualCutterForm
         private StatusStrip _statusStrip;
         private ToolStripStatusLabel _statusLabel;
         private ImageViewer _previewBox;
-        private ToolStripMenuItem _miCameraSelect;
-        private ToolStripMenuItem _miCameraSettings;
-        private ToolStripMenuItem _miSerialConnect;
         private ToolStripMenuItem _miViewLog;
         private ToolStripMenuItem _miFlowOpen;
         private ToolStripMenuItem _miFlowReload;
@@ -118,22 +115,17 @@ namespace VisualCutterForm
             miFile.DropDownItems.Add(new ToolStripSeparator());
             miFile.DropDownItems.Add("退出(&X)", null, (s, e) => Close());
 
-            var miCamera = new ToolStripMenuItem("相机(&C)");
-            _miCameraSelect = new ToolStripMenuItem("选择相机...", null, OnCameraSelect);
-            _miCameraSettings = new ToolStripMenuItem("相机设置...", null, OnCameraSettings);
-
-            miCamera.DropDownItems.Add(_miCameraSelect);
-            miCamera.DropDownItems.Add(_miCameraSettings);
-            miCamera.DropDownItems.Add(new ToolStripSeparator());
-            miCamera.DropDownItems.Add(new ToolStripMenuItem("(无活跃相机)") { Enabled = false });
-            miCamera.DropDownOpening += (s, e) => RebuildCameraMenu(miCamera);
-
-            var miSerial = new ToolStripMenuItem("串口(&S)");
-            _miSerialConnect = new ToolStripMenuItem("连接...", null, OnSerialConnect);
-            miSerial.DropDownItems.Add(_miSerialConnect);
-            miSerial.DropDownItems.Add(new ToolStripSeparator());
-            miSerial.DropDownItems.Add(new ToolStripMenuItem("(无连接)") { Enabled = false });
-            miSerial.DropDownOpening += (s, e) => RebuildSerialMenu(miSerial);
+            var miIO = new ToolStripMenuItem("输入输出(&I)");
+            miIO.DropDownItems.Add("相机管理器...", null, (s, e) =>
+            {
+                using (var dlg = new CameraManagerForm(_vision))
+                    dlg.ShowDialog(this);
+            });
+            miIO.DropDownItems.Add("串口管理器...", null, (s, e) =>
+            {
+                using (var dlg = new SerialManagerForm(_vision))
+                    dlg.ShowDialog(this);
+            });
 
             var miFlow = new ToolStripMenuItem("流程(&F)");
             _miFlowOpen = new ToolStripMenuItem("打开流程文件...", null, (s, e) => OpenFlowFile());
@@ -205,8 +197,7 @@ namespace VisualCutterForm
             _miLogin = miLogin;
 
             _menuStrip.Items.Add(miFile);
-            _menuStrip.Items.Add(miCamera);
-            _menuStrip.Items.Add(miSerial);
+            _menuStrip.Items.Add(miIO);
             _menuStrip.Items.Add(miFlow);
             _menuStrip.Items.Add(miView);
             _menuStrip.Items.Add(miLogin);
@@ -393,180 +384,6 @@ namespace VisualCutterForm
 
         #region Menu Handlers
 
-        private void RebuildCameraMenu(ToolStripMenuItem miCamera)
-        {
-            while (miCamera.DropDownItems.Count > 3)
-                miCamera.DropDownItems.RemoveAt(3);
-
-            var slots = _vision.CameraManager.Slots;
-            if (slots.Count == 0)
-            {
-                miCamera.DropDownItems.Add(new ToolStripMenuItem("(无相机槽位)") { Enabled = false });
-                return;
-            }
-
-            foreach (var slot in slots)
-            {
-                var name = slot.IsConnected
-                    ? $"{slot.AssignedCamera?.ModelName ?? slot.SlotName} [{slot.AssignedSerial}]"
-                    : $"{slot.SlotName} (未连接)";
-
-                var sub = new ToolStripMenuItem(name);
-                var slotId = slot.SlotId;
-
-                if (slot.IsConnected)
-                {
-                    sub.DropDownItems.Add(slot.IsGrabbing ? "停止采集" : "开始采集", null, (s2, e2) =>
-                    {
-                        if (slot.IsGrabbing)
-                            _vision.StopAcquisition(slotId);
-                        else
-                            _vision.StartAcquisition(slotId);
-                    });
-                }
-
-                sub.DropDownItems.Add(new ToolStripSeparator());
-                sub.DropDownItems.Add($"设定为当前预览", null, (s2, e2) =>
-                {
-                    _cameraComboBox.SelectedItem = slotId;
-                });
-                sub.DropDownItems.Add($"关闭", null, (s2, e2) =>
-                {
-                    _vision.CloseSlot(slotId);
-                    RefreshCameraComboBox();
-                });
-
-                miCamera.DropDownItems.Add(sub);
-            }
-
-            miCamera.DropDownItems.Add(new ToolStripSeparator());
-            miCamera.DropDownItems.Add("全部开始采集", null, (s2, e2) =>
-            {
-                foreach (var slot in slots)
-                    if (slot.IsConnected) _vision.StartAcquisition(slot.SlotId);
-            });
-            miCamera.DropDownItems.Add("全部停止采集", null, (s2, e2) =>
-            {
-                foreach (var slot in slots)
-                    _vision.StopAcquisition(slot.SlotId);
-            });
-            miCamera.DropDownItems.Add("关闭全部相机", null, (s2, e2) =>
-            {
-                foreach (var slot in slots.ToList())
-                    _vision.CloseSlot(slot.SlotId);
-                RefreshCameraComboBox();
-            });
-        }
-
-        private void RebuildFlowRunMenu(ToolStripMenuItem miRun)
-        {
-            miRun.DropDownItems.Clear();
-
-            if (_flowGraph == null || _flowGraph.SubGraphs.Count == 0)
-            {
-                miRun.DropDownItems.Add(new ToolStripMenuItem("(未加载流程)") { Enabled = false });
-                return;
-            }
-
-            var canRun = _currentRole >= UserRole.Operator;
-
-            if (_flowGraph.SubGraphs.Count > 1)
-            {
-                var miAll = new ToolStripMenuItem("▶ 执行全部 (手动触发)", null, async (s, e) =>
-                {
-                    _flowExecutor.LoadGraph(_flowGraph);
-                    _flowExecutor.Start();
-                    OnStatusChanged(this, "流程已启动");
-                    foreach (var sg in _flowGraph.SubGraphs.Where(sg2 => sg2.Trigger == SubGraphTrigger.SoftManualTrigger))
-                    {
-                        await _flowExecutor.TriggerSubGraph(sg.Id);
-                    }
-                    OnStatusChanged(this, "流程执行完毕");
-                });
-                miAll.Enabled = canRun;
-                miRun.DropDownItems.Add(miAll);
-                miRun.DropDownItems.Add(new ToolStripSeparator());
-            }
-
-            foreach (var sg in _flowGraph.SubGraphs)
-            {
-                var sgCaptured = sg;
-                var label = $"{sgCaptured.Name} ({sgCaptured.Trigger.ToDisplayName()})";
-                var miItem = new ToolStripMenuItem(label, null, async (s, e) =>
-                {
-                    _flowExecutor.LoadGraph(_flowGraph);
-                    _flowExecutor.Start();
-                    OnStatusChanged(this, $"执行子图: {sgCaptured.Name}");
-                    await _flowExecutor.TriggerSubGraph(sgCaptured.Id);
-                    OnStatusChanged(this, $"子图 [{sgCaptured.Name}] 执行完毕");
-                });
-                miItem.Enabled = canRun;
-                miRun.DropDownItems.Add(miItem);
-            }
-        }
-
-        private void RebuildSerialMenu(ToolStripMenuItem miSerial)
-        {
-            // remove dynamic items (everything from index 2 onwards)
-            while (miSerial.DropDownItems.Count > 2)
-                miSerial.DropDownItems.RemoveAt(2);
-
-            var openPorts = _vision.SerialPorts
-                .Where(kv => kv.Value.IsOpen)
-                .Select(kv => kv.Key)
-                .ToList();
-
-            if (openPorts.Count == 0)
-            {
-                miSerial.DropDownItems.Add(new ToolStripMenuItem("(无连接)") { Enabled = false });
-                return;
-            }
-
-            foreach (var port in openPorts)
-            {
-                var p = port;
-                miSerial.DropDownItems.Add($"断开 {p}", null, (s2, e2) =>
-                {
-                    _vision.DisconnectSerial(p);
-                });
-            }
-
-            if (openPorts.Count > 1)
-            {
-                miSerial.DropDownItems.Add(new ToolStripSeparator());
-                miSerial.DropDownItems.Add("断开全部", null, (s2, e2) =>
-                {
-                    _vision.DisconnectAllSerials();
-                });
-            }
-        }
-
-        private void OnCameraSelect(object sender, EventArgs e)
-        {
-            _vision.EnumerateCameras();
-            var cameras = _vision.CameraManager.Cameras;
-
-            var menu = new ContextMenuStrip();
-
-            if (cameras.Count == 0)
-            {
-                menu.Items.Add(new ToolStripMenuItem("(未检测到相机设备)") { Enabled = false });
-            }
-            else
-            {
-                for (int i = 0; i < cameras.Count; i++)
-                {
-                    var info = cameras[i];
-                    var label = $"{info.ModelName} [{info.SerialNumber}] ({info.TransportTypeName})";
-                    var idx = i;
-                    menu.Items.Add(label, null, (s2, e2) => OpenOrAssignCamera(idx));
-                }
-            }
-
-            menu.Show(_miCameraSelect.GetCurrentParent(), 
-                _miCameraSelect.Bounds.Location + new Size(_miCameraSelect.Bounds.Width, 0));
-        }
-
         private void OpenOrAssignCamera(int index)
         {
             try
@@ -628,40 +445,50 @@ namespace VisualCutterForm
             }
         }
 
-        private void OnSerialConnect(object sender, EventArgs e)
+        private void RebuildFlowRunMenu(ToolStripMenuItem miRun)
         {
-            try
-            {
-                var availablePorts = SerialPortUtility.GetAvailablePorts();
-                if (availablePorts.Length == 0)
-                {
-                    MessageBox.Show("未检测到可用串口。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
-                }
+            miRun.DropDownItems.Clear();
 
-                var menu = new ContextMenuStrip();
-                foreach (var port in availablePorts)
-                {
-                    var p = port;
-                    if (_vision.IsSerialOpen(p))
-                    {
-                        menu.Items.Add(new ToolStripMenuItem($"{p} (已连接)") { Enabled = false });
-                    }
-                    else
-                    {
-                        menu.Items.Add(p, null, (s2, e2) =>
-                        {
-                            _vision.ConnectSerial(p, _config.SerialBaudRate,
-                                _config.SerialDataBits, _config.SerialParity, _config.SerialStopBits);
-                            UpdateMenuState();
-                        });
-                    }
-                }
-                menu.Show(_miSerialConnect.GetCurrentParent(), _miSerialConnect.Bounds.Location + new Size(_miSerialConnect.Bounds.Width, 0));
-            }
-            catch (Exception ex)
+            if (_flowGraph == null || _flowGraph.SubGraphs.Count == 0)
             {
-                MessageBox.Show($"串口连接失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                miRun.DropDownItems.Add(new ToolStripMenuItem("(未加载流程)") { Enabled = false });
+                return;
+            }
+
+            var canRun = _currentRole >= UserRole.Operator;
+
+            if (_flowGraph.SubGraphs.Count > 1)
+            {
+                var miAll = new ToolStripMenuItem("\u25b6 执行全部 (手动触发)", null, async (s, e) =>
+                {
+                    _flowExecutor.LoadGraph(_flowGraph);
+                    _flowExecutor.Start();
+                    OnStatusChanged(this, "流程已启动");
+                    foreach (var sg in _flowGraph.SubGraphs.Where(sg2 => sg2.Trigger == SubGraphTrigger.SoftManualTrigger))
+                    {
+                        await _flowExecutor.TriggerSubGraph(sg.Id);
+                    }
+                    OnStatusChanged(this, "流程执行完毕");
+                });
+                miAll.Enabled = canRun;
+                miRun.DropDownItems.Add(miAll);
+                miRun.DropDownItems.Add(new ToolStripSeparator());
+            }
+
+            foreach (var sg in _flowGraph.SubGraphs)
+            {
+                var sgCaptured = sg;
+                var label = $"{sgCaptured.Name} ({sgCaptured.Trigger.ToDisplayName()})";
+                var miItem = new ToolStripMenuItem(label, null, async (s, e) =>
+                {
+                    _flowExecutor.LoadGraph(_flowGraph);
+                    _flowExecutor.Start();
+                    OnStatusChanged(this, $"执行子图: {sgCaptured.Name}");
+                    await _flowExecutor.TriggerSubGraph(sgCaptured.Id);
+                    OnStatusChanged(this, $"子图 [{sgCaptured.Name}] 执行完毕");
+                });
+                miItem.Enabled = canRun;
+                miRun.DropDownItems.Add(miItem);
             }
         }
 
@@ -861,9 +688,6 @@ namespace VisualCutterForm
 
         private void UpdateMenuState()
         {
-            var hasCamera = !string.IsNullOrEmpty(_selectedCamera);
-            _miCameraSettings.Enabled = hasCamera && _currentRole >= UserRole.Engineer;
-
             var anySerial = _vision.SerialPorts.Count > 0
                 && _vision.SerialPorts.Values.Any(sp => sp.IsOpen);
         }
@@ -984,11 +808,8 @@ namespace VisualCutterForm
             miFile.DropDownItems[0].Enabled = _currentRole >= UserRole.Admin;  // 加载配置
             miFile.DropDownItems[1].Enabled = _currentRole >= UserRole.Admin;  // 保存配置
 
-            // 相机菜单 → 工程师及以上
+            // 输入输出菜单 → 工程师及以上
             _menuStrip.Items[1].Enabled = _currentRole >= UserRole.Engineer;
-
-            // 串口菜单 → 工程师及以上
-            _menuStrip.Items[2].Enabled = _currentRole >= UserRole.Engineer;
 
             // 流程: 打开/重载/关闭/编辑器 → 管理员
             _miFlowOpen.Enabled = _currentRole >= UserRole.Admin;
@@ -1006,7 +827,7 @@ namespace VisualCutterForm
             _miAutoStart.Checked = _config.AutoStart;
 
             // 帮助 → 始终可用
-            _menuStrip.Items[6].Enabled = true;
+            _menuStrip.Items[5].Enabled = true;
         }
 
         #endregion
