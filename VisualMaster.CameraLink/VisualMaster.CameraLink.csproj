@@ -33,6 +33,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -44,7 +45,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CameraSettingsStore.cs" />
+    <Compile Include="CameraDiscoveryControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="CameraSettingsControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="MvsCamera.cs" />
     <Compile Include="CameraManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

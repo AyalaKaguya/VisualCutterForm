@@ -17,8 +17,8 @@ namespace VisualMaster.WorkFlow.Nodes
     [NodeCategory("取像", "相机取像")]
     public class CameraAcquisitionNode : FlowNode
     {
-        [NodeProperty("相机序列号", Category = "取像")]
-        public string CameraSerial { get; set; }
+        [NodeProperty("相机槽位ID", Category = "取像")]
+        public string SlotId { get; set; }
 
         [NodeProperty("触发模式", Category = "取像")]
         public AcquisitionTriggerMode Trigger { get; set; } = AcquisitionTriggerMode.HardTrigger;
@@ -36,23 +36,20 @@ namespace VisualMaster.WorkFlow.Nodes
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            dynamic vc = context.GetVariable<object>("VisionController");
-            if (vc == null)
-                throw new InvalidOperationException("VisionController not found in context.");
+            var manager = context.GetVariable<ICameraManager>("CameraManager");
+            if (manager == null)
+                throw new InvalidOperationException("CameraManager not found in context.");
 
-            if (string.IsNullOrEmpty(CameraSerial))
-                CameraSerial = vc.GetFirstActiveSerial();
-
-            if (string.IsNullOrEmpty(CameraSerial))
-                throw new InvalidOperationException("No camera selected.");
+            var slot = manager.GetSlot(SlotId);
+            if (slot == null)
+                throw new InvalidOperationException($"Camera slot '{SlotId}' not found.");
 
             if (Trigger == AcquisitionTriggerMode.HardTrigger)
             {
-                var fifo = vc.GetFifo(CameraSerial);
-                if (fifo == null)
+                if (slot.Fifo == null)
                     throw new InvalidOperationException("Camera FIFO not available.");
 
-                var bmp = fifo.TryDequeue(TimeoutMs);
+                var bmp = slot.Fifo.TryDequeue(TimeoutMs);
                 if (bmp == null)
                     throw new TimeoutException("Timeout waiting for frame from camera.");
 
@@ -61,7 +58,7 @@ namespace VisualMaster.WorkFlow.Nodes
                     var mat = ImageConverter.BitmapToMat(bmp);
                     Result = new AcquisitionResult(mat)
                     {
-                        CameraSerial = CameraSerial,
+                        CameraSerial = slot.AssignedSerial,
                         Timestamp = DateTime.Now,
                         TriggerModeUsed = "HardTrigger",
                     };
@@ -70,24 +67,25 @@ namespace VisualMaster.WorkFlow.Nodes
             }
             else
             {
-                var slots = (System.Collections.Generic.IReadOnlyDictionary<string, CameraSlot>)vc.Slots;
-                if (slots.TryGetValue(CameraSerial, out var slot))
-                {
-                    bool got = slot.Camera.TryGrabImage(out Bitmap bmp, TimeoutMs);
-                    if (!got || bmp == null)
-                        throw new TimeoutException("Soft trigger grab timed out.");
+                if (slot.Camera == null)
+                    throw new InvalidOperationException($"Camera slot '{SlotId}' is not open.");
 
-                    using (bmp)
+                slot.Camera.TriggerSoftware();
+
+                bool got = slot.Camera.TryGrabImage(out Bitmap bmp, TimeoutMs);
+                if (!got || bmp == null)
+                    throw new TimeoutException("Soft trigger grab timed out.");
+
+                using (bmp)
+                {
+                    var mat = ImageConverter.BitmapToMat(bmp);
+                    Result = new AcquisitionResult(mat)
                     {
-                        var mat = ImageConverter.BitmapToMat(bmp);
-                        Result = new AcquisitionResult(mat)
-                        {
-                            CameraSerial = CameraSerial,
-                            Timestamp = DateTime.Now,
-                            TriggerModeUsed = "SoftTrigger",
-                        };
-                        mat.Dispose();
-                    }
+                        CameraSerial = slot.AssignedSerial,
+                        Timestamp = DateTime.Now,
+                        TriggerModeUsed = "SoftTrigger",
+                    };
+                    mat.Dispose();
                 }
             }
         }

@@ -27,7 +27,8 @@ namespace VisualMaster.CameraLink
         public CameraInfo Info => _info;
         public bool IsOpen => _device != null;
 
-        public event EventHandler<Bitmap> ImageGrabbed;
+        public event EventHandler<Bitmap> ImageAcquired;
+        public event EventHandler Disconnected;
 
         public MvsCamera(CameraInfo info)
         {
@@ -73,6 +74,8 @@ namespace VisualMaster.CameraLink
                 _latestFrame?.Dispose();
                 _latestFrame = null;
             }
+
+            Disconnected?.Invoke(this, EventArgs.Empty);
         }
 
         public void StartGrabbing()
@@ -90,6 +93,12 @@ namespace VisualMaster.CameraLink
 
             _device.StreamGrabber.StopGrabbing();
             _isGrabbing = false;
+        }
+
+        public void TriggerSoftware()
+        {
+            if (_device == null) return;
+            _device.Parameters.SetCommandValue("TriggerSoftware");
         }
 
         public bool TryGrabImage(out Bitmap bitmap, int timeoutMs = 2000)
@@ -172,7 +181,7 @@ namespace VisualMaster.CameraLink
                     }
 
                     var clone = new Bitmap(bmp);
-                    ImageGrabbed?.Invoke(this, clone);
+                    ImageAcquired?.Invoke(this, clone);
                 }
             }
             catch

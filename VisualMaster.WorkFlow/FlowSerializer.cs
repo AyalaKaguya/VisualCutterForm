@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
+using VisualMaster.Api;
 
 namespace VisualMaster.WorkFlow
 {
@@ -51,6 +52,7 @@ namespace VisualMaster.WorkFlow
                 Version = graph.Version,
                 CreatedAt = graph.CreatedAt,
                 SubGraphs = graph.SubGraphs.Select(SerializeSubGraph).ToList(),
+                CameraSlots = graph.CameraSlots?.Select(SerializeCameraSlot).ToList(),
             };
         }
 
@@ -65,6 +67,14 @@ namespace VisualMaster.WorkFlow
 
             if (s.Version != FlowGraph.CurrentVersion)
                 warnings?.Add($"流程版本从 {s.Version ?? "?"} 升级到 {FlowGraph.CurrentVersion}");
+
+            if (s.CameraSlots != null)
+            {
+                foreach (var scs in s.CameraSlots)
+                {
+                    graph.CameraSlots.Add(DeserializeCameraSlot(scs));
+                }
+            }
 
             foreach (var sg in s.SubGraphs)
             {
@@ -219,6 +229,7 @@ namespace VisualMaster.WorkFlow
             public string Version;
             public DateTime CreatedAt;
             public List<SerializedSubGraph> SubGraphs;
+            public List<SerializedCameraSlot> CameraSlots;
         }
 
         private class SerializedSubGraph
@@ -256,6 +267,89 @@ namespace VisualMaster.WorkFlow
             public string TypeName;
             public bool IsInput;
             public object DefaultValue;
+        }
+
+        private static SerializedCameraSlot SerializeCameraSlot(CameraSlot slot)
+        {
+            return new SerializedCameraSlot
+            {
+                SlotId = slot.SlotId,
+                SlotName = slot.SlotName,
+                AssignedSerial = slot.AssignedSerial,
+                AssignedModel = slot.AssignedModel,
+                Settings = slot.Settings != null ? SerializeCameraSettings(slot.Settings) : null,
+            };
+        }
+
+        private static CameraSlot DeserializeCameraSlot(SerializedCameraSlot s)
+        {
+            var slot = new CameraSlot
+            {
+                SlotId = s.SlotId ?? Guid.NewGuid().ToString("N").Substring(0, 8),
+                SlotName = s.SlotName ?? "",
+                AssignedSerial = s.AssignedSerial ?? "",
+                AssignedModel = s.AssignedModel ?? "",
+                Settings = DeserializeCameraSettings(s.Settings),
+            };
+            return slot;
+        }
+
+        private static SerializedCameraSettings SerializeCameraSettings(CameraSettings settings)
+        {
+            return new SerializedCameraSettings
+            {
+                TriggerEnabled = settings.TriggerEnabled,
+                TriggerSource = settings.TriggerSource,
+                TriggerActivation = settings.TriggerActivation,
+                ExposureTimeUs = settings.ExposureTimeUs,
+                Gain = settings.Gain,
+                Width = settings.Width,
+                Height = settings.Height,
+                OffsetX = settings.OffsetX,
+                OffsetY = settings.OffsetY,
+                FifoCapacity = settings.FifoCapacity,
+            };
+        }
+
+        private static CameraSettings DeserializeCameraSettings(SerializedCameraSettings s)
+        {
+            if (s == null) return new CameraSettings();
+            return new CameraSettings
+            {
+                TriggerEnabled = s.TriggerEnabled,
+                TriggerSource = s.TriggerSource ?? "Software",
+                TriggerActivation = s.TriggerActivation ?? "RisingEdge",
+                ExposureTimeUs = s.ExposureTimeUs,
+                Gain = s.Gain,
+                Width = s.Width,
+                Height = s.Height,
+                OffsetX = s.OffsetX,
+                OffsetY = s.OffsetY,
+                FifoCapacity = s.FifoCapacity > 0 ? s.FifoCapacity : 10,
+            };
+        }
+
+        private class SerializedCameraSlot
+        {
+            public string SlotId;
+            public string SlotName;
+            public string AssignedSerial;
+            public string AssignedModel;
+            public SerializedCameraSettings Settings;
+        }
+
+        private class SerializedCameraSettings
+        {
+            public bool TriggerEnabled;
+            public string TriggerSource;
+            public string TriggerActivation;
+            public float ExposureTimeUs;
+            public float Gain;
+            public int Width;
+            public int Height;
+            public int OffsetX;
+            public int OffsetY;
+            public int FifoCapacity;
         }
     }
 }

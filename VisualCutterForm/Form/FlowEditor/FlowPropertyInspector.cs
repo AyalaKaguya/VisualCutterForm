@@ -550,7 +550,8 @@ namespace VisualCutterForm.FlowEditor
                     return btnEdit;
                 }
 
-                if (pd.Name == "CameraSerial" || pd.Name == "相机序列号")
+                if (pd.Name == "CameraSerial" || pd.Name == "相机序列号" ||
+                    pd.Name == "SlotId" || pd.Name == "相机槽位ID")
                 {
                     var cmb = new ComboBox
                     {

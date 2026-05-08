@@ -73,7 +73,7 @@ namespace VisualCutterForm
 
             _vision.Initialize();
 
-            _flowExecutor = new FlowExecutor(_vision);
+            _flowExecutor = new FlowExecutor(_vision.CameraManager, _vision);
             _flowExecutor.LogMessage += (s, msg) => AppendLog(msg, Color.FromArgb(180, 180, 180));
             _flowExecutor.ExecutionError += (s, ex) => AppendLog(ex.Message, Color.FromArgb(231, 76, 60));
 
@@ -407,16 +407,17 @@ namespace VisualCutterForm
                 return;
             }
 
-            foreach (var serial in _activeCameras)
+            foreach (var slot in _vision.CameraManager.Slots)
             {
-                var name = _vision.Slots.TryGetValue(serial, out var slot)
-                    ? $"{slot.Info.ModelName} [{serial}]"
-                    : serial;
+                var ser = slot.AssignedSerial;
+                if (string.IsNullOrEmpty(ser)) continue;
+                var name = slot.AssignedModel ?? ser;
+                var isGrabbing = slot.IsGrabbing;
 
-                var sub = new ToolStripMenuItem(name);
-                var ser = serial;
-
-                var isGrabbing = _vision.Slots.TryGetValue(ser, out var sl) && sl.IsGrabbing;
+                var sub = new ToolStripMenuItem($"{name} [{ser}]")
+                {
+                    ForeColor = isGrabbing ? Color.FromArgb(46, 204, 113) : Color.FromArgb(200, 200, 200),
+                };
 
                 sub.DropDownItems.Add(isGrabbing ? "停止采集" : "开始采集", null, (s2, e2) =>
                 {
@@ -543,11 +544,11 @@ namespace VisualCutterForm
         private void OnCameraSelect(object sender, EventArgs e)
         {
             _vision.EnumerateCameras();
-            var cameras = _vision.CameraManager.Cameras;
+            var cameras = _vision.CameraManager.DiscoveredCameras;
 
             if (cameras.Count == 0)
             {
-                using (var dlg = new CameraSettingsDialog(new CameraSettings(), null, readOnly: true, _vision, null))
+                using (var dlg = new CameraSettingsDialog(new CameraSettings(), null, readOnly: true))
                 {
                     dlg.Text = "相机设置 - 无可用设备";
                     dlg.ShowDialog(this);
@@ -571,7 +572,9 @@ namespace VisualCutterForm
                 foreach (var ser in _activeCameras)
                 {
                     var s = ser;
-                    var name = _vision.Slots.TryGetValue(s, out var slot) ? slot.Info.ModelName : s;
+                    var name = "Camera";
+                    var slotByName = _vision.CameraManager.Slots.FirstOrDefault(sl => sl.AssignedSerial == s);
+                    if (slotByName != null) name = slotByName.AssignedModel ?? s;
                     menu.Items.Add(new ToolStripMenuItem($"关闭 {name} [{s}]", null, (s2, e2) => CloseCamera(s)));
                 }
                 menu.Items.Add(new ToolStripSeparator());
@@ -588,7 +591,7 @@ namespace VisualCutterForm
         {
             try
             {
-                var serial = _vision.CameraManager.Cameras[index].SerialNumber;
+                var serial = _vision.CameraManager.DiscoveredCameras[index].SerialNumber;
                 if (_activeCameras.Contains(serial))
                 {
                     _cameraComboBox.SelectedItem = serial;
@@ -643,24 +646,23 @@ namespace VisualCutterForm
         {
             if (string.IsNullOrEmpty(_selectedCamera))
             {
-                using (var dlg = new CameraSettingsDialog(new CameraSettings(), null, readOnly: true, _vision, null))
-                {
-                    dlg.Text = "相机设置 - 无可用设备";
-                    dlg.ShowDialog(this);
-                }
+                using (var dlg = new CameraSettingsDialog(new CameraSettings(), null, readOnly: true))
+                    dlg.ShowDialog();
                 return;
             }
 
-            var slotSettings = _vision.GetSlotSettings(_selectedCamera);
-            var info = _vision.Slots[_selectedCamera].Info;
+            var slot = _vision.CameraManager.Slots.FirstOrDefault(s => s.AssignedSerial == _selectedCamera);
+            if (slot == null) return;
 
-            using (var dlg = new CameraSettingsDialog(slotSettings, info, vision: _vision, cameraSerial: _selectedCamera))
+            var slotSettings = slot.Settings ?? new CameraSettings();
+            var info = slot.AssignedCamera;
+
+            using (var dlg = new CameraSettingsDialog(slotSettings, info,
+                cameraManager: _vision.CameraManager, slotId: slot.SlotId))
             {
-                if (dlg.ShowDialog(this) == DialogResult.OK)
+                if (dlg.ShowDialog() == DialogResult.OK)
                 {
                     _vision.UpdateSlotSettings(_selectedCamera, dlg.Settings);
-                    _config.Save();
-                    OnStatusChanged(this, "相机设置已更新");
                 }
             }
         }
@@ -1058,7 +1060,7 @@ namespace VisualCutterForm
             sb.AppendLine($"配置文件: {_config?.FilePath ?? "无"}");
             sb.AppendLine($"登录角色: {RoleDisplayName()}");
             sb.AppendLine($"加载流程: {_config?.FlowFilePath ?? "无"}");
-            sb.AppendLine($"注册相机数: {_vision?.CameraManager?.Cameras?.Count ?? 0}");
+            sb.AppendLine($"注册相机数: {_vision?.CameraManager?.DiscoveredCameras?.Count ?? 0}");
             sb.AppendLine($"活跃相机: {(_activeCameras.Count > 0 ? string.Join(", ", _activeCameras) : "无")}");
             var openPorts = _vision?.SerialPorts?.Where(kv => kv.Value.IsOpen).Select(kv => kv.Key).ToList();
             sb.AppendLine($"串口状态: {(openPorts != null && openPorts.Count > 0 ? $"已连接 ({string.Join(", ", openPorts)})" : "未连接")}");

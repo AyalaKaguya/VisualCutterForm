@@ -15,11 +15,12 @@ namespace VisualMaster.WorkFlow
     public class FlowExecutor : IDisposable
     {
         private FlowGraph _graph;
+        private readonly ICameraManager _cameraManager;
+        private readonly object _visionController;
         private readonly ConcurrentDictionary<Guid, Task> _runningTasks = new ConcurrentDictionary<Guid, Task>();
         private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _runningCts = new ConcurrentDictionary<Guid, CancellationTokenSource>();
         private readonly ConcurrentDictionary<Guid, (ImageFifo fifo, EventHandler<Bitmap> handler, SemaphoreSlim semaphore)> _hardTriggerBindings
             = new ConcurrentDictionary<Guid, (ImageFifo, EventHandler<Bitmap>, SemaphoreSlim)>();
-        private dynamic _visionController;
         private volatile bool _disposed;
 
         public FlowGraph Graph => _graph;
@@ -28,9 +29,10 @@ namespace VisualMaster.WorkFlow
         public event EventHandler<string> LogMessage;
         public event EventHandler<Exception> ExecutionError;
 
-        public FlowExecutor(dynamic visionController)
+        public FlowExecutor(ICameraManager cameraManager, object visionController = null)
         {
-            _visionController = visionController ?? throw new ArgumentNullException(nameof(visionController));
+            _cameraManager = cameraManager ?? throw new ArgumentNullException(nameof(cameraManager));
+            _visionController = visionController;
         }
 
         public void LoadGraph(FlowGraph graph)
@@ -156,22 +158,22 @@ namespace VisualMaster.WorkFlow
 
         private void BindHardCameraTrigger(FlowSubGraph sg)
         {
-            var cameraSerial = FindCameraSerialInSubGraph(sg);
-            if (string.IsNullOrEmpty(cameraSerial)) return;
+            var slotId = FindSlotIdInSubGraph(sg);
+            if (string.IsNullOrEmpty(slotId)) return;
 
-            ImageFifo fifo = _visionController?.GetFifo(cameraSerial);
-            if (fifo == null) return;
+            var slot = _cameraManager.GetSlot(slotId);
+            if (slot?.Fifo == null) return;
 
             var semaphore = new SemaphoreSlim(1, 1);
             var capturedSg = sg;
-            async void handler(object s, Bitmap frame)
+            void handler(object s, Bitmap frame)
             {
                 if (_disposed || !IsRunning) return;
-                if (!await semaphore.WaitAsync(0)) return;
+                if (!semaphore.WaitAsync(0).GetAwaiter().GetResult()) return;
 
                 try
                 {
-                    await RunSubGraphOnce(capturedSg, CancellationToken.None);
+                    RunSubGraphOnce(capturedSg, CancellationToken.None).GetAwaiter().GetResult();
                 }
                 catch (Exception ex)
                 {
@@ -183,8 +185,8 @@ namespace VisualMaster.WorkFlow
                 }
             }
 
-            fifo.FrameEnqueued += handler;
-            _hardTriggerBindings.TryAdd(sg.Id, (fifo, handler, semaphore));
+            slot.Fifo.FrameEnqueued += handler;
+            _hardTriggerBindings.TryAdd(sg.Id, (slot.Fifo, handler, semaphore));
         }
 
         private void UnbindHardCameraTriggers()
@@ -197,23 +199,26 @@ namespace VisualMaster.WorkFlow
             _hardTriggerBindings.Clear();
         }
 
-        private string FindCameraSerialInSubGraph(FlowSubGraph sg)
+        private string FindSlotIdInSubGraph(FlowSubGraph sg)
         {
             foreach (var node in sg.Nodes)
             {
                 if (node is CameraAcquisitionNode camNode)
                 {
-                    if (!string.IsNullOrEmpty(camNode.CameraSerial))
-                        return camNode.CameraSerial;
-                    return _visionController?.GetFirstActiveSerial() ?? "";
+                    if (!string.IsNullOrEmpty(camNode.SlotId))
+                        return camNode.SlotId;
+                    break;
                 }
             }
-            return _visionController?.GetFirstActiveSerial() ?? "";
+
+            var firstSlot = _cameraManager.Slots.FirstOrDefault();
+            return firstSlot?.SlotId ?? "";
         }
 
         private async Task RunSubGraphOnce(FlowSubGraph sg, CancellationToken cancellationToken)
         {
             var context = new FlowContext(sg.Id.ToString());
+            context.SetVariable("CameraManager", _cameraManager);
             context.SetVariable("VisionController", _visionController);
             context.OnLog += msg => LogMessage?.Invoke(this, $"[信息] {msg}");
             context.OnLogWarning += msg => LogMessage?.Invoke(this, $"[警告] {msg}");
@@ -262,11 +267,6 @@ namespace VisualMaster.WorkFlow
             foreach (var cts in _runningCts.Values)
                 cts.Dispose();
             _runningCts.Clear();
-        }
-
-        private void Log(string message)
-        {
-            LogMessage?.Invoke(this, message);
         }
     }
 }

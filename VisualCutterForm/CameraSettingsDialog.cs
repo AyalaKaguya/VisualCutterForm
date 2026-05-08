@@ -4,7 +4,6 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
-using VisualCutterForm.Lib;
 
 namespace VisualCutterForm
 {
@@ -22,8 +21,8 @@ namespace VisualCutterForm
 
         private PictureBox _previewBox;
         private Timer _previewTimer;
-        private VisionController _vision;
-        private string _cameraSerial;
+        private CameraManager _cameraManager;
+        private string _slotId;
 
         private Label _lblModel;
         private Label _lblSerial;
@@ -51,13 +50,13 @@ namespace VisualCutterForm
         public CameraSettings Settings => _settings;
 
         public CameraSettingsDialog(CameraSettings settings, CameraInfo cameraInfo = null,
-            bool readOnly = false, VisionController vision = null, string cameraSerial = null)
+            bool readOnly = false, CameraManager cameraManager = null, string slotId = null)
         {
             _settings = settings?.Clone() as CameraSettings ?? new CameraSettings();
             _cameraInfo = cameraInfo;
             _isReadOnly = readOnly;
-            _vision = vision;
-            _cameraSerial = cameraSerial;
+            _cameraManager = cameraManager;
+            _slotId = slotId;
 
             InitializeForm();
             PopulateCameraInfo();
@@ -270,7 +269,7 @@ namespace VisualCutterForm
 
             var btnSnap = new Button
             {
-                Text = "单帧触发",
+                Text = "软件触发",
                 Location = new Point(4, 4),
                 Size = new Size(80, 26),
                 FlatStyle = FlatStyle.Flat,
@@ -354,56 +353,57 @@ namespace VisualCutterForm
 
         private void OnSnapClick(object sender, EventArgs e)
         {
-            if (_vision == null || string.IsNullOrEmpty(_cameraSerial)) return;
+            if (_cameraManager == null || string.IsNullOrEmpty(_slotId)) return;
 
             try
             {
-                if (_vision.Slots.TryGetValue(_cameraSerial, out var slot))
+                var slot = _cameraManager.GetSlot(_slotId);
+                if (slot?.Camera != null)
                 {
-                    var bmp = slot.Camera.TryGrabImage(out var grabbed, 2000)
-                        ? grabbed : null;
-
-                    if (bmp != null)
+                    slot.Camera.TriggerSoftware();
+                    var got = slot.Camera.TryGrabImage(out var grabbed, 2000);
+                    if (got && grabbed != null)
                     {
                         var old = _previewBox.Image;
-                        _previewBox.Image = bmp;
+                        _previewBox.Image = grabbed;
                         old?.Dispose();
 
                         var lbl = _panelDebug?.Controls.Find("lblDebugStatus", true);
-                        if (lbl.Length > 0) lbl[0].Text = $"单帧触发 · {bmp.Width}x{bmp.Height}";
+                        if (lbl.Length > 0) lbl[0].Text = $"软件触发 · {grabbed.Width}x{grabbed.Height}";
                     }
                     else
                     {
                         var lbl = _panelDebug?.Controls.Find("lblDebugStatus", true);
-                        if (lbl.Length > 0) lbl[0].Text = "单帧触发超时";
+                        if (lbl.Length > 0) lbl[0].Text = "软件触发超时";
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
                 var lbl = _panelDebug?.Controls.Find("lblDebugStatus", true);
-                if (lbl.Length > 0) lbl[0].Text = "单帧触发失败";
+                if (lbl.Length > 0) lbl[0].Text = $"软件触发失败: {ex.Message}";
             }
         }
 
         private void OnContinuousClick(object sender, EventArgs e)
         {
-            if (_vision == null || string.IsNullOrEmpty(_cameraSerial)) return;
+            if (_cameraManager == null || string.IsNullOrEmpty(_slotId)) return;
 
             var btn = sender as Button;
             if (btn == null) return;
 
-            if (!_vision.Slots.TryGetValue(_cameraSerial, out var slot)) return;
+            var slot = _cameraManager.GetSlot(_slotId);
+            if (slot == null) return;
 
             if (slot.IsGrabbing)
             {
-                _vision.StopAcquisition(_cameraSerial);
+                _cameraManager.StopGrabbing(_slotId);
                 btn.Text = "连续采集";
                 btn.BackColor = Color.FromArgb(60, 60, 60);
             }
             else
             {
-                _vision.StartAcquisition(_cameraSerial);
+                _cameraManager.StartGrabbing(_slotId);
                 btn.Text = "停止采集";
                 btn.BackColor = Color.FromArgb(180, 50, 50);
             }
@@ -427,7 +427,7 @@ namespace VisualCutterForm
                     {
                         bmp.Save(dlg.FileName);
                         var lbl = _panelDebug?.Controls.Find("lblDebugStatus", true);
-                        if (lbl.Length > 0) lbl[0].Text = $"已保存: {System.IO.Path.GetFileName(dlg.FileName)}";
+                        if (lbl.Length > 0) lbl[0].Text = $"已保存: {Path.GetFileName(dlg.FileName)}";
                     }
                     catch (Exception ex)
                     {
@@ -455,7 +455,7 @@ namespace VisualCutterForm
 
         private void OnPreviewTick(object sender, EventArgs e)
         {
-            if (_vision == null || string.IsNullOrEmpty(_cameraSerial))
+            if (_cameraManager == null || string.IsNullOrEmpty(_slotId))
             {
                 var lbl = _panelDebug?.Controls.Find("lblDebugStatus", true);
                 if (lbl.Length > 0) lbl[0].Text = "无相机连接";
@@ -464,7 +464,8 @@ namespace VisualCutterForm
 
             try
             {
-                bool grabbing = _vision.Slots.TryGetValue(_cameraSerial, out var slot) && slot.IsGrabbing;
+                var slot = _cameraManager.GetSlot(_slotId);
+                bool grabbing = slot != null && slot.IsGrabbing;
 
                 var btnContinuous = _panelDebug?.Controls.Find("btnContinuous", true);
                 if (btnContinuous.Length > 0 && btnContinuous[0] is Button btn)
@@ -481,7 +482,7 @@ namespace VisualCutterForm
                     }
                 }
 
-                var bmp = _vision.PeekLatestFromFifo(_cameraSerial);
+                var bmp = slot?.Fifo?.PeekLatest();
                 if (bmp != null)
                 {
                     var old = _previewBox.Image;
@@ -499,7 +500,6 @@ namespace VisualCutterForm
             }
             catch
             {
-                // ignore preview errors
             }
         }
 
@@ -546,7 +546,7 @@ namespace VisualCutterForm
             SetNumSafe(_numHeight, _settings.Height);
             SetNumSafe(_numOffsetX, _settings.OffsetX);
             SetNumSafe(_numOffsetY, _settings.OffsetY);
-            SetNumSafe(_numFifoCapacity, _settings.FifiCapacity);
+            SetNumSafe(_numFifoCapacity, _settings.FifoCapacity);
 
             if (_isReadOnly)
             {
@@ -575,7 +575,7 @@ namespace VisualCutterForm
             _settings.Height = (int)_numHeight.Value;
             _settings.OffsetX = (int)_numOffsetX.Value;
             _settings.OffsetY = (int)_numOffsetY.Value;
-            _settings.FifiCapacity = (int)_numFifoCapacity.Value;
+            _settings.FifoCapacity = (int)_numFifoCapacity.Value;
         }
 
         private static void AddLabelValue(Panel panel, string labelText, ref int y,

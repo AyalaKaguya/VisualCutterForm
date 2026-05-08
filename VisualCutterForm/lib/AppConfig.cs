@@ -1,5 +1,4 @@
 using VisualMaster.Api;
-using VisualMaster.CameraLink;
 using System;
 using System.IO;
 using System.Threading;
@@ -9,7 +8,6 @@ namespace VisualCutterForm.Lib
     public class AppConfig
     {
         private readonly IniFile _ini;
-        private CameraSettingsStore _cameraStore;
         private Timer _debounceTimer;
 
         private const string SECTION_GENERAL = "General";
@@ -18,7 +16,6 @@ namespace VisualCutterForm.Lib
         private const string SECTION_LOGIN = "Login";
 
         public string FilePath { get; }
-        public CameraSettingsStore CameraStore => _cameraStore;
 
         private const string DEFAULT_ADMIN_PASSWORD = "admin";
         private const string DEFAULT_ENG_PASSWORD = "engineer";
@@ -28,7 +25,6 @@ namespace VisualCutterForm.Lib
         {
             FilePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
             _ini = new IniFile(filePath);
-            _cameraStore = new CameraSettingsStore(_ini);
         }
 
         public void Load()

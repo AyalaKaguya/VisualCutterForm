@@ -1,36 +1,20 @@
+using System;
+
 namespace VisualMaster.Api
 {
-    public class CameraSettings
-    {
-        public string SerialNumber { get; set; } = "";
-        public string ModelName { get; set; } = "";
-
-        public bool TriggerEnabled { get; set; }
-        public string TriggerSource { get; set; } = "Software";
-        public string TriggerActivation { get; set; } = "RisingEdge";
-
-        public float ExposureTimeUs { get; set; } = 5000f;
-        public float Gain { get; set; } = 0f;
-
-        public int Width { get; set; } = 0;
-        public int Height { get; set; } = 0;
-        public int OffsetX { get; set; } = 0;
-        public int OffsetY { get; set; } = 0;
-
-        public int FifiCapacity { get; set; } = 10;
-
-        public CameraSettings Clone()
-        {
-            return (CameraSettings)MemberwiseClone();
-        }
-    }
-
     public class CameraSlot
     {
+        public string SlotId { get; set; } = Guid.NewGuid().ToString("N").Substring(0, 8);
+        public string SlotName { get; set; } = "";
+
+        public CameraSettings Settings { get; set; }
+        public CameraInfo AssignedCamera { get; set; }
+        public string AssignedSerial { get; set; } = "";
+        public string AssignedModel { get; set; } = "";
+
         public ICamera Camera { get; set; }
         public ImageFifo Fifo { get; set; }
-        public CameraSettings Settings { get; set; }
-        public CameraInfo Info { get; set; }
         public bool IsGrabbing { get; set; }
+        public bool IsConnected { get; set; }
     }
 }

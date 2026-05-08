@@ -14,8 +14,11 @@ namespace VisualMaster.Api
 
         void StartGrabbing();
         void StopGrabbing();
+        void TriggerSoftware();
+        void ApplySettings(CameraSettings settings);
         bool TryGrabImage(out Bitmap bitmap, int timeoutMs = 2000);
 
-        event EventHandler<Bitmap> ImageGrabbed;
+        event EventHandler<Bitmap> ImageAcquired;
+        event EventHandler Disconnected;
     }
 }

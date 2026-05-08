@@ -47,7 +47,9 @@
     <Compile Include="ISerialPort.cs" />
     <Compile Include="ImageFifo.cs" />
     <Compile Include="IniFile.cs" />
+    <Compile Include="CameraSettings.cs" />
     <Compile Include="CameraSlot.cs" />
+    <Compile Include="ICameraManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
