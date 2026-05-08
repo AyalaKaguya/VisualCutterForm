@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -6,7 +7,7 @@ namespace VisualMaster.CameraLink
 {
     partial class CameraSettingsControl
     {
-        private System.ComponentModel.IContainer components = null;
+        private IContainer components = null;
         private ComboBox _cmbTriggerMode;
         private ComboBox _cmbTriggerSource;
         private ComboBox _cmbTriggerActivation;
@@ -28,131 +29,242 @@ namespace VisualMaster.CameraLink
             base.Dispose(disposing);
         }
 
-        private void AddNumeric(string labelText, ref int y, out NumericUpDown numeric,
-            int min, int max, int value, int increment, int decimalPlaces = 0)
-        {
-            var lbl = new Label
-            {
-                Text = labelText,
-                Location = new Point(8, y + 4),
-                Size = new Size(160, 22),
-                TextAlign = ContentAlignment.MiddleRight,
-            };
-            numeric = new NumericUpDown
-            {
-                Location = new Point(180, y + 2),
-                Size = new Size(100, 22),
-                Minimum = min,
-                Maximum = max,
-                Value = Clamp(value, min, max),
-                Increment = increment,
-                DecimalPlaces = decimalPlaces,
-            };
-            Controls.Add(lbl);
-            Controls.Add(numeric);
-            y += 30;
-        }
-
-        private void AddCombo(string labelText, ref int y, out ComboBox comboBox,
-            string[] items, int defaultIndex)
-        {
-            var lbl = new Label
-            {
-                Text = labelText,
-                Location = new Point(8, y + 4),
-                Size = new Size(160, 22),
-                TextAlign = ContentAlignment.MiddleRight,
-            };
-            comboBox = new ComboBox
-            {
-                Location = new Point(180, y + 2),
-                Size = new Size(140, 22),
-                DropDownStyle = ComboBoxStyle.DropDownList,
-                Enabled = false,
-            };
-            comboBox.Items.AddRange(items);
-            if (defaultIndex >= 0 && defaultIndex < items.Length)
-                comboBox.SelectedIndex = defaultIndex;
-
-            Controls.Add(lbl);
-            Controls.Add(comboBox);
-            y += 30;
-        }
-
-        private static decimal Clamp(decimal value, decimal min, decimal max)
-        {
-            if (value < min) return min;
-            if (value > max) return max;
-            return value;
-        }
-
         private void InitializeComponent()
         {
+            components = new Container();
+            var lblTriggerMode = new Label();
+            var lblTriggerSource = new Label();
+            var lblTriggerActivation = new Label();
+            var sep1 = new Label();
+            var lblExposure = new Label();
+            var lblGain = new Label();
+            var sep2 = new Label();
+            var lblWidth = new Label();
+            var lblHeight = new Label();
+            var lblOffsetX = new Label();
+            var lblOffsetY = new Label();
+            var sep3 = new Label();
+            var lblFifoCap = new Label();
+            _cmbTriggerMode = new ComboBox();
+            _cmbTriggerSource = new ComboBox();
+            _cmbTriggerActivation = new ComboBox();
+            _numExposure = new NumericUpDown();
+            _numGain = new NumericUpDown();
+            _trkGain = new TrackBar();
+            _numWidth = new NumericUpDown();
+            _numHeight = new NumericUpDown();
+            _numOffsetX = new NumericUpDown();
+            _numOffsetY = new NumericUpDown();
+            _numFifoCapacity = new NumericUpDown();
+
+            ((System.ComponentModel.ISupportInitialize)(_numExposure)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(_numGain)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(_trkGain)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(_numWidth)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(_numHeight)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(_numOffsetX)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(_numOffsetY)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(_numFifoCapacity)).BeginInit();
             this.SuspendLayout();
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+
+            // lblTriggerMode
+            lblTriggerMode.AutoSize = true;
+            lblTriggerMode.Location = new Point(8, 12);
+            lblTriggerMode.Size = new Size(160, 22);
+            lblTriggerMode.Text = "触发模式:";
+            lblTriggerMode.TextAlign = ContentAlignment.MiddleRight;
+
+            // _cmbTriggerMode
+            _cmbTriggerMode.DropDownStyle = ComboBoxStyle.DropDownList;
+            _cmbTriggerMode.Items.AddRange(new object[] { "连续采集", "软件触发", "硬件触发" });
+            _cmbTriggerMode.Location = new Point(180, 10);
+            _cmbTriggerMode.Size = new Size(140, 22);
+
+            // lblTriggerSource
+            lblTriggerSource.AutoSize = true;
+            lblTriggerSource.Location = new Point(8, 42);
+            lblTriggerSource.Size = new Size(160, 22);
+            lblTriggerSource.Text = "触发源:";
+            lblTriggerSource.TextAlign = ContentAlignment.MiddleRight;
+
+            // _cmbTriggerSource
+            _cmbTriggerSource.DropDownStyle = ComboBoxStyle.DropDownList;
+            _cmbTriggerSource.Enabled = false;
+            _cmbTriggerSource.Items.AddRange(new object[] { "Line0", "Line1", "Line2", "Line3", "Software" });
+            _cmbTriggerSource.Location = new Point(180, 40);
+            _cmbTriggerSource.Size = new Size(140, 22);
+
+            // lblTriggerActivation
+            lblTriggerActivation.AutoSize = true;
+            lblTriggerActivation.Location = new Point(8, 72);
+            lblTriggerActivation.Size = new Size(160, 22);
+            lblTriggerActivation.Text = "触发边沿:";
+            lblTriggerActivation.TextAlign = ContentAlignment.MiddleRight;
+
+            // _cmbTriggerActivation
+            _cmbTriggerActivation.DropDownStyle = ComboBoxStyle.DropDownList;
+            _cmbTriggerActivation.Enabled = false;
+            _cmbTriggerActivation.Items.AddRange(new object[] { "RisingEdge", "FallingEdge", "LevelHigh", "LevelLow" });
+            _cmbTriggerActivation.Location = new Point(180, 70);
+            _cmbTriggerActivation.Size = new Size(140, 22);
+
+            // sep1
+            sep1.BorderStyle = BorderStyle.Fixed3D;
+            sep1.Location = new Point(8, 106);
+            sep1.Size = new Size(460, 1);
+
+            // lblExposure
+            lblExposure.AutoSize = true;
+            lblExposure.Location = new Point(8, 118);
+            lblExposure.Size = new Size(160, 22);
+            lblExposure.Text = "曝光时间 (us):";
+            lblExposure.TextAlign = ContentAlignment.MiddleRight;
+
+            // _numExposure
+            _numExposure.Increment = new decimal(new int[] { 500, 0, 0, 0 });
+            _numExposure.Location = new Point(180, 116);
+            _numExposure.Maximum = new decimal(new int[] { 10000000, 0, 0, 0 });
+            _numExposure.Minimum = new decimal(new int[] { 100, 0, 0, 0 });
+            _numExposure.Size = new Size(100, 22);
+            _numExposure.Value = new decimal(new int[] { 5000, 0, 0, 0 });
+
+            // lblGain
+            lblGain.AutoSize = true;
+            lblGain.Location = new Point(8, 148);
+            lblGain.Size = new Size(160, 22);
+            lblGain.Text = "增益 (dB):";
+            lblGain.TextAlign = ContentAlignment.MiddleRight;
+
+            // _numGain
+            _numGain.DecimalPlaces = 2;
+            _numGain.Increment = new decimal(new int[] { 1, 0, 0, 131072 });
+            _numGain.Location = new Point(180, 146);
+            _numGain.Maximum = new decimal(new int[] { 40, 0, 0, 0 });
+            _numGain.Size = new Size(100, 22);
+
+            // _trkGain
+            _trkGain.Location = new Point(180, 176);
+            _trkGain.Maximum = 40;
+            _trkGain.Size = new Size(240, 45);
+
+            // sep2
+            sep2.BorderStyle = BorderStyle.Fixed3D;
+            sep2.Location = new Point(8, 226);
+            sep2.Size = new Size(460, 1);
+
+            // lblWidth
+            lblWidth.AutoSize = true;
+            lblWidth.Location = new Point(8, 238);
+            lblWidth.Size = new Size(160, 22);
+            lblWidth.Text = "宽度:";
+            lblWidth.TextAlign = ContentAlignment.MiddleRight;
+
+            // _numWidth
+            _numWidth.Increment = new decimal(new int[] { 8, 0, 0, 0 });
+            _numWidth.Location = new Point(180, 236);
+            _numWidth.Maximum = new decimal(new int[] { 32768, 0, 0, 0 });
+            _numWidth.Minimum = new decimal(new int[] { 64, 0, 0, 0 });
+            _numWidth.Size = new Size(100, 22);
+
+            // lblHeight
+            lblHeight.AutoSize = true;
+            lblHeight.Location = new Point(8, 268);
+            lblHeight.Size = new Size(160, 22);
+            lblHeight.Text = "高度:";
+            lblHeight.TextAlign = ContentAlignment.MiddleRight;
+
+            // _numHeight
+            _numHeight.Increment = new decimal(new int[] { 8, 0, 0, 0 });
+            _numHeight.Location = new Point(180, 266);
+            _numHeight.Maximum = new decimal(new int[] { 32768, 0, 0, 0 });
+            _numHeight.Minimum = new decimal(new int[] { 64, 0, 0, 0 });
+            _numHeight.Size = new Size(100, 22);
+
+            // lblOffsetX
+            lblOffsetX.AutoSize = true;
+            lblOffsetX.Location = new Point(8, 298);
+            lblOffsetX.Size = new Size(160, 22);
+            lblOffsetX.Text = "偏移 X:";
+            lblOffsetX.TextAlign = ContentAlignment.MiddleRight;
+
+            // _numOffsetX
+            _numOffsetX.Increment = new decimal(new int[] { 4, 0, 0, 0 });
+            _numOffsetX.Location = new Point(180, 296);
+            _numOffsetX.Maximum = new decimal(new int[] { 32768, 0, 0, 0 });
+            _numOffsetX.Size = new Size(100, 22);
+
+            // lblOffsetY
+            lblOffsetY.AutoSize = true;
+            lblOffsetY.Location = new Point(8, 328);
+            lblOffsetY.Size = new Size(160, 22);
+            lblOffsetY.Text = "偏移 Y:";
+            lblOffsetY.TextAlign = ContentAlignment.MiddleRight;
+
+            // _numOffsetY
+            _numOffsetY.Increment = new decimal(new int[] { 4, 0, 0, 0 });
+            _numOffsetY.Location = new Point(180, 326);
+            _numOffsetY.Maximum = new decimal(new int[] { 32768, 0, 0, 0 });
+            _numOffsetY.Size = new Size(100, 22);
+
+            // sep3
+            sep3.BorderStyle = BorderStyle.Fixed3D;
+            sep3.Location = new Point(8, 362);
+            sep3.Size = new Size(460, 1);
+
+            // lblFifoCap
+            lblFifoCap.AutoSize = true;
+            lblFifoCap.Location = new Point(8, 374);
+            lblFifoCap.Size = new Size(160, 22);
+            lblFifoCap.Text = "FIFO 容量:";
+            lblFifoCap.TextAlign = ContentAlignment.MiddleRight;
+
+            // _numFifoCapacity
+            _numFifoCapacity.Increment = new decimal(new int[] { 1, 0, 0, 0 });
+            _numFifoCapacity.Location = new Point(180, 372);
+            _numFifoCapacity.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
+            _numFifoCapacity.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
+            _numFifoCapacity.Size = new Size(100, 22);
+            _numFifoCapacity.Value = new decimal(new int[] { 10, 0, 0, 0 });
+
+            // CameraSettingsControl
+            this.AutoScaleDimensions = new SizeF(6F, 12F);
+            this.AutoScaleMode = AutoScaleMode.Font;
+            this.Controls.Add(lblFifoCap);
+            this.Controls.Add(_numFifoCapacity);
+            this.Controls.Add(sep3);
+            this.Controls.Add(lblOffsetY);
+            this.Controls.Add(_numOffsetY);
+            this.Controls.Add(lblOffsetX);
+            this.Controls.Add(_numOffsetX);
+            this.Controls.Add(lblHeight);
+            this.Controls.Add(_numHeight);
+            this.Controls.Add(lblWidth);
+            this.Controls.Add(_numWidth);
+            this.Controls.Add(sep2);
+            this.Controls.Add(_trkGain);
+            this.Controls.Add(lblGain);
+            this.Controls.Add(_numGain);
+            this.Controls.Add(lblExposure);
+            this.Controls.Add(_numExposure);
+            this.Controls.Add(sep1);
+            this.Controls.Add(lblTriggerActivation);
+            this.Controls.Add(_cmbTriggerActivation);
+            this.Controls.Add(lblTriggerSource);
+            this.Controls.Add(_cmbTriggerSource);
+            this.Controls.Add(lblTriggerMode);
+            this.Controls.Add(_cmbTriggerMode);
+            this.Font = new Font("Microsoft YaHei", 9F);
             this.Name = "CameraSettingsControl";
-            Font = new Font("Microsoft YaHei", 9F);
-            var y = 8;
-
-            _cmbTriggerMode = new ComboBox
-            {
-                Location = new Point(180, y + 2),
-                Size = new Size(140, 22),
-                DropDownStyle = ComboBoxStyle.DropDownList,
-            };
-            _cmbTriggerMode.Items.AddRange(new[] { "连续采集", "软件触发", "硬件触发" });
-            Controls.Add(new Label
-            {
-                Text = "触发模式:",
-                Location = new Point(8, y + 4),
-                Size = new Size(160, 22),
-                TextAlign = ContentAlignment.MiddleRight,
-            });
-            Controls.Add(_cmbTriggerMode);
-            y += 30;
-
-            AddCombo("触发源:", ref y, out _cmbTriggerSource,
-                new[] { "Line0", "Line1", "Line2", "Line3", "Software" }, 0);
-            AddCombo("触发边沿:", ref y, out _cmbTriggerActivation,
-                new[] { "RisingEdge", "FallingEdge", "LevelHigh", "LevelLow" }, 0);
-            y += 4;
-
-            var sep1 = new Label { Location = new Point(8, y), Size = new Size(460, 1), BorderStyle = BorderStyle.Fixed3D };
-            Controls.Add(sep1);
-            y += 8;
-
-            AddNumeric("曝光时间 (us):", ref y, out _numExposure, 100, 10000000, 5000, 500);
-            AddNumeric("增益 (dB):", ref y, out _numGain, 0, 40, 0, 1, 2);
-
-            _trkGain = new TrackBar
-            {
-                Location = new Point(180, y),
-                Size = new Size(240, 45),
-                Minimum = 0,
-                Maximum = 40,
-                Value = 0,
-            };
-            Controls.Add(_trkGain);
-            y += 50;
-
-            var sep2 = new Label { Location = new Point(8, y), Size = new Size(460, 1), BorderStyle = BorderStyle.Fixed3D };
-            Controls.Add(sep2);
-            y += 8;
-
-            AddNumeric("宽度:", ref y, out _numWidth, 64, 32768, 0, 8);
-            AddNumeric("高度:", ref y, out _numHeight, 64, 32768, 0, 8);
-            AddNumeric("偏移 X:", ref y, out _numOffsetX, 0, 32768, 0, 4);
-            AddNumeric("偏移 Y:", ref y, out _numOffsetY, 0, 32768, 0, 4);
-
-            y += 4;
-            var sep3 = new Label { Location = new Point(8, y), Size = new Size(460, 1), BorderStyle = BorderStyle.Fixed3D };
-            Controls.Add(sep3);
-            y += 8;
-
-            AddNumeric("FIFO 容量:", ref y, out _numFifoCapacity, 1, 100, 10, 1);
             this.ResumeLayout(false);
             this.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(_numExposure)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(_numGain)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(_trkGain)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(_numWidth)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(_numHeight)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(_numOffsetX)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(_numOffsetY)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(_numFifoCapacity)).EndInit();
         }
     }
 }
