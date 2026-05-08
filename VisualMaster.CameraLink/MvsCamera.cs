@@ -20,7 +20,9 @@ namespace VisualMaster.CameraLink
         public bool IsOpen => _device != null;
 
         public event EventHandler<Bitmap> ImageAcquired;
+#pragma warning disable CS0067
         public event EventHandler Disconnected;
+#pragma warning restore CS0067
 
         public MvsCamera(CameraInfo info)
         {

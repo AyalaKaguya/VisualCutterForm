@@ -47,6 +47,12 @@
   <ItemGroup>
     <Compile Include="MvsCamera.cs" />
     <Compile Include="CameraManager.cs" />
+    <Compile Include="CameraDiscoveryControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="CameraSettingsControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
