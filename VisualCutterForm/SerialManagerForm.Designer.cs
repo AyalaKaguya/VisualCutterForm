@@ -27,6 +27,10 @@ namespace VisualCutterForm
 
         private void InitializeComponent()
         {
+            this.SuspendLayout();
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Name = "SerialManagerForm";
             var topBar = new Panel
             {
                 Dock = DockStyle.Top,
@@ -138,6 +142,7 @@ namespace VisualCutterForm
             logPanel.Controls.Add(sendBar);
 
             Controls.Add(logPanel);
+            this.ResumeLayout(false);
         }
     }
 }

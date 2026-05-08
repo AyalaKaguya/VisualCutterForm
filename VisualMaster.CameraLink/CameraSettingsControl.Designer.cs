@@ -88,6 +88,10 @@ namespace VisualMaster.CameraLink
 
         private void InitializeComponent()
         {
+            this.SuspendLayout();
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Name = "CameraSettingsControl";
             Font = new Font("Microsoft YaHei", 9F);
             var y = 8;
 
@@ -147,6 +151,8 @@ namespace VisualMaster.CameraLink
             y += 8;
 
             AddNumeric("FIFO 容量:", ref y, out _numFifoCapacity, 1, 100, 10, 1);
+            this.ResumeLayout(false);
+            this.PerformLayout();
         }
     }
 }

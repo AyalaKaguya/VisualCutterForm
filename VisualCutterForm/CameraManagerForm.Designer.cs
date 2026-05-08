@@ -36,6 +36,10 @@ namespace VisualCutterForm
 
         private void InitializeComponent()
         {
+            this.SuspendLayout();
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Name = "CameraManagerForm";
             _tabControl = new TabControl { Dock = DockStyle.Fill };
 
             // ── Tab 1: 相机列表 ──
@@ -187,6 +191,7 @@ namespace VisualCutterForm
             _tabControl.TabPages.Add(_tabSlotManager);
 
             Controls.Add(_tabControl);
+            this.ResumeLayout(false);
         }
     }
 }

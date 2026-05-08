@@ -21,6 +21,10 @@ namespace VisualMaster.CameraLink
 
         private void InitializeComponent()
         {
+            this.SuspendLayout();
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Name = "CameraDiscoveryControl";
             _btnRefresh = new Button
             {
                 Text = "刷新",
@@ -65,6 +69,8 @@ namespace VisualMaster.CameraLink
             {
                 _listView.Size = new Size(ClientSize.Width, ClientSize.Height - 34);
             };
+            this.ResumeLayout(false);
+            this.PerformLayout();
         }
     }
 }

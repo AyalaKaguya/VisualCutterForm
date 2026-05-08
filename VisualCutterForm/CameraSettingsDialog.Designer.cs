@@ -144,6 +144,10 @@ namespace VisualCutterForm
 
         private void InitializeComponent()
         {
+            this.SuspendLayout();
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Name = "CameraSettingsDialog";
             _splitContainer = new SplitContainer
             {
                 Dock = DockStyle.Fill,
@@ -347,6 +351,7 @@ namespace VisualCutterForm
             flowLayout.Controls.Add(btnCancel);
             flowLayout.Controls.Add(_btnOk);
             Controls.Add(flowLayout);
+            this.ResumeLayout(false);
         }
     }
 }
