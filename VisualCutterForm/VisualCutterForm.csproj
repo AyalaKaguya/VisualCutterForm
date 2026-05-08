@@ -88,6 +88,9 @@
     <Compile Include="CameraManagerForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="CameraPreviewForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="SerialManagerForm.cs">
       <SubType>Form</SubType>
     </Compile>

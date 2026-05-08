@@ -107,10 +107,23 @@ namespace VisualCutterForm.FlowEditor
             miRun.DropDownItems.Add("执行当前子图", null, (s, e) => RunCurrentSubGraph());
             miRun.DropDownItems.Add("停止所有", null, (s, e) => _executor.Stop());
 
+            var miIO = new ToolStripMenuItem("输入输出(&I)");
+            miIO.DropDownItems.Add("相机管理器...", null, (s, e) =>
+            {
+                using (var dlg = new CameraManagerForm(_visionController))
+                    dlg.ShowDialog(this);
+            });
+            miIO.DropDownItems.Add("串口管理器...", null, (s, e) =>
+            {
+                using (var dlg = new SerialManagerForm(_visionController))
+                    dlg.ShowDialog(this);
+            });
+
             _menuStrip.Items.Add(miFile);
             _menuStrip.Items.Add(miEdit);
             _menuStrip.Items.Add(miView);
             _menuStrip.Items.Add(miRun);
+            _menuStrip.Items.Add(miIO);
             Controls.Add(_menuStrip);
             MainMenuStrip = _menuStrip;
         }

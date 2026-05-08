@@ -28,6 +28,7 @@ namespace VisualCutterForm
         private Button _btnRefreshCameras;
         private Button _btnStartGrab;
         private Button _btnStopGrab;
+        private Button _btnPreview;
         private Button _btnEditSettings;
         private Label _lblSlotStatus;
         private CameraSlot _selectedSlot;
@@ -213,6 +214,15 @@ namespace VisualCutterForm
                 }
             };
 
+            _btnPreview = new Button { Text = "预览", Size = new Size(50, 26), FlatStyle = FlatStyle.Flat, Enabled = false };
+            _btnPreview.FlatAppearance.BorderSize = 1;
+            _btnPreview.Click += (s, e) =>
+            {
+                if (_selectedSlot == null) return;
+                using (var dlg = new CameraPreviewForm(_vision, _selectedSlot.SlotId))
+                    dlg.ShowDialog(this);
+            };
+
             _lblSlotStatus = new Label
             {
                 Text = "",
@@ -224,6 +234,7 @@ namespace VisualCutterForm
             actionBar.Controls.Add(_btnEditSettings);
             actionBar.Controls.Add(_btnStartGrab);
             actionBar.Controls.Add(_btnStopGrab);
+            actionBar.Controls.Add(_btnPreview);
             actionBar.Controls.Add(_lblSlotStatus);
 
             settingsPanel.Controls.Add(_settingsControl);
@@ -235,7 +246,7 @@ namespace VisualCutterForm
             {
                 Dock = DockStyle.Fill,
                 Orientation = Orientation.Vertical,
-                SplitterDistance = 240,
+                SplitterDistance = 90,
             };
             _tab2Split.Panel1.Controls.Add(slotPanel);
             _tab2Split.Panel2.Controls.Add(settingsPanel);
@@ -293,6 +304,7 @@ namespace VisualCutterForm
             _btnEditSettings.Enabled = hasSlot;
             _btnStartGrab.Enabled = isConnected && !isGrabbing;
             _btnStopGrab.Enabled = isConnected && isGrabbing;
+            _btnPreview.Enabled = isConnected;
             _cmbBindCamera.Enabled = hasSlot;
 
             if (_selectedSlot != null)

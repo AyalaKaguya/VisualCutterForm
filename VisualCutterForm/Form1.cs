@@ -115,18 +115,6 @@ namespace VisualCutterForm
             miFile.DropDownItems.Add(new ToolStripSeparator());
             miFile.DropDownItems.Add("退出(&X)", null, (s, e) => Close());
 
-            var miIO = new ToolStripMenuItem("输入输出(&I)");
-            miIO.DropDownItems.Add("相机管理器...", null, (s, e) =>
-            {
-                using (var dlg = new CameraManagerForm(_vision))
-                    dlg.ShowDialog(this);
-            });
-            miIO.DropDownItems.Add("串口管理器...", null, (s, e) =>
-            {
-                using (var dlg = new SerialManagerForm(_vision))
-                    dlg.ShowDialog(this);
-            });
-
             var miFlow = new ToolStripMenuItem("流程(&F)");
             _miFlowOpen = new ToolStripMenuItem("打开流程文件...", null, (s, e) => OpenFlowFile());
             _miFlowReload = new ToolStripMenuItem("重新加载", null, (s, e) =>
@@ -197,7 +185,6 @@ namespace VisualCutterForm
             _miLogin = miLogin;
 
             _menuStrip.Items.Add(miFile);
-            _menuStrip.Items.Add(miIO);
             _menuStrip.Items.Add(miFlow);
             _menuStrip.Items.Add(miView);
             _menuStrip.Items.Add(miLogin);
@@ -808,9 +795,6 @@ namespace VisualCutterForm
             miFile.DropDownItems[0].Enabled = _currentRole >= UserRole.Admin;  // 加载配置
             miFile.DropDownItems[1].Enabled = _currentRole >= UserRole.Admin;  // 保存配置
 
-            // 输入输出菜单 → 工程师及以上
-            _menuStrip.Items[1].Enabled = _currentRole >= UserRole.Engineer;
-
             // 流程: 打开/重载/关闭/编辑器 → 管理员
             _miFlowOpen.Enabled = _currentRole >= UserRole.Admin;
             _miFlowReload.Enabled = _currentRole >= UserRole.Admin;
@@ -827,7 +811,7 @@ namespace VisualCutterForm
             _miAutoStart.Checked = _config.AutoStart;
 
             // 帮助 → 始终可用
-            _menuStrip.Items[5].Enabled = true;
+            _menuStrip.Items[4].Enabled = true;
         }
 
         #endregion
