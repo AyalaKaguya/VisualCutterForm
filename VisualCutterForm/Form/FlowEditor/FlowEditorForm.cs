@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using System.Threading.Tasks;
+using VisualMaster.Communication;
 using VisualCutterForm.Lib;
 using VisualCutterForm.Lib.Flow;
 

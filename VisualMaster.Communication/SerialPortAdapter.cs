@@ -1,9 +1,9 @@
+using VisualMaster.Api;
 using System;
 using System.Collections.Generic;
 using System.IO.Ports;
-using VisualMaster.Api;
 
-namespace VisualCutterForm.Lib
+namespace VisualMaster.Communication
 {
     public class SerialPortAdapter : ISerialPort
     {
