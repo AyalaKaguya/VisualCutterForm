@@ -8,50 +8,23 @@ using VisualCutterForm.Lib;
 
 namespace VisualCutterForm
 {
-    public class CameraSettingsDialog : Form
+    public partial class CameraSettingsDialog : Form
     {
-        private TreeView _treeView;
-        private Panel _contentPanel;
-        private SplitContainer _splitContainer;
-
-        private Panel _panelInfo;
-        private Panel _panelTrigger;
-        private Panel _panelExposure;
-        private Panel _panelRoi;
-        private Panel _panelDebug;
-
-        private PictureBox _previewBox;
-        private Timer _previewTimer;
         private VisionController _vision;
         private string _slotId;
-
-        private Label _lblModel;
-        private Label _lblSerial;
-        private Label _lblTransport;
-        private Label _lblVersion;
-
-        private ComboBox _cmbTriggerMode;
-        private ComboBox _cmbTriggerSource;
-        private ComboBox _cmbTriggerActivation;
-
-        private NumericUpDown _numExposure;
-        private NumericUpDown _numGain;
-        private TrackBar _trkGain;
-
-        private NumericUpDown _numWidth;
-        private NumericUpDown _numHeight;
-        private NumericUpDown _numOffsetX;
-        private NumericUpDown _numOffsetY;
-        private NumericUpDown _numFifoCapacity;
-
         private CameraSettings _settings;
         private CameraInfo _cameraInfo;
         private bool _isReadOnly;
 
         public CameraSettings Settings => _settings;
 
+        public CameraSettingsDialog()
+        {
+            InitializeComponent();
+        }
+
         public CameraSettingsDialog(CameraSettings settings, CameraInfo cameraInfo = null,
-            bool readOnly = false, VisionController vision = null, string cameraSerial = null)
+            bool readOnly = false, VisionController vision = null, string cameraSerial = null) : this()
         {
             _settings = settings?.Clone() as CameraSettings ?? new CameraSettings();
             _cameraInfo = cameraInfo;
@@ -59,13 +32,6 @@ namespace VisualCutterForm
             _vision = vision;
             _slotId = cameraSerial;
 
-            InitializeForm();
-            PopulateCameraInfo();
-            PopulateFromSettings();
-        }
-
-        private void InitializeForm()
-        {
             Text = _isReadOnly ? "相机设置 (只读)" : "相机设置";
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
@@ -73,74 +39,21 @@ namespace VisualCutterForm
             StartPosition = FormStartPosition.CenterParent;
             Size = new Size(720, 520);
 
-            _splitContainer = new SplitContainer
-            {
-                Dock = DockStyle.Fill,
-                SplitterDistance = 160,
-                FixedPanel = FixedPanel.Panel1,
-                IsSplitterFixed = true,
-            };
-
-            _treeView = new TreeView
-            {
-                Dock = DockStyle.Fill,
-                HideSelection = false,
-                Font = new Font("Microsoft YaHei", 10F),
-            };
+            // Wire events
             _treeView.AfterSelect += OnTreeViewAfterSelect;
-
-            _treeView.Nodes.Add(CreateTreeNode("相机信息", 0));
-            _treeView.Nodes.Add(CreateTreeNode("触发器", 1));
-            _treeView.Nodes.Add(CreateTreeNode("曝光", 2));
-            _treeView.Nodes.Add(CreateTreeNode("图像尺寸/ROI", 3));
-            _treeView.Nodes.Add(CreateTreeNode("调试画面", 4));
-
-            _contentPanel = new Panel
+            _cmbTriggerMode.SelectedIndexChanged += (s, e) =>
             {
-                Dock = DockStyle.Fill,
-                Padding = new Padding(12),
-                AutoScroll = true,
+                bool isHardware = _cmbTriggerMode.SelectedIndex == 2;
+                _cmbTriggerSource.Enabled = isHardware;
+                _cmbTriggerActivation.Enabled = isHardware;
             };
-
-            _splitContainer.Panel1.Controls.Add(_treeView);
-            _splitContainer.Panel2.Controls.Add(_contentPanel);
-            Controls.Add(_splitContainer);
-
-            BuildInfoPanel();
-            _contentPanel.Controls.Add(_panelInfo);
-            BuildTriggerPanel();
-            _contentPanel.Controls.Add(_panelTrigger);
-            BuildExposurePanel();
-            _contentPanel.Controls.Add(_panelExposure);
-            BuildRoiPanel();
-            _contentPanel.Controls.Add(_panelRoi);
-            BuildDebugPanel();
-            _contentPanel.Controls.Add(_panelDebug);
-
-            _treeView.SelectedNode = _treeView.Nodes[0];
-
-            var btnOk = new Button { Text = "确定", DialogResult = DialogResult.OK, Size = new Size(80, 30) };
-            var btnCancel = new Button { Text = "取消", DialogResult = DialogResult.Cancel, Size = new Size(80, 30) };
-
-            btnOk.Click += (s, e) =>
-            {
-                if (!_isReadOnly)
-                {
-                    CollectToSettings();
-                    DialogResult = DialogResult.OK;
-                }
-            };
-
-            var flowLayout = new FlowLayoutPanel
-            {
-                FlowDirection = FlowDirection.RightToLeft,
-                Dock = DockStyle.Bottom,
-                Height = 45,
-                Padding = new Padding(0, 6, 12, 6),
-            };
-            flowLayout.Controls.Add(btnCancel);
-            flowLayout.Controls.Add(btnOk);
-            Controls.Add(flowLayout);
+            _trkGain.ValueChanged += (s, e) => { _numGain.Value = _trkGain.Value; };
+            _numGain.ValueChanged += (s, e) => { _trkGain.Value = (int)_numGain.Value; };
+            _previewTimer.Tick += OnPreviewTick;
+            _btnDebugSnap.Click += OnSnapClick;
+            _btnDebugContinuous.Click += OnContinuousClick;
+            _btnDebugSave.Click += OnSaveClick;
+            _btnOk.Click += (s, e) => { if (!_isReadOnly) { CollectToSettings(); DialogResult = DialogResult.OK; } };
 
             FormClosing += (s, e) =>
             {
@@ -148,11 +61,9 @@ namespace VisualCutterForm
                 _previewTimer?.Dispose();
                 _previewTimer = null;
             };
-        }
 
-        private static TreeNode CreateTreeNode(string text, int imageIndex)
-        {
-            return new TreeNode(text, imageIndex, imageIndex);
+            PopulateCameraInfo();
+            PopulateFromSettings();
         }
 
         private void OnTreeViewAfterSelect(object sender, TreeViewEventArgs e)
@@ -168,198 +79,6 @@ namespace VisualCutterForm
                 StartDebugPreview();
             else
                 StopDebugPreview();
-        }
-
-        private void BuildInfoPanel()
-        {
-            _panelInfo = CreatePanel();
-            var y = 12;
-
-            AddLabelValue(_panelInfo, "型号:", ref y, out _lblModel, 260);
-            AddLabelValue(_panelInfo, "序列号:", ref y, out _lblSerial, 260);
-            AddLabelValue(_panelInfo, "传输类型:", ref y, out _lblTransport, 260);
-            AddLabelValue(_panelInfo, "固件版本:", ref y, out _lblVersion, 260);
-        }
-
-        private void BuildTriggerPanel()
-        {
-            _panelTrigger = CreatePanel();
-            var y = 12;
-
-            _cmbTriggerMode = new ComboBox
-            {
-                Text = "触发模式:",
-                Location = new Point(184, y + 2),
-                Size = new Size(140, 22),
-                Font = new Font("Microsoft YaHei", 9F),
-                DropDownStyle = ComboBoxStyle.DropDownList,
-            };
-            _cmbTriggerMode.Items.AddRange(new[] { "连续采集", "软件触发", "硬件触发" });
-            _cmbTriggerMode.SelectedIndexChanged += (s, e) =>
-            {
-                bool isHardware = _cmbTriggerMode.SelectedIndex == 2;
-                _cmbTriggerSource.Enabled = isHardware;
-                _cmbTriggerActivation.Enabled = isHardware;
-            };
-            _panelTrigger.Controls.Add(new Label
-            {
-                Text = "触发模式:",
-                Location = new Point(12, y + 4),
-                Size = new Size(160, 22),
-                Font = new Font("Microsoft YaHei", 9F),
-                TextAlign = ContentAlignment.MiddleRight,
-            });
-            _panelTrigger.Controls.Add(_cmbTriggerMode);
-            y += 36;
-
-            AddCombo(_panelTrigger, "触发源:", ref y, out _cmbTriggerSource,
-                new[] { "Line0", "Line1", "Line2", "Line3", "Software" }, 0);
-            AddCombo(_panelTrigger, "触发边沿:", ref y, out _cmbTriggerActivation,
-                new[] { "RisingEdge", "FallingEdge", "LevelHigh", "LevelLow" }, 0);
-        }
-
-        private void BuildExposurePanel()
-        {
-            _panelExposure = CreatePanel();
-            var y = 12;
-
-            AddNumeric(_panelExposure, "曝光时间 (us):", ref y, out _numExposure,
-                100, 10000000, 5000, 500);
-            AddNumeric(_panelExposure, "增益 (dB):", ref y, out _numGain,
-                0, 40, 0, 1, 2);
-
-            _trkGain = new TrackBar
-            {
-                Location = new Point(184, y),
-                Size = new Size(220, 45),
-                Minimum = 0,
-                Maximum = 40,
-                Value = 0,
-            };
-            _trkGain.ValueChanged += (s, e) =>
-            {
-                _numGain.Value = _trkGain.Value;
-            };
-            _numGain.ValueChanged += (s, e) =>
-            {
-                _trkGain.Value = (int)_numGain.Value;
-            };
-            _panelExposure.Controls.Add(_trkGain);
-            y += 50;
-        }
-
-        private void BuildRoiPanel()
-        {
-            _panelRoi = CreatePanel();
-            var y = 12;
-
-            AddNumeric(_panelRoi, "宽度:", ref y, out _numWidth,
-                64, 32768, 0, 8);
-            AddNumeric(_panelRoi, "高度:", ref y, out _numHeight,
-                64, 32768, 0, 8);
-            AddNumeric(_panelRoi, "偏移 X:", ref y, out _numOffsetX,
-                0, 32768, 0, 4);
-            AddNumeric(_panelRoi, "偏移 Y:", ref y, out _numOffsetY,
-                0, 32768, 0, 4);
-            y += 12;
-            AddNumeric(_panelRoi, "FIFO 容量:", ref y, out _numFifoCapacity,
-                1, 100, 10, 1);
-        }
-
-        private void BuildDebugPanel()
-        {
-            _panelDebug = CreatePanel();
-            _panelDebug.AutoScroll = false;
-
-            var toolbar = new Panel
-            {
-                Location = new Point(0, 0),
-                Size = new Size(600, 34),
-                BackColor = Color.FromArgb(40, 40, 40),
-            };
-
-            var btnSnap = new Button
-            {
-                Text = "单帧触发",
-                Location = new Point(4, 4),
-                Size = new Size(80, 26),
-                FlatStyle = FlatStyle.Flat,
-                ForeColor = Color.White,
-                BackColor = Color.FromArgb(60, 60, 60),
-                Font = new Font("Microsoft YaHei", 8.5F),
-            };
-            btnSnap.FlatAppearance.BorderSize = 0;
-            btnSnap.Click += OnSnapClick;
-
-            var btnContinuous = new Button
-            {
-                Text = "连续采集",
-                Location = new Point(88, 4),
-                Size = new Size(80, 26),
-                FlatStyle = FlatStyle.Flat,
-                ForeColor = Color.White,
-                BackColor = Color.FromArgb(60, 60, 60),
-                Font = new Font("Microsoft YaHei", 8.5F),
-                Name = "btnContinuous",
-            };
-            btnContinuous.FlatAppearance.BorderSize = 0;
-            btnContinuous.Click += OnContinuousClick;
-
-            var btnSave = new Button
-            {
-                Text = "保存图片",
-                Location = new Point(172, 4),
-                Size = new Size(80, 26),
-                FlatStyle = FlatStyle.Flat,
-                ForeColor = Color.White,
-                BackColor = Color.FromArgb(60, 60, 60),
-                Font = new Font("Microsoft YaHei", 8.5F),
-            };
-            btnSave.FlatAppearance.BorderSize = 0;
-            btnSave.Click += OnSaveClick;
-
-            toolbar.Controls.Add(btnSnap);
-            toolbar.Controls.Add(btnContinuous);
-            toolbar.Controls.Add(btnSave);
-
-            _previewBox = new PictureBox
-            {
-                Location = new Point(0, 34),
-                Size = new Size(600, 360),
-                SizeMode = PictureBoxSizeMode.Zoom,
-                BackColor = Color.FromArgb(30, 30, 30),
-                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
-            };
-
-            var lblStatus = new Label
-            {
-                Text = "无相机连接",
-                Location = new Point(0, 398),
-                Size = new Size(600, 22),
-                ForeColor = Color.FromArgb(180, 180, 180),
-                BackColor = Color.FromArgb(35, 35, 35),
-                TextAlign = ContentAlignment.MiddleCenter,
-                Font = new Font("Microsoft YaHei", 8.5F),
-                Name = "lblDebugStatus",
-                Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
-            };
-
-            _panelDebug.Controls.Add(lblStatus);
-            _panelDebug.Controls.Add(_previewBox);
-            _panelDebug.Controls.Add(toolbar);
-
-            _panelDebug.Resize += (s, ev) =>
-            {
-                toolbar.Width = _panelDebug.ClientSize.Width;
-                lblStatus.Width = _panelDebug.ClientSize.Width;
-                lblStatus.Top = _panelDebug.ClientSize.Height - 22;
-                _previewBox.Size = new Size(
-                    _panelDebug.ClientSize.Width,
-                    _panelDebug.ClientSize.Height - 34 - 22);
-            };
-
-            _previewTimer = new Timer { Interval = 50 };
-            _previewTimer.Tick += OnPreviewTick;
         }
 
         private void OnSnapClick(object sender, EventArgs e)
@@ -450,16 +169,8 @@ namespace VisualCutterForm
             }
         }
 
-        private void StartDebugPreview()
-        {
-            if (_previewTimer == null) return;
-            _previewTimer.Start();
-        }
-
-        private void StopDebugPreview()
-        {
-            _previewTimer?.Stop();
-        }
+        private void StartDebugPreview() => _previewTimer?.Start();
+        private void StopDebugPreview() => _previewTimer?.Stop();
 
         private void OnPreviewTick(object sender, EventArgs e)
         {
@@ -509,16 +220,6 @@ namespace VisualCutterForm
             catch
             {
             }
-        }
-
-        private Panel CreatePanel()
-        {
-            return new Panel
-            {
-                Dock = DockStyle.Fill,
-                Visible = false,
-                AutoScroll = true,
-            };
         }
 
         private void PopulateCameraInfo()
@@ -573,7 +274,7 @@ namespace VisualCutterForm
             }
         }
 
-        private void CollectToSettings()
+        public void CollectToSettings()
         {
             _settings.TriggerMode = (TriggerModeEnum)_cmbTriggerMode.SelectedIndex;
             _settings.TriggerSource = _cmbTriggerSource.Text;
@@ -587,95 +288,9 @@ namespace VisualCutterForm
             _settings.FifoCapacity = (int)_numFifoCapacity.Value;
         }
 
-        private static void AddLabelValue(Panel panel, string labelText, ref int y,
-            out Label valueLabel, int valueWidth)
-        {
-            var lbl = new Label
-            {
-                Text = labelText,
-                Location = new Point(12, y + 2),
-                Size = new Size(70, 20),
-                Font = new Font("Microsoft YaHei", 9F, FontStyle.Bold),
-                TextAlign = ContentAlignment.MiddleRight,
-            };
-            valueLabel = new Label
-            {
-                Location = new Point(88, y + 2),
-                Size = new Size(valueWidth, 20),
-                Font = new Font("Microsoft YaHei", 9F),
-                AutoSize = false,
-            };
-            panel.Controls.Add(lbl);
-            panel.Controls.Add(valueLabel);
-            y += 28;
-        }
-
-        private static void AddNumeric(Panel panel, string labelText, ref int y,
-            out NumericUpDown numeric, int min, int max, int value, int increment,
-            int decimalPlaces = 0)
-        {
-            var lbl = new Label
-            {
-                Text = labelText,
-                Location = new Point(12, y + 4),
-                Size = new Size(160, 22),
-                Font = new Font("Microsoft YaHei", 9F),
-                TextAlign = ContentAlignment.MiddleRight,
-            };
-            numeric = new NumericUpDown
-            {
-                Location = new Point(184, y + 2),
-                Size = new Size(100, 22),
-                Minimum = min,
-                Maximum = max,
-                Value = Clamp(value, min, max),
-                Increment = increment,
-                DecimalPlaces = decimalPlaces,
-                Font = new Font("Microsoft YaHei", 9F),
-            };
-            panel.Controls.Add(lbl);
-            panel.Controls.Add(numeric);
-            y += 30;
-        }
-
-        private static void AddCombo(Panel panel, string labelText, ref int y,
-            out ComboBox comboBox, string[] items, int defaultIndex)
-        {
-            var lbl = new Label
-            {
-                Text = labelText,
-                Location = new Point(12, y + 4),
-                Size = new Size(160, 22),
-                Font = new Font("Microsoft YaHei", 9F),
-                TextAlign = ContentAlignment.MiddleRight,
-            };
-            comboBox = new ComboBox
-            {
-                Location = new Point(184, y + 2),
-                Size = new Size(140, 22),
-                Font = new Font("Microsoft YaHei", 9F),
-                DropDownStyle = ComboBoxStyle.DropDownList,
-                Enabled = false,
-            };
-            comboBox.Items.AddRange(items);
-            if (defaultIndex >= 0 && defaultIndex < items.Length)
-                comboBox.SelectedIndex = defaultIndex;
-
-            panel.Controls.Add(lbl);
-            panel.Controls.Add(comboBox);
-            y += 30;
-        }
-
-        private static decimal Clamp(decimal value, decimal min, decimal max)
-        {
-            if (value < min) return min;
-            if (value > max) return max;
-            return value;
-        }
-
         private static void SetNumSafe(NumericUpDown num, decimal value)
         {
-            num.Value = Clamp(value, num.Minimum, num.Maximum);
+            num.Value = value < num.Minimum ? num.Minimum : value > num.Maximum ? num.Maximum : value;
         }
     }
 }

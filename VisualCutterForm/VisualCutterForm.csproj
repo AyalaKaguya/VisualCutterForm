@@ -85,14 +85,26 @@
     <Compile Include="CameraSettingsDialog.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="CameraSettingsDialog.Designer.cs">
+      <DependentUpon>CameraSettingsDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="CameraManagerForm.cs">
       <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CameraManagerForm.Designer.cs">
+      <DependentUpon>CameraManagerForm.cs</DependentUpon>
     </Compile>
     <Compile Include="CameraPreviewForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="CameraPreviewForm.Designer.cs">
+      <DependentUpon>CameraPreviewForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="SerialManagerForm.cs">
       <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SerialManagerForm.Designer.cs">
+      <DependentUpon>SerialManagerForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Lib\VisionController.cs" />
     <Compile Include="Lib\AppConfig.cs" />

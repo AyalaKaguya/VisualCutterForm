@@ -50,8 +50,14 @@
     <Compile Include="CameraDiscoveryControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="CameraDiscoveryControl.Designer.cs">
+      <DependentUpon>CameraDiscoveryControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="CameraSettingsControl.cs">
       <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="CameraSettingsControl.Designer.cs">
+      <DependentUpon>CameraSettingsControl.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
