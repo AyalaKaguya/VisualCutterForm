@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>1d113d79-cf79-4f01-a9db-c384a9624d6a</ProjectGuid>
+    <ProjectGuid>{1D113D79-CF79-4F01-A9DB-C384A9624D6A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>VisualMaster.WorkFlow</RootNamespace>
     <AssemblyName>VisualMaster.WorkFlow</AssemblyName>
@@ -45,8 +45,11 @@
     <PackageReference Include="OpenCvSharp4.Windows" Version="4.8.0.20230708" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="NuGet.Protocol" Version="6.12.1" />
+    <PackageReference Include="NuGet.Protocol" Version="6.12.5" />
     <PackageReference Include="System.IO.Ports" Version="8.0.0" />
+    <PackageReference Include="System.Text.Json">
+      <Version>8.0.6</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FlowNode.cs" />

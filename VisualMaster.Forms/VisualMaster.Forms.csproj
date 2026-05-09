@@ -57,31 +57,37 @@
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Camera\CameraDiscoveryControl.Designer.cs">
-      <DependentUpon>Camera\CameraDiscoveryControl.cs</DependentUpon>
+      <DependentUpon>CameraDiscoveryControl.cs</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="Camera\CameraDiscoveryControl.resx">
+      <DependentUpon>CameraDiscoveryControl.cs</DependentUpon>
+    </EmbeddedResource>
     <Compile Include="Camera\CameraSettingsControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Camera\CameraSettingsControl.Designer.cs">
-      <DependentUpon>Camera\CameraSettingsControl.cs</DependentUpon>
+      <DependentUpon>CameraSettingsControl.cs</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="Camera\CameraSettingsControl.resx">
+      <DependentUpon>CameraSettingsControl.cs</DependentUpon>
+    </EmbeddedResource>
     <Compile Include="Camera\CameraManagerForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Camera\CameraManagerForm.Designer.cs">
-      <DependentUpon>Camera\CameraManagerForm.cs</DependentUpon>
+      <DependentUpon>CameraManagerForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Camera\CameraSettingsDialog.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Camera\CameraSettingsDialog.Designer.cs">
-      <DependentUpon>Camera\CameraSettingsDialog.cs</DependentUpon>
+      <DependentUpon>CameraSettingsDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="Camera\CameraPreviewForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Camera\CameraPreviewForm.Designer.cs">
-      <DependentUpon>Camera\CameraPreviewForm.cs</DependentUpon>
+      <DependentUpon>CameraPreviewForm.cs</DependentUpon>
     </Compile>
     <Compile Include="FlowEditor\FlowNodeView.cs" />
     <Compile Include="FlowEditor\FlowCanvas.cs">
