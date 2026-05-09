@@ -1,6 +1,6 @@
 using System.Windows.Forms;
 
-namespace VisualCutterForm.FlowEditor
+namespace VisualMaster.Forms.FlowEditor
 {
     public class InputDialog : Form
     {

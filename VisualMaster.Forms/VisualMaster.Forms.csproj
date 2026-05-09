@@ -83,7 +83,37 @@
     <Compile Include="SerialManagerForm.Designer.cs">
       <DependentUpon>SerialManagerForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="FlowEditor\FlowNodeView.cs" />
+    <Compile Include="FlowEditor\FlowCanvas.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="FlowEditor\FlowToolbox.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="FlowEditor\InputDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FlowEditor\FlowPropertyInspector.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="FlowEditor\FlowEditorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CodeEditor\CodeEditorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CodeEditor\ReferenceManager.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="OpenCvSharp4.Windows" Version="4.8.0.20230708" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="NuGet.Protocol" Version="6.12.1" />
+    <PackageReference Include="FCTB" Version="2.16.24" />
+    <PackageReference Include="System.IO.Ports" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VisualMaster.Api\VisualMaster.Api.csproj">
@@ -97,6 +127,10 @@
     <ProjectReference Include="..\VisualMaster.Communication\VisualMaster.Communication.csproj">
       <Project>{dff219f5-74a2-416a-b51c-37a8929ac58d}</Project>
       <Name>VisualMaster.Communication</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VisualMaster.WorkFlow\VisualMaster.WorkFlow.csproj">
+      <Project>{1d113d79-cf79-4f01-a9db-c384a9624d6a}</Project>
+      <Name>VisualMaster.WorkFlow</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

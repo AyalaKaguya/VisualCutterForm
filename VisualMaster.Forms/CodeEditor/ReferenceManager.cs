@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace VisualCutterForm
+namespace VisualMaster.Forms.CodeEditor
 {
     public class ReferenceManager : Form
     {

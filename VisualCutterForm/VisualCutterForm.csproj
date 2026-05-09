@@ -82,32 +82,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <Compile Include="Form\FlowEditor\FlowNodeView.cs" />
-    <Compile Include="Form\FlowEditor\FlowCanvas.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Form\FlowEditor\FlowToolbox.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Form\FlowEditor\InputDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Form\FlowEditor\FlowPropertyInspector.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Form\FlowEditor\FlowEditorForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="Form\LoginForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Form\DefaultLoginForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Form\CodeEditorForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Form\ReferenceManager.cs">
       <SubType>Form</SubType>
     </Compile>
   </ItemGroup>

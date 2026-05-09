@@ -8,7 +8,7 @@ using System.Windows.Forms;
 using VisualMaster.WorkFlow;
 using VisualMaster.WorkFlow.Data;
 
-namespace VisualCutterForm.FlowEditor
+namespace VisualMaster.Forms.FlowEditor
 {
     public class FlowCanvas : UserControl
     {

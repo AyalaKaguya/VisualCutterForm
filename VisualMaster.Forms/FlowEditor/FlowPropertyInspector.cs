@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using VisualMaster.WorkFlow;
+using VisualMaster.Forms.CodeEditor;
 
-namespace VisualCutterForm.FlowEditor
+namespace VisualMaster.Forms.FlowEditor
 {
     public class FlowPropertyInspector : UserControl
     {

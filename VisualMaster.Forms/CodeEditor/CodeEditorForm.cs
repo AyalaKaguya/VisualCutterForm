@@ -8,7 +8,7 @@ using System.Windows.Forms;
 using FastColoredTextBoxNS;
 using VisualMaster.WorkFlow;
 
-namespace VisualCutterForm
+namespace VisualMaster.Forms.CodeEditor
 {
     public class CodeEditorForm : Form
     {

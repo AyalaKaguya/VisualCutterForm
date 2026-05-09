@@ -10,7 +10,7 @@ using VisualMaster.Communication;
 using VisualMaster.Forms;
 using VisualMaster.Forms.Camera;
 
-namespace VisualCutterForm.FlowEditor
+namespace VisualMaster.Forms.FlowEditor
 {
     public class FlowEditorForm : System.Windows.Forms.Form
     {

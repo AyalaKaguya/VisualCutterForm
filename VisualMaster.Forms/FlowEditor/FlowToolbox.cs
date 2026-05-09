@@ -4,7 +4,7 @@ using System.Linq;
 using System.Windows.Forms;
 using VisualMaster.WorkFlow;
 
-namespace VisualCutterForm.FlowEditor
+namespace VisualMaster.Forms.FlowEditor
 {
     public class FlowToolbox : UserControl
     {

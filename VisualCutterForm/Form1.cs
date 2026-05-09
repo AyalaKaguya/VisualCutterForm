@@ -11,8 +11,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using VisualMaster.Forms;
+using VisualMaster.Forms.Camera;
+using VisualMaster.Forms.FlowEditor;
 using VisualMaster.WorkFlow.Nodes;
-using VisualCutterForm.FlowEditor;
 
 namespace VisualCutterForm
 {
@@ -135,7 +136,7 @@ namespace VisualCutterForm
             });
             _miFlowEditor = new ToolStripMenuItem("流程图编辑器...", null, (s, e) =>
             {
-                using (var editor = new FlowEditor.FlowEditorForm(_flowExecutor, _flowGraph, _vision))
+                using (var editor = new FlowEditorForm(_flowExecutor, _flowGraph, _vision))
                 {
                     if (_flowGraph != null)
                         editor.LoadGraphData(_flowGraph);
