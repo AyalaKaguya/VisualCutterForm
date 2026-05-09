@@ -404,34 +404,6 @@ namespace VisualCutterForm
                 _cameraComboBox.SelectedIndex = 0;
         }
 
-        private void OnCameraSettings(object sender, EventArgs e)
-        {
-            if (string.IsNullOrEmpty(_selectedCamera))
-            {
-                using (var dlg = new CameraSettingsDialog(new CameraSettings(), null, readOnly: true, _vision, null))
-                {
-                    dlg.Text = "相机设置 - 无可用设备";
-                    dlg.ShowDialog(this);
-                }
-                return;
-            }
-
-            var slot = _vision.GetSlotById(_selectedCamera);
-            if (slot == null) return;
-
-            var settings = slot.Settings ?? new CameraSettings();
-            var info = slot.AssignedCamera;
-
-            using (var dlg = new CameraSettingsDialog(settings, info, vision: _vision, cameraSerial: _selectedCamera))
-            {
-                if (dlg.ShowDialog(this) == DialogResult.OK)
-                {
-                    _vision.UpdateSlotSettings(_selectedCamera, dlg.Settings);
-                    OnStatusChanged(this, "相机设置已更新");
-                }
-            }
-        }
-
         private void RebuildFlowRunMenu(ToolStripMenuItem miRun)
         {
             miRun.DropDownItems.Clear();

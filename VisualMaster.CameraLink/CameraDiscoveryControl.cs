@@ -7,7 +7,7 @@ namespace VisualMaster.CameraLink
 {
     public partial class CameraDiscoveryControl : UserControl
     {
-        private CameraManager _manager;
+        private ICameraManager _manager;
 
         public event EventHandler<CameraInfo> CameraSelected;
         public CameraInfo SelectedCamera { get; private set; }
@@ -16,6 +16,7 @@ namespace VisualMaster.CameraLink
         {
             Dock = DockStyle.Fill;
             InitializeComponent();
+            this.Resize += OnResize;
             _btnRefresh.Click += (s, e) => RefreshList();
             _listView.SelectedIndexChanged += (s, e) =>
             {
@@ -32,9 +33,14 @@ namespace VisualMaster.CameraLink
             };
         }
 
-        public void SetCameraManager(CameraManager manager)
+        public void SetCameraManager(ICameraManager manager)
         {
             _manager = manager;
+        }
+
+        private void OnResize(object sender, EventArgs e)
+        {
+            _listView.Size = new System.Drawing.Size(ClientSize.Width, ClientSize.Height - 34);
         }
 
         public void RefreshList()

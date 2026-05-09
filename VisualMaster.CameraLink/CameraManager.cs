@@ -14,7 +14,7 @@ namespace VisualMaster.CameraLink
 
         public IReadOnlyList<CameraInfo> Cameras => _enumeratedCameras.AsReadOnly();
         public bool IsInitialized { get; private set; }
-        public List<CameraSlot> Slots => _slots;
+        public IReadOnlyList<CameraSlot> Slots => _slots.AsReadOnly();
 
         public event EventHandler<CameraSlot> SlotOpened;
         public event EventHandler<CameraSlot> SlotClosed;

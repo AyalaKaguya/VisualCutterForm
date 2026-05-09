@@ -85,12 +85,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <Compile Include="CameraSettingsDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="CameraSettingsDialog.Designer.cs">
-      <DependentUpon>CameraSettingsDialog.cs</DependentUpon>
-    </Compile>
     <Compile Include="CameraManagerForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -143,7 +137,9 @@
       <SubType>Form</SubType>
     </Compile>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="VisualCutterForm\" />
+  </ItemGroup>
   <ItemGroup />
   <ItemGroup>
     <PackageReference Include="OpenCvSharp4.Windows" Version="4.8.0.20230708" />

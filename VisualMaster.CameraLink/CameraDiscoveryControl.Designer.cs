@@ -6,9 +6,9 @@ namespace VisualMaster.CameraLink
     partial class CameraDiscoveryControl
     {
         private System.ComponentModel.IContainer components = null;
-        private ListView _listView;
-        private Button _btnRefresh;
-        private Label _lblStatus;
+        private System.Windows.Forms.ListView _listView;
+        private System.Windows.Forms.Button _btnRefresh;
+        private System.Windows.Forms.Label _lblStatus;
 
         protected override void Dispose(bool disposing)
         {
@@ -21,56 +21,63 @@ namespace VisualMaster.CameraLink
 
         private void InitializeComponent()
         {
+            this._btnRefresh = new System.Windows.Forms.Button();
+            this._lblStatus = new System.Windows.Forms.Label();
+            this._listView = new System.Windows.Forms.ListView();
             this.SuspendLayout();
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
+            // 
+            // _btnRefresh
+            // 
+            this._btnRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this._btnRefresh.Font = new System.Drawing.Font("微软雅黑", 8.5F);
+            this._btnRefresh.Location = new System.Drawing.Point(6, 6);
+            this._btnRefresh.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this._btnRefresh.Name = "_btnRefresh";
+            this._btnRefresh.Size = new System.Drawing.Size(90, 39);
+            this._btnRefresh.TabIndex = 0;
+            this._btnRefresh.Text = "刷新";
+            // 
+            // _lblStatus
+            // 
+            this._lblStatus.Font = new System.Drawing.Font("微软雅黑", 8.5F);
+            this._lblStatus.Location = new System.Drawing.Point(105, 12);
+            this._lblStatus.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this._lblStatus.Name = "_lblStatus";
+            this._lblStatus.Size = new System.Drawing.Size(450, 30);
+            this._lblStatus.TabIndex = 1;
+            this._lblStatus.Text = "就绪";
+            // 
+            // _listView
+            // 
+            this._listView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this._listView.Font = new System.Drawing.Font("微软雅黑", 9F);
+            this._listView.FullRowSelect = true;
+            this._listView.GridLines = true;
+            this._listView.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
+            this._listView.HideSelection = false;
+            this._listView.Location = new System.Drawing.Point(0, 51);
+            this._listView.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this._listView.MultiSelect = false;
+            this._listView.Name = "_listView";
+            this._listView.Size = new System.Drawing.Size(553, 661);
+            this._listView.TabIndex = 2;
+            this._listView.UseCompatibleStateImageBehavior = false;
+            this._listView.View = System.Windows.Forms.View.Details;
+            // 
+            // CameraDiscoveryControl
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this._listView);
+            this.Controls.Add(this._lblStatus);
+            this.Controls.Add(this._btnRefresh);
+            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.Name = "CameraDiscoveryControl";
-            _btnRefresh = new Button
-            {
-                Text = "刷新",
-                Location = new Point(4, 4),
-                Size = new Size(60, 26),
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Microsoft YaHei", 8.5F),
-            };
-            _btnRefresh.FlatAppearance.BorderSize = 1;
-
-            _lblStatus = new Label
-            {
-                Location = new Point(70, 8),
-                Size = new Size(300, 20),
-                Text = "就绪",
-                Font = new Font("Microsoft YaHei", 8.5F),
-            };
-
-            _listView = new ListView
-            {
-                Location = new Point(0, 34),
-                Size = new Size(ClientSize.Width, ClientSize.Height - 34),
-                View = View.Details,
-                FullRowSelect = true,
-                GridLines = true,
-                MultiSelect = false,
-                HeaderStyle = ColumnHeaderStyle.Nonclickable,
-                Font = new Font("Microsoft YaHei", 9F),
-                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
-            };
-
-            _listView.Columns.Add("型号", 180);
-            _listView.Columns.Add("序列号", 160);
-            _listView.Columns.Add("传输", 90);
-            _listView.Columns.Add("用户名称", 120);
-
-            Controls.Add(_btnRefresh);
-            Controls.Add(_lblStatus);
-            Controls.Add(_listView);
-
-            Resize += (s, e) =>
-            {
-                _listView.Size = new Size(ClientSize.Width, ClientSize.Height - 34);
-            };
+            this.Size = new System.Drawing.Size(555, 714);
             this.ResumeLayout(false);
-            this.PerformLayout();
+
         }
     }
 }

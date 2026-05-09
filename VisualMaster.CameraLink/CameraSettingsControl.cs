@@ -33,6 +33,8 @@ namespace VisualMaster.CameraLink
             }
         }
 
+        private bool _syncingGain;
+
         public CameraSettingsControl()
         {
             Dock = System.Windows.Forms.DockStyle.Fill;
@@ -44,8 +46,21 @@ namespace VisualMaster.CameraLink
                 _cmbTriggerSource.Enabled = isHardware && !_isReadOnly;
                 _cmbTriggerActivation.Enabled = isHardware && !_isReadOnly;
             };
-            _trkGain.ValueChanged += (s, e) => { _numGain.Value = _trkGain.Value; };
-            _numGain.ValueChanged += (s, e) => { _trkGain.Value = (int)_numGain.Value; };
+            _trkGain.ValueChanged += (s, e) =>
+            {
+                if (_syncingGain) return;
+                _syncingGain = true;
+                _numGain.Value = _trkGain.Value;
+                _syncingGain = false;
+            };
+            _numGain.ValueChanged += (s, e) =>
+            {
+                if (_syncingGain) return;
+                _syncingGain = true;
+                int clamped = Math.Max(_trkGain.Minimum, Math.Min(_trkGain.Maximum, (int)_numGain.Value));
+                _trkGain.Value = clamped;
+                _syncingGain = false;
+            };
         }
 
         public void CollectToSettings()

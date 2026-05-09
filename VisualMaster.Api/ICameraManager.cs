@@ -8,7 +8,7 @@ namespace VisualMaster.Api
         bool IsInitialized { get; }
         void Initialize();
         List<CameraInfo> EnumerateCameras();
-        List<CameraSlot> Slots { get; }
+        IReadOnlyList<CameraSlot> Slots { get; }
 
         CameraSlot AddSlot(string name, CameraSettings settings = null);
         void RemoveSlot(string slotId);

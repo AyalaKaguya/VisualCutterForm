@@ -97,13 +97,13 @@ namespace VisualCutterForm.Lib
 
         public ImageFifo GetFifo(string slotId)
         {
-            var slot = _cameraManager.Slots.Find(s => s.SlotId == slotId);
+            var slot = _cameraManager.Slots.FirstOrDefault(s => s.SlotId == slotId);
             return slot?.Fifo;
         }
 
         public CameraSlot GetSlotById(string slotId)
         {
-            return _cameraManager.Slots.Find(s => s.SlotId == slotId);
+            return _cameraManager.Slots.FirstOrDefault(s => s.SlotId == slotId);
         }
 
         public CameraSlot GetFirstSlot()
