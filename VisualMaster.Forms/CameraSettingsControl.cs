@@ -2,7 +2,7 @@ using VisualMaster.Api;
 using System;
 using System.Windows.Forms;
 
-namespace VisualMaster.Forms
+namespace VisualMaster.Forms.Camera
 {
     public partial class CameraSettingsControl : System.Windows.Forms.UserControl
     {

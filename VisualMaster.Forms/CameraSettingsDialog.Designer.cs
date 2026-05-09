@@ -2,7 +2,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace VisualMaster.Forms
+namespace VisualMaster.Forms.Camera
 {
     partial class CameraSettingsDialog
     {

@@ -1,3 +1,4 @@
+using VisualMaster.Forms;
 using VisualMaster.Api;
 using VisualMaster.CameraLink;
 using System;
@@ -5,7 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace VisualMaster.Forms
+namespace VisualMaster.Forms.Camera
 {
     public partial class CameraManagerForm : Form
     {

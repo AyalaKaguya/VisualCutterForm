@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 
-namespace VisualMaster.Forms
+namespace VisualMaster.Forms.Camera
 {
     public partial class CameraDiscoveryControl : UserControl
     {

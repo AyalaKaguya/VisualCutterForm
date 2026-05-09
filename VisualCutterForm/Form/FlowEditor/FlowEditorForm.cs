@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using VisualMaster.WorkFlow;
 using VisualMaster.Communication;
 using VisualMaster.Forms;
+using VisualMaster.Forms.Camera;
 
 namespace VisualCutterForm.FlowEditor
 {
