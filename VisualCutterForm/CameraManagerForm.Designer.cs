@@ -31,7 +31,10 @@ namespace VisualCutterForm
         private System.Windows.Forms.Label _lblSettingsHeader;
         private System.Windows.Forms.Panel _bindPanel;
         private System.Windows.Forms.Label _lblBind;
+        private System.Windows.Forms.Label _lblSlotName;
+        private System.Windows.Forms.TextBox _txtSlotName;
         private System.Windows.Forms.FlowLayoutPanel _actionBar;
+        private System.Windows.Forms.Panel _namePanel;
 
         protected override void Dispose(bool disposing)
         {
@@ -58,6 +61,9 @@ namespace VisualCutterForm
             this._lblSlotHeader = new System.Windows.Forms.Label();
             this._settingsPanel = new System.Windows.Forms.Panel();
             this._settingsControl = new VisualMaster.CameraLink.CameraSettingsControl();
+            this._namePanel = new System.Windows.Forms.Panel();
+            this._lblSlotName = new System.Windows.Forms.Label();
+            this._txtSlotName = new System.Windows.Forms.TextBox();
             this._actionBar = new System.Windows.Forms.FlowLayoutPanel();
             this._btnEditSettings = new System.Windows.Forms.Button();
             this._btnStartGrab = new System.Windows.Forms.Button();
@@ -218,6 +224,7 @@ namespace VisualCutterForm
             this._settingsPanel.Controls.Add(this._settingsControl);
             this._settingsPanel.Controls.Add(this._actionBar);
             this._settingsPanel.Controls.Add(this._bindPanel);
+            this._settingsPanel.Controls.Add(this._namePanel);
             this._settingsPanel.Controls.Add(this._lblSettingsHeader);
             this._settingsPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this._settingsPanel.Location = new System.Drawing.Point(0, 0);
@@ -324,6 +331,34 @@ namespace VisualCutterForm
             this._bindPanel.Padding = new System.Windows.Forms.Padding(6, 6, 6, 0);
             this._bindPanel.Size = new System.Drawing.Size(998, 48);
             this._bindPanel.TabIndex = 2;
+            // 
+            // _namePanel
+            // 
+            this._namePanel.Controls.Add(this._lblSlotName);
+            this._namePanel.Controls.Add(this._txtSlotName);
+            this._namePanel.Dock = System.Windows.Forms.DockStyle.Top;
+            this._namePanel.Location = new System.Drawing.Point(6, 78);
+            this._namePanel.Name = "_namePanel";
+            this._namePanel.Size = new System.Drawing.Size(998, 36);
+            this._namePanel.TabIndex = 4;
+            // 
+            // _lblSlotName
+            // 
+            this._lblSlotName.AutoSize = true;
+            this._lblSlotName.Font = new System.Drawing.Font("微软雅黑", 9F);
+            this._lblSlotName.Location = new System.Drawing.Point(6, 6);
+            this._lblSlotName.Name = "_lblSlotName";
+            this._lblSlotName.Size = new System.Drawing.Size(50, 24);
+            this._lblSlotName.TabIndex = 0;
+            this._lblSlotName.Text = "名称:";
+            // 
+            // _txtSlotName
+            // 
+            this._txtSlotName.Font = new System.Drawing.Font("微软雅黑", 9F);
+            this._txtSlotName.Location = new System.Drawing.Point(120, 4);
+            this._txtSlotName.Name = "_txtSlotName";
+            this._txtSlotName.Size = new System.Drawing.Size(328, 31);
+            this._txtSlotName.TabIndex = 1;
             // 
             // _lblBind
             // 

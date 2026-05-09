@@ -20,7 +20,7 @@ namespace VisualCutterForm.FlowEditor
 
         public event Action<FlowNode, string, object> PropertyChanged;
 
-        public Func<List<string>> GetActiveCameras { get; set; }
+        internal Func<List<SlotDisplayItem>> GetActiveCameras { get; set; }
 
         public FlowPropertyInspector()
         {
@@ -489,6 +489,13 @@ namespace VisualCutterForm.FlowEditor
             }
         }
 
+        internal class SlotDisplayItem
+        {
+            public string SlotId;
+            public string Display;
+            public override string ToString() => Display;
+        }
+
         private class PinRef
         {
             public FlowNode Node;
@@ -563,24 +570,29 @@ namespace VisualCutterForm.FlowEditor
                     var activeCameras = GetActiveCameras?.Invoke();
                     if (activeCameras != null)
                     {
-                        cmb.Items.Add("(首个活跃相机)");
-                        foreach (var ser in activeCameras)
-                            cmb.Items.Add(ser);
+                        cmb.Items.Add(new SlotDisplayItem { SlotId = "", Display = "(首个活跃相机)" });
+                        foreach (var item in activeCameras)
+                            cmb.Items.Add(item);
                     }
 
                     var curVal = pd.Getter()?.ToString() ?? "";
-                    if (!string.IsNullOrEmpty(curVal) && cmb.Items.Contains(curVal))
-                        cmb.SelectedItem = curVal;
-                    else if (cmb.Items.Count > 0)
+                    for (int i = 0; i < cmb.Items.Count; i++)
+                    {
+                        if ((cmb.Items[i] as SlotDisplayItem)?.SlotId == curVal)
+                        {
+                            cmb.SelectedIndex = i;
+                            break;
+                        }
+                    }
+                    if (cmb.SelectedIndex < 0 && cmb.Items.Count > 0)
                         cmb.SelectedIndex = 0;
 
-                    var serSetter = cmb;
                     cmb.SelectedIndexChanged += (s3, e3) =>
                     {
-                        var sel = serSetter.SelectedItem?.ToString();
-                        if (sel == "(首个活跃相机)") sel = "";
-                        pd.Setter(sel);
-                        PropertyChanged?.Invoke(_selectedNode, pd.Name, sel);
+                        var item = cmb.SelectedItem as SlotDisplayItem;
+                        var val = item?.SlotId ?? "";
+                        pd.Setter(val);
+                        PropertyChanged?.Invoke(_selectedNode, pd.Name, val);
                     };
                     return cmb;
                 }

@@ -142,7 +142,9 @@ namespace VisualCutterForm.FlowEditor
             _inspector = new FlowPropertyInspector
             {
                 Dock = DockStyle.Fill,
-                GetActiveCameras = () => _visionController?.CameraManager?.Slots?.Select(s => s.SlotId).ToList() ?? new List<string>(),
+                GetActiveCameras = () => _visionController?.CameraManager?.Slots?
+                    .Select(s => new FlowPropertyInspector.SlotDisplayItem { SlotId = s.SlotId, Display = $"{s.SlotName} ({s.SlotId.Substring(0, 8)})" })
+                    .ToList() ?? new List<FlowPropertyInspector.SlotDisplayItem>(),
             };
             _inspector.PropertyChanged += (node, prop, val) =>
             {

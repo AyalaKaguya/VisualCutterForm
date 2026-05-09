@@ -46,6 +46,7 @@ namespace VisualCutterForm
             _btnStopGrab.Click += (s, e) => { if (_selectedSlot != null && _selectedSlot.IsConnected) { _vision.StopAcquisition(_selectedSlot.SlotId); RefreshSlotStatus(); } };
             _btnPreview.Click += (s, e) => { if (_selectedSlot == null) return; using (var dlg = new CameraPreviewForm(_vision, _selectedSlot.SlotId)) dlg.ShowDialog(this); };
             _tabControl.SelectedIndexChanged += OnTabChanged;
+            _txtSlotName.TextChanged += OnSlotNameChanged;
             Closing += (s, e) => { foreach (var slot in _vision.CameraManager.Slots) _vision.StopAcquisition(slot.SlotId); };
         }
 
@@ -75,6 +76,13 @@ namespace VisualCutterForm
                 _vision.EnumerateCameras();
                 _discoveryControl.RefreshList();
             }
+        }
+
+        private void OnSlotNameChanged(object sender, EventArgs e)
+        {
+            if (_selectedSlot == null) return;
+            _selectedSlot.SlotName = _txtSlotName.Text;
+            RefreshSlotList();
         }
 
         private void RefreshSlotList()
@@ -114,6 +122,8 @@ namespace VisualCutterForm
 
             if (_selectedSlot != null)
             {
+                _txtSlotName.Enabled = true;
+                _txtSlotName.Text = _selectedSlot.SlotName ?? "";
                 RebuildBindCameraCombo();
                 _settingsControl.Settings = _selectedSlot.Settings ?? new CameraSettings();
                 _settingsControl.IsReadOnly = true;
@@ -124,6 +134,8 @@ namespace VisualCutterForm
             }
             else
             {
+                _txtSlotName.Enabled = false;
+                _txtSlotName.Text = "";
                 _cmbBindCamera.Items.Clear();
                 _cmbBindCamera.Enabled = false;
                 _settingsControl.Settings = null;
