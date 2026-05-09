@@ -1,10 +1,9 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using VisualCutterForm.Lib;
 using VisualMaster.Communication;
 
-namespace VisualCutterForm
+namespace VisualMaster.Forms
 {
     public partial class SerialManagerForm : Form
     {

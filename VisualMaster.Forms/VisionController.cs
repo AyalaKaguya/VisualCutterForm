@@ -7,7 +7,7 @@ using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
 
-namespace VisualCutterForm.Lib
+namespace VisualMaster.Forms
 {
     public class VisionController : IDisposable
     {

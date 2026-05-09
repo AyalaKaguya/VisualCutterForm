@@ -1,9 +1,8 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using VisualMaster.CameraLink;
 
-namespace VisualCutterForm
+namespace VisualMaster.Forms
 {
     partial class CameraManagerForm
     {
@@ -11,12 +10,12 @@ namespace VisualCutterForm
         private System.Windows.Forms.TabControl _tabControl;
         private System.Windows.Forms.TabPage _tabDeviceList;
         private System.Windows.Forms.TabPage _tabSlotManager;
-        private VisualMaster.CameraLink.CameraDiscoveryControl _discoveryControl;
+        private CameraDiscoveryControl _discoveryControl;
         private System.Windows.Forms.SplitContainer _tab2Split;
         private System.Windows.Forms.ListBox _slotListBox;
         private System.Windows.Forms.Button _btnAddSlot;
         private System.Windows.Forms.Button _btnRemoveSlot;
-        private VisualMaster.CameraLink.CameraSettingsControl _settingsControl;
+        private CameraSettingsControl _settingsControl;
         private System.Windows.Forms.ComboBox _cmbBindCamera;
         private System.Windows.Forms.Button _btnRefreshCameras;
         private System.Windows.Forms.Button _btnStartGrab;
@@ -50,7 +49,7 @@ namespace VisualCutterForm
             VisualMaster.Api.CameraSettings cameraSettings1 = new VisualMaster.Api.CameraSettings();
             this._tabControl = new System.Windows.Forms.TabControl();
             this._tabDeviceList = new System.Windows.Forms.TabPage();
-            this._discoveryControl = new VisualMaster.CameraLink.CameraDiscoveryControl();
+            this._discoveryControl = new CameraDiscoveryControl();
             this._tabSlotManager = new System.Windows.Forms.TabPage();
             this._tab2Split = new System.Windows.Forms.SplitContainer();
             this._slotPanel = new System.Windows.Forms.Panel();
@@ -60,7 +59,7 @@ namespace VisualCutterForm
             this._btnAddSlot = new System.Windows.Forms.Button();
             this._lblSlotHeader = new System.Windows.Forms.Label();
             this._settingsPanel = new System.Windows.Forms.Panel();
-            this._settingsControl = new VisualMaster.CameraLink.CameraSettingsControl();
+            this._settingsControl = new CameraSettingsControl();
             this._namePanel = new System.Windows.Forms.Panel();
             this._lblSlotName = new System.Windows.Forms.Label();
             this._txtSlotName = new System.Windows.Forms.TextBox();

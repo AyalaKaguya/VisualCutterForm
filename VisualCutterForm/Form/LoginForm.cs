@@ -2,7 +2,7 @@ using VisualMaster.Api;
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using VisualCutterForm.Lib;
+using VisualMaster.Forms;
 
 namespace VisualCutterForm
 {

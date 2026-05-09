@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 
-namespace VisualMaster.CameraLink
+namespace VisualMaster.Forms
 {
     public partial class CameraDiscoveryControl : UserControl
     {

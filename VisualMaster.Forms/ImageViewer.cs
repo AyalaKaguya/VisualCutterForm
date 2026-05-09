@@ -2,7 +2,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace VisualCutterForm
+namespace VisualMaster.Forms
 {
     public class ImageViewer : UserControl
     {

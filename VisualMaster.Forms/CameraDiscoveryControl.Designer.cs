@@ -1,7 +1,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace VisualMaster.CameraLink
+namespace VisualMaster.Forms
 {
     partial class CameraDiscoveryControl
     {

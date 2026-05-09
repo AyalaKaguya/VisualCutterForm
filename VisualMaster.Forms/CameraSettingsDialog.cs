@@ -4,9 +4,8 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
-using VisualCutterForm.Lib;
 
-namespace VisualCutterForm
+namespace VisualMaster.Forms
 {
     public partial class CameraSettingsDialog : Form
     {

@@ -58,9 +58,6 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="CameraManagerForm.resx">
-      <DependentUpon>CameraManagerForm.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
@@ -85,26 +82,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <Compile Include="CameraManagerForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="CameraManagerForm.Designer.cs">
-      <DependentUpon>CameraManagerForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="CameraPreviewForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="CameraPreviewForm.Designer.cs">
-      <DependentUpon>CameraPreviewForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="SerialManagerForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="SerialManagerForm.Designer.cs">
-      <DependentUpon>SerialManagerForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Lib\VisionController.cs" />
-    <Compile Include="Lib\AppConfig.cs" />
     <Compile Include="Form\FlowEditor\FlowNodeView.cs" />
     <Compile Include="Form\FlowEditor\FlowCanvas.cs">
       <SubType>UserControl</SubType>
@@ -120,9 +97,6 @@
     </Compile>
     <Compile Include="Form\FlowEditor\FlowEditorForm.cs">
       <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Form\ImageViewer.cs">
-      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Form\LoginForm.cs">
       <SubType>Form</SubType>
@@ -165,6 +139,10 @@
     <ProjectReference Include="..\VisualMaster.WorkFlow\VisualMaster.WorkFlow.csproj">
       <Project>{1d113d79-cf79-4f01-a9db-c384a9624d6a}</Project>
       <Name>VisualMaster.WorkFlow</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VisualMaster.Forms\VisualMaster.Forms.csproj">
+      <Project>{733e85af-f215-4914-87b8-1b082e965c0a}</Project>
+      <Name>VisualMaster.Forms</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -7,7 +7,7 @@ using System.Windows.Forms;
 using System.Threading.Tasks;
 using VisualMaster.WorkFlow;
 using VisualMaster.Communication;
-using VisualCutterForm.Lib;
+using VisualMaster.Forms;
 
 namespace VisualCutterForm.FlowEditor
 {

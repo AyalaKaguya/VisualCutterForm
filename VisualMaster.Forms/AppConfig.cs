@@ -3,7 +3,7 @@ using System;
 using System.IO;
 using System.Threading;
 
-namespace VisualCutterForm.Lib
+namespace VisualMaster.Forms
 {
     public class AppConfig
     {

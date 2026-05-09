@@ -33,7 +33,6 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -47,18 +46,6 @@
   <ItemGroup>
     <Compile Include="MvsCamera.cs" />
     <Compile Include="CameraManager.cs" />
-    <Compile Include="CameraDiscoveryControl.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="CameraDiscoveryControl.Designer.cs">
-      <DependentUpon>CameraDiscoveryControl.cs</DependentUpon>
-    </Compile>
-    <Compile Include="CameraSettingsControl.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="CameraSettingsControl.Designer.cs">
-      <DependentUpon>CameraSettingsControl.cs</DependentUpon>
-    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -66,14 +53,6 @@
       <Project>{afc9c44c-4155-40a6-b333-971924253c41}</Project>
       <Name>VisualMaster.Api</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="CameraDiscoveryControl.resx">
-      <DependentUpon>CameraDiscoveryControl.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="CameraSettingsControl.resx">
-      <DependentUpon>CameraSettingsControl.cs</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

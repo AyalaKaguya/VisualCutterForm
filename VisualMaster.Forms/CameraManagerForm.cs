@@ -1,12 +1,11 @@
-﻿using VisualMaster.Api;
+using VisualMaster.Api;
 using VisualMaster.CameraLink;
 using System;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using VisualCutterForm.Lib;
 
-namespace VisualCutterForm
+namespace VisualMaster.Forms
 {
     public partial class CameraManagerForm : Form
     {
