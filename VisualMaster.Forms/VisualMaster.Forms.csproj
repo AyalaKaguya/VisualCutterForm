@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>733e85af-f215-4914-87b8-1b082e965c0a</ProjectGuid>
+    <ProjectGuid>{733E85AF-F215-4914-87B8-1B082E965C0A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>VisualMaster.Forms</RootNamespace>
     <AssemblyName>VisualMaster.Forms</AssemblyName>
