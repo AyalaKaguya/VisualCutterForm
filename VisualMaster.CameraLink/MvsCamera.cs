@@ -190,14 +190,15 @@ namespace VisualMaster.CameraLink
                 {
                     if (bmp == null) return;
 
+                    var frameClone = (Bitmap)bmp.Clone();
+
                     lock (_frameLock)
                     {
                         _latestFrame?.Dispose();
-                        _latestFrame = new Bitmap(bmp);
+                        _latestFrame = frameClone;
                     }
 
-                    var clone = new Bitmap(bmp);
-                    ImageAcquired?.Invoke(this, clone);
+                    ImageAcquired?.Invoke(this, (Bitmap)bmp.Clone());
                 }
             }
             catch

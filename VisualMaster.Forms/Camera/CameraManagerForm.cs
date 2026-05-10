@@ -91,7 +91,7 @@ namespace VisualMaster.Forms.Camera
             foreach (var slot in _vision.CameraManager.Slots)
             {
                 var status = slot.IsConnected ? (slot.IsGrabbing ? " [采集中]" : " [已连接]") : " [未连接]";
-                _slotListBox.Items.Add(new SlotItem { Slot = slot, Display = $"{slot.SlotName}{status}" });
+                _slotListBox.Items.Add(new DisplayItem(slot.SlotId, $"{slot.SlotName}{status}") { Tag = slot });
             }
             if (_slotListBox.Items.Count > 0 && _selectedSlot == null)
                 _slotListBox.SelectedIndex = 0;
@@ -106,8 +106,8 @@ namespace VisualMaster.Forms.Camera
 
         private void OnSlotSelected(object sender, EventArgs e)
         {
-            var item = _slotListBox.SelectedItem as SlotItem;
-            _selectedSlot = item != null ? item.Slot : null;
+            var item = _slotListBox.SelectedItem as DisplayItem;
+            _selectedSlot = item != null ? item.Tag as CameraSlot : null;
 
             bool hasSlot = _selectedSlot != null;
             bool isConnected = _selectedSlot != null && _selectedSlot.IsConnected;
@@ -157,54 +157,48 @@ namespace VisualMaster.Forms.Camera
             var cameras = _vision.CameraManager.Cameras;
             if (cameras.Count == 0) { _vision.EnumerateCameras(); cameras = _vision.CameraManager.Cameras; }
 
-            _cmbBindCamera.Items.Add(new ComboItem { Info = null, Display = "（未绑定）" });
-
+            _cmbBindCamera.Items.Add(new DisplayItem(null, "（未绑定）"));
             foreach (var cam in cameras)
             {
                 if (IsSerialBoundToOtherSlot(cam.SerialNumber, _selectedSlot?.SlotId)) continue;
-                _cmbBindCamera.Items.Add(new ComboItem { Info = cam, Display = $"{cam.ModelName} [{cam.SerialNumber}] ({cam.TransportTypeName})" });
+                _cmbBindCamera.Items.Add(new DisplayItem(cam.SerialNumber, $"{cam.ModelName} [{cam.SerialNumber}] ({cam.TransportTypeName})") { Tag = cam });
             }
-
             if (_selectedSlot != null && _selectedSlot.IsConnected && _selectedSlot.AssignedSerial != null)
                 for (int i = 0; i < _cmbBindCamera.Items.Count; i++)
                 {
-                    var ci = _cmbBindCamera.Items[i] as ComboItem;
-                    if (ci != null && ci.Info != null && ci.Info.SerialNumber == _selectedSlot.AssignedSerial)
+                    var ci = _cmbBindCamera.Items[i] as DisplayItem;
+                    if (ci?.Tag is CameraInfo info && info.SerialNumber == _selectedSlot.AssignedSerial)
                     { _cmbBindCamera.SelectedIndex = i; return; }
                 }
-
             _cmbBindCamera.SelectedIndex = 0;
         }
-
         private void OnBindCameraChanged(object sender, EventArgs e)
         {
             if (_selectedSlot == null) return;
-            var item = _cmbBindCamera.SelectedItem as ComboItem;
+            var item = _cmbBindCamera.SelectedItem as DisplayItem;
             if (item == null) return;
-
-            if (item.Info == null)
+            var info = item.Tag as CameraInfo;
+            if (info == null)
             {
                 if (_selectedSlot.IsConnected) { _vision.CloseSlot(_selectedSlot.SlotId); RefreshSlotList(); OnSlotSelected(null, EventArgs.Empty); }
                 return;
             }
-
-            if (IsSerialBoundToOtherSlot(item.Info.SerialNumber, _selectedSlot.SlotId))
+            if (IsSerialBoundToOtherSlot(info.SerialNumber, _selectedSlot.SlotId))
             {
-                MessageBox.Show($"相机 {item.Info.SerialNumber} 已绑定到其他槽位。", "无法重复绑定", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show($"相机 {info.SerialNumber} 已绑定到其他槽位。", "无法重复绑定", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 RebuildBindCameraCombo();
                 return;
             }
-
             try
             {
                 if (_selectedSlot.IsConnected) _vision.CloseSlot(_selectedSlot.SlotId);
-                _vision.OpenSlot(_selectedSlot.SlotId, item.Info);
+                _vision.OpenSlot(_selectedSlot.SlotId, info);
                 _settingsControl.IsReadOnly = true;
                 _btnEditSettings.Text = "编辑设置";
                 RefreshSlotList();
                 int idx = -1;
                 for (int i = 0; i < _slotListBox.Items.Count; i++)
-                    if ((_slotListBox.Items[i] as SlotItem)?.Slot?.SlotId == _selectedSlot.SlotId) { idx = i; break; }
+                    if ((_slotListBox.Items[i] as DisplayItem)?.Id == _selectedSlot.SlotId) { idx = i; break; }
                 if (idx >= 0) _slotListBox.SelectedIndex = idx;
             }
             catch (Exception ex)
@@ -212,8 +206,5 @@ namespace VisualMaster.Forms.Camera
                 MessageBox.Show($"绑定相机失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
-        private class SlotItem { public CameraSlot Slot; public string Display; public override string ToString() => Display; }
-        private class ComboItem { public CameraInfo Info; public string Display; public override string ToString() => Display; }
     }
 }

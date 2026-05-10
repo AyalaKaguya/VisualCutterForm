@@ -21,8 +21,10 @@ namespace VisualMaster.Forms.FlowEditor
 
         public event Action<FlowNode, string, object> PropertyChanged;
 
-        internal Func<List<SlotDisplayItem>> GetActiveCameras { get; set; }
-        internal Func<List<SlotDisplayItem>> GetActiveSerialSlots { get; set; }
+        internal Func<List<DisplayItem>> GetActiveCameras { get; set; }
+        internal Func<List<DisplayItem>> GetActiveSerialSlots { get; set; }
+
+        private PropertyEditorRegistry _editorRegistry;
 
         public FlowPropertyInspector()
         {
@@ -71,6 +73,8 @@ namespace VisualMaster.Forms.FlowEditor
             Controls.Add(_lblNodeType);
             Controls.Add(_lblNodeName);
             Controls.Add(header);
+
+            _editorRegistry = PropertyEditorRegistry.CreateDefault();
 
             Resize += (s, e) => RebuildScrollContent();
         }
@@ -487,11 +491,15 @@ namespace VisualMaster.Forms.FlowEditor
             }
         }
 
-        internal class SlotDisplayItem
+        private static bool IsSpecializedProperty(NodePropertyDescriptor pd)
         {
-            public string SlotId;
-            public string Display;
-            public override string ToString() => Display;
+            return pd.Name == "SourceCode" || pd.Name == "源代码"
+                || pd.Name == "CameraSerial" || pd.Name == "相机序列号"
+                || pd.Name == "SlotId" || pd.Name == "相机槽位ID" || pd.Name == "串口槽位"
+                || pd.Name.ToLower().Contains("port")
+                || pd.Name == "ExtraReferences" || pd.Name == "额外引用"
+                || pd.Name == "NuGetPackages" || pd.Name == "NuGet包"
+                || pd.Name == "IsDebug";
         }
 
         private class PinRef
@@ -502,6 +510,14 @@ namespace VisualMaster.Forms.FlowEditor
 
         private Control CreateEditor(NodePropertyDescriptor pd)
         {
+            var basicEditor = _editorRegistry.Find(pd.PropertyType, pd.Name);
+            if (basicEditor != null && !IsSpecializedProperty(pd))
+            {
+                var ctrl = basicEditor.CreateEditor(pd, _selectedNode);
+                ctrl.Tag = pd;
+                return ctrl;
+            }
+
             if (pd.PropertyType == typeof(bool))
             {
                 var chk = new CheckBox
@@ -566,8 +582,7 @@ namespace VisualMaster.Forms.FlowEditor
                         ForeColor = Color.White,
                     };
 
-                    cmb.Items.Add(new SlotDisplayItem { SlotId = "", Display = "(手动指定)" });
-
+                    cmb.Items.Add(new DisplayItem("", "(手动指定)"));
                     var activeSerialSlots = GetActiveSerialSlots?.Invoke();
                     if (activeSerialSlots != null)
                     {
@@ -578,7 +593,7 @@ namespace VisualMaster.Forms.FlowEditor
                     var curVal = pd.Getter()?.ToString() ?? "";
                     for (int i = 0; i < cmb.Items.Count; i++)
                     {
-                        if ((cmb.Items[i] as SlotDisplayItem)?.SlotId == curVal)
+                        if ((cmb.Items[i] as DisplayItem)?.Id == curVal)
                         {
                             cmb.SelectedIndex = i;
                             break;
@@ -589,8 +604,8 @@ namespace VisualMaster.Forms.FlowEditor
 
                     cmb.SelectedIndexChanged += (s3, e3) =>
                     {
-                        var item = cmb.SelectedItem as SlotDisplayItem;
-                        var val = item?.SlotId ?? "";
+                        var item = cmb.SelectedItem as DisplayItem;
+                        var val = item?.Id ?? "";
                         pd.Setter(val);
                         PropertyChanged?.Invoke(_selectedNode, pd.Name, val);
                     };
@@ -610,7 +625,7 @@ namespace VisualMaster.Forms.FlowEditor
                     var activeCameras = GetActiveCameras?.Invoke();
                     if (activeCameras != null)
                     {
-                        cmb.Items.Add(new SlotDisplayItem { SlotId = "", Display = "(首个活跃相机)" });
+                        cmb.Items.Add(new DisplayItem("", "(首个活跃相机)"));
                         foreach (var item in activeCameras)
                             cmb.Items.Add(item);
                     }
@@ -618,7 +633,7 @@ namespace VisualMaster.Forms.FlowEditor
                     var curVal = pd.Getter()?.ToString() ?? "";
                     for (int i = 0; i < cmb.Items.Count; i++)
                     {
-                        if ((cmb.Items[i] as SlotDisplayItem)?.SlotId == curVal)
+                        if ((cmb.Items[i] as DisplayItem)?.Id == curVal)
                         {
                             cmb.SelectedIndex = i;
                             break;
@@ -629,8 +644,8 @@ namespace VisualMaster.Forms.FlowEditor
 
                     cmb.SelectedIndexChanged += (s3, e3) =>
                     {
-                        var item = cmb.SelectedItem as SlotDisplayItem;
-                        var val = item?.SlotId ?? "";
+                        var item = cmb.SelectedItem as DisplayItem;
+                        var val = item?.Id ?? "";
                         pd.Setter(val);
                         PropertyChanged?.Invoke(_selectedNode, pd.Name, val);
                     };

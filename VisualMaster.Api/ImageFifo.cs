@@ -53,13 +53,13 @@ namespace VisualMaster.Api
         {
             if (_disposed || frame == null) return;
 
-            var clone = new Bitmap(frame);
-            _queue.Enqueue(clone);
+            var queueClone = (Bitmap)frame.Clone();
+            _queue.Enqueue(queueClone);
 
             lock (_lock)
             {
                 _latestFrame?.Dispose();
-                _latestFrame = new Bitmap(frame);
+                _latestFrame = frame;
             }
 
             TrimToCapacity();
@@ -69,7 +69,7 @@ namespace VisualMaster.Api
                 Monitor.PulseAll(_lock);
             }
 
-            FrameEnqueued?.Invoke(this, clone);
+            FrameEnqueued?.Invoke(this, queueClone);
         }
 
         public Bitmap TryDequeue(int timeoutMs = -1)

@@ -144,11 +144,11 @@ namespace VisualMaster.Forms.FlowEditor
             {
                 Dock = DockStyle.Fill,
                 GetActiveCameras = () => _visionController?.CameraManager?.Slots?
-                    .Select(s => new FlowPropertyInspector.SlotDisplayItem { SlotId = s.SlotId, Display = $"{s.SlotName} ({s.SlotId.Substring(0, 8)})" })
-                    .ToList() ?? new List<FlowPropertyInspector.SlotDisplayItem>(),
+                    .Select(s => new DisplayItem(s.SlotId, $"{s.SlotName} ({s.SlotId.Substring(0, 8)})"))
+                    .ToList() ?? new List<DisplayItem>(),
                 GetActiveSerialSlots = () => _visionController?.GetSerialSlots()?
-                    .Select(s => new FlowPropertyInspector.SlotDisplayItem { SlotId = s.SlotId, Display = $"{s.SlotName} ({s.PortName})" })
-                    .ToList() ?? new List<FlowPropertyInspector.SlotDisplayItem>(),
+                    .Select(s => new DisplayItem(s.SlotId, $"{s.SlotName} ({s.PortName})"))
+                    .ToList() ?? new List<DisplayItem>(),
             };
             _inspector.PropertyChanged += (node, prop, val) =>
             {

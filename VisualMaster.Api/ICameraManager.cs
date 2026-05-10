@@ -7,6 +7,7 @@ namespace VisualMaster.Api
     {
         bool IsInitialized { get; }
         void Initialize();
+        IReadOnlyList<CameraInfo> Cameras { get; }
         List<CameraInfo> EnumerateCameras();
         IReadOnlyList<CameraSlot> Slots { get; }
 

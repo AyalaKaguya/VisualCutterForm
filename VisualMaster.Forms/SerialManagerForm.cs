@@ -60,7 +60,7 @@ namespace VisualMaster.Forms
             foreach (var kv in _vision.SerialPorts)
             {
                 var status = kv.Value.IsOpen ? " [已连接]" : " [未连接]";
-                _slotListBox.Items.Add(new SlotEntry { PortName = kv.Key, Display = $"{kv.Key}{status}" });
+                _slotListBox.Items.Add(new DisplayItem(kv.Key, $"{kv.Key}{status}"));
             }
         }
 
@@ -95,9 +95,9 @@ namespace VisualMaster.Forms
 
         private void RemoveSelectedSlot()
         {
-            var item = _slotListBox.SelectedItem as SlotEntry;
+            var item = _slotListBox.SelectedItem as DisplayItem;
             if (item == null) return;
-            _vision.DisconnectSerial(item.PortName);
+            _vision.DisconnectSerial(item.Id);
             RefreshPortList();
             RefreshSlotList();
             _btnConnect.Enabled = false;
@@ -107,9 +107,9 @@ namespace VisualMaster.Forms
 
         private void OnSlotSelected(object sender, EventArgs e)
         {
-            var item = _slotListBox.SelectedItem as SlotEntry;
+            var item = _slotListBox.SelectedItem as DisplayItem;
             bool hasSel = item != null;
-            bool isOpen = hasSel && _vision.IsSerialOpen(item.PortName);
+            bool isOpen = hasSel && _vision.IsSerialOpen(item.Id);
 
             _btnRemoveSlot.Enabled = hasSel;
             _btnConnect.Enabled = hasSel && !isOpen;
@@ -118,22 +118,15 @@ namespace VisualMaster.Forms
 
             if (hasSel)
             {
-                _txtSlotName.Text = item.PortName;
-                _cmbPortName.Text = item.PortName;
-                _lblSlotStatus.Text = isOpen ? $"{item.PortName} 已连接" : $"{item.PortName} 未连接";
+                _txtSlotName.Text = item.Id;
+                _cmbPortName.Text = item.Id;
+                _lblSlotStatus.Text = isOpen ? $"{item.Id} 已连接" : $"{item.Id} 未连接";
             }
             else
             {
                 _txtSlotName.Text = "";
                 _lblSlotStatus.Text = "";
             }
-        }
-
-        private class SlotEntry
-        {
-            public string PortName;
-            public string Display;
-            public override string ToString() => Display;
         }
     }
 }

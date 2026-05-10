@@ -372,39 +372,6 @@ namespace VisualCutterForm
 
         #region Menu Handlers
 
-        private void OpenOrAssignCamera(int index)
-        {
-            try
-            {
-                var info = _vision.CameraManager.Cameras[index];
-                var slot = _vision.CameraManager.Slots.Count > 0 ? _vision.CameraManager.Slots[0] : null;
-                if (slot == null)
-                {
-                    slot = _vision.AddSlot($"相机1");
-                }
-
-                _vision.OpenSlot(slot.SlotId, info);
-                RefreshCameraComboBox();
-                UpdateMenuState();
-                OnStatusChanged(this, $"相机已连接: {info}");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"打开相机失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void RefreshCameraComboBox()
-        {
-            _cameraComboBox.Items.Clear();
-            foreach (var slot in _vision.CameraManager.Slots)
-            {
-                _cameraComboBox.Items.Add(slot.SlotId);
-            }
-            if (_cameraComboBox.Items.Count > 0)
-                _cameraComboBox.SelectedIndex = 0;
-        }
-
         private void RebuildFlowRunMenu(ToolStripMenuItem miRun)
         {
             miRun.DropDownItems.Clear();
@@ -562,7 +529,9 @@ namespace VisualCutterForm
 
         private void ShowPreview(Bitmap bmp)
         {
+            var old = _previewBox.Image as Bitmap;
             _previewBox.Image = bmp;
+            old?.Dispose();
         }
 
         private void OnPreviewTimerTick(object sender, EventArgs e)

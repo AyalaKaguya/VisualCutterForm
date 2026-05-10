@@ -47,6 +47,8 @@
     </Compile>
     <Compile Include="VisionController.cs" />
     <Compile Include="AppConfig.cs" />
+    <Compile Include="DarkTheme.cs" />
+    <Compile Include="DisplayItem.cs" />
     <Compile Include="SerialManagerForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -102,6 +104,7 @@
     <Compile Include="FlowEditor\FlowPropertyInspector.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="FlowEditor\PropertyEditors.cs" />
     <Compile Include="FlowEditor\FlowEditorForm.cs">
       <SubType>Form</SubType>
     </Compile>
