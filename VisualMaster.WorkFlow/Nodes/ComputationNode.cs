@@ -12,16 +12,21 @@ namespace VisualMaster.WorkFlow.Nodes
     {
         [NodeProperty("源代码", Category = "运算")]
         public string SourceCode { get; set; } =
-@"public class UserCode
+@"using System;
+using OpenCvSharp;
+using VisualMaster.WorkFlow;
+using VisualMaster.WorkFlow.Data;
+
+public class UserCode
 {
     // ---- 输入: 系统根据同名 Pin 自动填充 ----
-    public OpenCvSharp.Mat Source;
+    public Mat Source;
 
     // ---- 输出: 系统执行后根据同名 Pin 自动读取 ----
-    public OpenCvSharp.Mat Result;
+    public Mat Result;
 
     // 注入 FlowContext 对象 (自动赋值)
-    public VisualMaster.WorkFlow.FlowContext Context;
+    public FlowContext Context;
 
     public void Execute()
     {
