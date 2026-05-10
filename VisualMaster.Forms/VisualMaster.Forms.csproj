@@ -50,6 +50,9 @@
     <Compile Include="SerialManagerForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="SerialManagerForm.Designer.cs">
+      <DependentUpon>SerialManagerForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Camera\CameraDiscoveryControl.cs">
       <SubType>UserControl</SubType>
     </Compile>

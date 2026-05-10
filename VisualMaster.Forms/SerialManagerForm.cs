@@ -7,7 +7,7 @@ using VisualMaster.Communication;
 
 namespace VisualMaster.Forms
 {
-    public class SerialManagerForm : Form
+    public partial class SerialManagerForm : Form
     {
         private VisionController _vision;
         private TabControl _tabControl;
@@ -33,7 +33,12 @@ namespace VisualMaster.Forms
         private RichTextBox _logBox;
         private SerialStats _selectedSlot;
 
-        public SerialManagerForm(VisionController vision)
+        public SerialManagerForm()
+        {
+            InitializeComponent();
+        }
+
+        public SerialManagerForm(VisionController vision) : this()
         {
             _vision = vision ?? throw new ArgumentNullException(nameof(vision));
             Text = "串口管理器";
