@@ -101,6 +101,12 @@ namespace VisualMaster.WorkFlow
                 await RunSubGraphOnce(sg, CancellationToken.None);
         }
 
+        public async Task FireManualTrigger(Guid triggerId)
+        {
+            if (_triggerManager != null)
+                await _triggerManager.FireManual(triggerId);
+        }
+
         private async Task RunSubGraphOnce(FlowSubGraph sg, CancellationToken cancellationToken)
         {
             var context = new FlowContext(sg.Id.ToString());

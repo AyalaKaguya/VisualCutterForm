@@ -188,6 +188,36 @@ namespace VisualMaster.Forms.FlowEditor
             _runToolbar.Items.Add(_btnRunContinuous);
             _runToolbar.Items.Add(_btnStop);
 
+            var btnManualTrigger = new ToolStripDropDownButton("▶ 手动触发")
+            {
+                DisplayStyle = ToolStripItemDisplayStyle.Text,
+                ForeColor = Color.White,
+            };
+            btnManualTrigger.DropDownOpening += (s, e) =>
+            {
+                btnManualTrigger.DropDownItems.Clear();
+                var manualTriggers = _graph?.Triggers?.Where(t => t.Enabled && t.SourceType == VisualMaster.WorkFlow.Triggers.TriggerSourceType.Manual).ToList();
+                if (manualTriggers != null && manualTriggers.Count > 0)
+                {
+                    foreach (var t in manualTriggers)
+                    {
+                        var sg = _graph.FindSubGraph(t.TargetSubGraphId);
+                        var label = sg != null ? $"{t.Name} → {sg.Name}" : t.Name;
+                        btnManualTrigger.DropDownItems.Add(label, null, async (s2, e2) =>
+                        {
+                            await _executor.FireManualTrigger(t.Id);
+                        });
+                    }
+                    btnManualTrigger.DropDownItems.Add(new ToolStripSeparator());
+                }
+                btnManualTrigger.DropDownItems.Add("触发器编辑器...", null, (s2, e2) =>
+                {
+                    using (var dlg = new VisualMaster.Forms.TriggerEditor.TriggerEditorForm(_graph, _executor, _visionController))
+                        dlg.ShowDialog(this);
+                });
+            };
+            _runToolbar.Items.Add(btnManualTrigger);
+
             var btnToggleLog = new ToolStripButton("日志", null, (s, e) =>
             {
                 if (_mainSplit != null)

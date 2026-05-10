@@ -116,8 +116,6 @@ namespace VisualMaster.WorkFlow
                     graph.Triggers.Add(DeserializeTrigger(st));
             }
 
-            MigrateOldTriggers(s, graph);
-
             graph.WireAllConnections();
             return graph;
         }
@@ -319,50 +317,6 @@ namespace VisualMaster.WorkFlow
             return entry;
         }
 
-        private static void MigrateOldTriggers(SerializedGraph s, FlowGraph graph)
-        {
-            if (s.SubGraphs == null) return;
-
-            foreach (var sg in s.SubGraphs)
-            {
-                if (string.IsNullOrEmpty(sg.Trigger)) continue;
-
-                if (sg.Trigger == "HardCameraTrigger")
-                {
-                    string slotId = "";
-                    foreach (var sn in sg.Nodes)
-                    {
-                        if (sn.NodeTypeName?.Contains("CameraAcquisitionNode") == true
-                            && sn.Properties != null
-                            && sn.Properties.TryGetValue("相机槽位ID", out var sid))
-                        {
-                            slotId = sid?.ToString() ?? "";
-                            break;
-                        }
-                    }
-                    graph.Triggers.Add(new TriggerEntry
-                    {
-                        Name = $"相机触发 → {sg.Name ?? "未知"}",
-                        SourceType = TriggerSourceType.CameraFrame,
-                        TargetSubGraphId = sg.Id,
-                        CameraSlotId = slotId,
-                        MaxConcurrent = 1,
-                    });
-                }
-                else if (sg.Trigger == "AlwaysRunning")
-                {
-                    graph.Triggers.Add(new TriggerEntry
-                    {
-                        Name = $"持续运行 → {sg.Name ?? "未知"}",
-                        SourceType = TriggerSourceType.Timer,
-                        TargetSubGraphId = sg.Id,
-                        TimerIntervalMs = 10,
-                        MaxConcurrent = 1,
-                    });
-                }
-            }
-        }
-
         private class SerializedGraph
         {
             public string Name;
@@ -378,7 +332,6 @@ namespace VisualMaster.WorkFlow
         {
             public Guid Id;
             public string Name;
-            public string Trigger;
             public List<SerializedNode> Nodes;
             public List<SerializedConnection> Connections;
         }

@@ -113,34 +113,10 @@ namespace VisualMaster.Forms
             return _cameraManager.Slots.Count > 0 ? _cameraManager.Slots[0] : null;
         }
 
-        public string GetFirstSlotId()
+        public Bitmap TryDequeueFromFifo(string slotId, int timeoutMs = -1)
         {
-            var s = GetFirstSlot();
-            return s?.SlotId;
-        }
-
-        public CameraSlot GetCameraSlot(string serial)
-        {
-            foreach (var s in _cameraManager.Slots)
-                if (s.AssignedSerial == serial) return s;
-            return null;
-        }
-
-        public bool TriggerCommunication(string portName, SerialTriggerRule rule)
-        {
-            return false;
-        }
-
-        public void OnSerialDataReceived(string portName, string data)
-        {
-        }
-
-        void IFlowServiceProvider.OutputResult(string portName, object data)
-        {
-            if (data is string s)
-                OutputResult(portName, s);
-            else if (data is byte[] b)
-                OutputResult(portName, b);
+            var fifo = GetFifo(slotId);
+            return fifo?.TryDequeue(timeoutMs);
         }
 
         public SerialSlot GetSerialSlot(string slotId)
@@ -178,22 +154,6 @@ namespace VisualMaster.Forms
                 });
             }
             return result;
-        }
-
-        public string GetFirstActiveSerial()
-        {
-            foreach (var slot in _cameraManager.Slots)
-            {
-                if (slot.IsConnected)
-                    return slot.AssignedSerial;
-            }
-            return null;
-        }
-
-        public Bitmap TryDequeueFromFifo(string slotId, int timeoutMs = -1)
-        {
-            var fifo = GetFifo(slotId);
-            return fifo?.TryDequeue(timeoutMs);
         }
 
         public Bitmap PeekLatestFromFifo(string slotId)
@@ -301,6 +261,14 @@ namespace VisualMaster.Forms
             if (!_serialPorts.TryGetValue(portName, out var sp) || !sp.IsOpen)
                 throw new InvalidOperationException($"Serial port {portName} is not connected.");
             sp.Send(data);
+        }
+
+        void IFlowServiceProvider.OutputResult(string portName, object data)
+        {
+            if (data is string s)
+                OutputResult(portName, s);
+            else if (data is byte[] b)
+                OutputResult(portName, b);
         }
 
         private static System.IO.Ports.Parity ParseParity(string parity)

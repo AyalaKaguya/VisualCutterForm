@@ -35,6 +35,7 @@ namespace VisualMaster.Forms.TriggerEditor
         private Label _lblCameraSlot;
         private Label _lblTimerInterval;
         private Label _lblSerialSlot;
+        private Label _lblMaxConcurrent;
 
         private TriggerEntry _selected;
         private bool _suppressEvents;
@@ -187,6 +188,7 @@ namespace VisualMaster.Forms.TriggerEditor
             y += 34;
 
             AddLabel(propPanel, "最大并发", ref y);
+            _lblMaxConcurrent = propPanel.Controls[propPanel.Controls.Count - 1] as Label;
             _numMaxConcurrent = new NumericUpDown
             {
                 Location = new Point(120, y),
@@ -330,7 +332,7 @@ namespace VisualMaster.Forms.TriggerEditor
         private async void FireSelected()
         {
             if (_selected == null) return;
-            await _executor.TriggerSubGraph(_selected.TargetSubGraphId);
+            await _executor.FireManualTrigger(_selected.Id);
         }
 
         private void RefreshTriggerList()
@@ -438,6 +440,7 @@ namespace VisualMaster.Forms.TriggerEditor
             _lblCameraSlot.Visible = _cmbCameraSlot.Visible = (type == TriggerSourceType.CameraFrame);
             _lblTimerInterval.Visible = _numTimerInterval.Visible = (type == TriggerSourceType.Timer);
             _lblSerialSlot.Visible = _cmbSerialSlot.Visible = (type == TriggerSourceType.SerialMatch);
+            _lblMaxConcurrent.Visible = _numMaxConcurrent.Visible = (type != TriggerSourceType.Manual);
         }
 
         private void PopulateProperties(TriggerEntry entry)

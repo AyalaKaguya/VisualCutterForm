@@ -1,8 +1,8 @@
 using VisualMaster.Api;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,6 +12,7 @@ namespace VisualMaster.WorkFlow.Triggers
     {
         private readonly IFlowServiceProvider _services;
         private readonly FlowExecutor _executor;
+        private readonly ConcurrentDictionary<Guid, ActiveTriggerState> _states = new ConcurrentDictionary<Guid, ActiveTriggerState>();
         private readonly List<IDisposable> _bindings = new List<IDisposable>();
         private volatile bool _disposed;
 
@@ -31,28 +32,51 @@ namespace VisualMaster.WorkFlow.Triggers
                 if (!entry.Enabled) continue;
                 if (entry.TargetSubGraphId == Guid.Empty) continue;
 
-                IDisposable binding = null;
+                var state = new ActiveTriggerState
+                {
+                    Entry = entry,
+                    Semaphore = new SemaphoreSlim(entry.MaxConcurrent, entry.MaxConcurrent),
+                };
+
                 switch (entry.SourceType)
                 {
+                    case TriggerSourceType.Manual:
+                        break;
                     case TriggerSourceType.CameraFrame:
-                        binding = BindCameraFrame(entry);
+                        state.Binding = BindCameraFrame(entry, state.Semaphore);
                         break;
                     case TriggerSourceType.Timer:
-                        binding = BindTimer(entry);
+                        state.Binding = BindTimer(entry, state.Semaphore);
                         break;
                     case TriggerSourceType.SerialMatch:
-                        binding = BindSerialMatch(entry);
+                        state.Binding = BindSerialMatch(entry, state.Semaphore);
                         break;
                 }
-                if (binding != null)
-                    _bindings.Add(binding);
+
+                _states.TryAdd(entry.Id, state);
+                if (state.Binding != null)
+                    _bindings.Add(state.Binding);
             }
         }
 
         public async Task FireManual(Guid triggerId)
         {
             if (_disposed) return;
-            await _executor.TriggerSubGraph(triggerId);
+            if (!_states.TryGetValue(triggerId, out var state)) return;
+            if (!await state.Semaphore.WaitAsync(0)) return;
+
+            try
+            {
+                await _executor.TriggerSubGraph(state.Entry.TargetSubGraphId);
+            }
+            catch (Exception ex)
+            {
+                _executor.EmitLog($"[错误] 手动触发 [{state.Entry.Name}]: {ex.Message}");
+            }
+            finally
+            {
+                state.Semaphore.Release();
+            }
         }
 
         public void Deactivate()
@@ -62,17 +86,24 @@ namespace VisualMaster.WorkFlow.Triggers
                 try { b.Dispose(); } catch { }
             }
             _bindings.Clear();
+
+            foreach (var kv in _states)
+            {
+                try { kv.Value.Semaphore.Dispose(); } catch { }
+                try { kv.Value.Binding?.Dispose(); } catch { }
+            }
+            _states.Clear();
         }
 
-        private IDisposable BindCameraFrame(TriggerEntry entry)
+        private IDisposable BindCameraFrame(TriggerEntry entry, SemaphoreSlim semaphore)
         {
             if (string.IsNullOrEmpty(entry.CameraSlotId)) return null;
 
             var fifo = _services.GetFifo(entry.CameraSlotId);
             if (fifo == null) return null;
 
-            var semaphore = new SemaphoreSlim(entry.MaxConcurrent, entry.MaxConcurrent);
             var capturedId = entry.TargetSubGraphId;
+            var capturedName = entry.Name;
 
             async void handler(object s, Bitmap frame)
             {
@@ -84,7 +115,7 @@ namespace VisualMaster.WorkFlow.Triggers
                 }
                 catch (Exception ex)
                 {
-                    _executor.EmitLog($"[错误] 相机触发器 [{entry.Name}]: {ex.Message}");
+                    _executor.EmitLog($"[错误] 相机触发器 [{capturedName}]: {ex.Message}");
                 }
                 finally
                 {
@@ -96,13 +127,11 @@ namespace VisualMaster.WorkFlow.Triggers
             return new BindingDisposer(() =>
             {
                 fifo.FrameEnqueued -= handler;
-                semaphore.Dispose();
             });
         }
 
-        private IDisposable BindTimer(TriggerEntry entry)
+        private IDisposable BindTimer(TriggerEntry entry, SemaphoreSlim semaphore)
         {
-            var semaphore = new SemaphoreSlim(entry.MaxConcurrent, entry.MaxConcurrent);
             var capturedId = entry.TargetSubGraphId;
             var capturedName = entry.Name;
             var interval = Math.Max(1, entry.TimerIntervalMs);
@@ -138,11 +167,10 @@ namespace VisualMaster.WorkFlow.Triggers
                 cts.Cancel();
                 try { task.Wait(1000); } catch { }
                 cts.Dispose();
-                semaphore.Dispose();
             });
         }
 
-        private IDisposable BindSerialMatch(TriggerEntry entry)
+        private IDisposable BindSerialMatch(TriggerEntry entry, SemaphoreSlim semaphore)
         {
             if (string.IsNullOrEmpty(entry.SerialSlotId) || entry.MatchRule == null) return null;
 
@@ -158,7 +186,6 @@ namespace VisualMaster.WorkFlow.Triggers
             var portsObj = _services.SerialPorts;
             if (!portsObj.TryGetValue(slot.PortName, out var sp) || sp == null) return null;
 
-            var semaphore = new SemaphoreSlim(entry.MaxConcurrent, entry.MaxConcurrent);
             var capturedId = entry.TargetSubGraphId;
             var capturedRule = entry.MatchRule;
             var capturedName = entry.Name;
@@ -201,7 +228,6 @@ namespace VisualMaster.WorkFlow.Triggers
             {
                 sp.DataReceived -= textHandler;
                 sp.RawDataReceived -= dataHandler;
-                semaphore.Dispose();
             });
         }
 
@@ -209,6 +235,13 @@ namespace VisualMaster.WorkFlow.Triggers
         {
             _disposed = true;
             Deactivate();
+        }
+
+        private class ActiveTriggerState
+        {
+            public TriggerEntry Entry;
+            public SemaphoreSlim Semaphore;
+            public IDisposable Binding;
         }
 
         private class BindingDisposer : IDisposable
