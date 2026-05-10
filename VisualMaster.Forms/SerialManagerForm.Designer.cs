@@ -27,6 +27,7 @@ namespace VisualMaster.Forms
         private System.Windows.Forms.ComboBox _cmbStopBits;
         private System.Windows.Forms.Label _lblDataBits;
         private System.Windows.Forms.NumericUpDown _numDataBits;
+        private System.Windows.Forms.Panel _configPanel;
         private System.Windows.Forms.FlowLayoutPanel _actionBar;
         private System.Windows.Forms.Button _btnConnect;
         private System.Windows.Forms.Button _btnDisconnect;
@@ -58,6 +59,7 @@ namespace VisualMaster.Forms
             this._lblSlotHeader = new System.Windows.Forms.Label();
             this._settingsPanel = new System.Windows.Forms.Panel();
             this._lblSettingsHeader = new System.Windows.Forms.Label();
+            this._configPanel = new System.Windows.Forms.Panel();
             this._lblPortName = new System.Windows.Forms.Label();
             this._cmbPortName = new System.Windows.Forms.ComboBox();
             this._lblBaudRate = new System.Windows.Forms.Label();
@@ -83,6 +85,7 @@ namespace VisualMaster.Forms
             this._slotPanel.SuspendLayout();
             this._slotBtnPanel.SuspendLayout();
             this._settingsPanel.SuspendLayout();
+            this._configPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this._numBaudRate)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this._numDataBits)).BeginInit();
             this._actionBar.SuspendLayout();
@@ -203,21 +206,28 @@ namespace VisualMaster.Forms
             // 
             this._settingsPanel.AutoScroll = true;
             this._settingsPanel.Controls.Add(this._lblSettingsHeader);
-            this._settingsPanel.Controls.Add(this._lblPortName);
-            this._settingsPanel.Controls.Add(this._cmbPortName);
-            this._settingsPanel.Controls.Add(this._lblBaudRate);
-            this._settingsPanel.Controls.Add(this._numBaudRate);
-            this._settingsPanel.Controls.Add(this._lblParity);
-            this._settingsPanel.Controls.Add(this._cmbParity);
-            this._settingsPanel.Controls.Add(this._lblStopBits);
-            this._settingsPanel.Controls.Add(this._cmbStopBits);
-            this._settingsPanel.Controls.Add(this._lblDataBits);
-            this._settingsPanel.Controls.Add(this._numDataBits);
+            this._settingsPanel.Controls.Add(this._configPanel);
             this._settingsPanel.Controls.Add(this._actionBar);
             this._settingsPanel.Controls.Add(this._logBox);
             this._settingsPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this._settingsPanel.Name = "_settingsPanel";
             this._settingsPanel.Padding = new System.Windows.Forms.Padding(8);
+            // 
+            // _configPanel
+            // 
+            this._configPanel.Controls.Add(this._lblPortName);
+            this._configPanel.Controls.Add(this._cmbPortName);
+            this._configPanel.Controls.Add(this._lblBaudRate);
+            this._configPanel.Controls.Add(this._numBaudRate);
+            this._configPanel.Controls.Add(this._lblParity);
+            this._configPanel.Controls.Add(this._cmbParity);
+            this._configPanel.Controls.Add(this._lblStopBits);
+            this._configPanel.Controls.Add(this._cmbStopBits);
+            this._configPanel.Controls.Add(this._lblDataBits);
+            this._configPanel.Controls.Add(this._numDataBits);
+            this._configPanel.Dock = System.Windows.Forms.DockStyle.Top;
+            this._configPanel.Height = 210;
+            this._configPanel.Name = "_configPanel";
             // 
             // _lblSettingsHeader
             // 
@@ -388,6 +398,8 @@ namespace VisualMaster.Forms
             this._slotBtnPanel.ResumeLayout(false);
             this._settingsPanel.ResumeLayout(false);
             this._settingsPanel.PerformLayout();
+            this._configPanel.ResumeLayout(false);
+            this._configPanel.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this._numBaudRate)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this._numDataBits)).EndInit();
             this._actionBar.ResumeLayout(false);
