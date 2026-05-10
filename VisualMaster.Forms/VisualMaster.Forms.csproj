@@ -108,6 +108,9 @@
     <Compile Include="TriggerEditor\TriggerEditorForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="TriggerEditor\TriggerEditorForm.Designer.cs">
+      <DependentUpon>TriggerEditorForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="FlowEditor\FlowEditorForm.cs">
       <SubType>Form</SubType>
     </Compile>
