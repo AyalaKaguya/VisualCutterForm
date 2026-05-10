@@ -9,6 +9,7 @@ using VisualMaster.WorkFlow;
 using VisualMaster.Communication;
 using VisualMaster.Forms;
 using VisualMaster.Forms.Camera;
+using VisualMaster.Forms.TriggerEditor;
 
 namespace VisualMaster.Forms.FlowEditor
 {
@@ -115,6 +116,11 @@ namespace VisualMaster.Forms.FlowEditor
             miIO.DropDownItems.Add("串口管理器...", null, (s, e) =>
             {
                 using (var dlg = new SerialManagerForm(_visionController))
+                    dlg.ShowDialog(this);
+            });
+            miIO.DropDownItems.Add("触发器编辑器...", null, (s, e) =>
+            {
+                using (var dlg = new TriggerEditorForm(_graph, _executor, _visionController))
                     dlg.ShowDialog(this);
             });
 

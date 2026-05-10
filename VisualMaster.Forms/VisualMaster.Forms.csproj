@@ -105,6 +105,9 @@
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="FlowEditor\PropertyEditors.cs" />
+    <Compile Include="TriggerEditor\TriggerEditorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="FlowEditor\FlowEditorForm.cs">
       <SubType>Form</SubType>
     </Compile>
