@@ -17,6 +17,8 @@ namespace VisualMaster.Forms
         private System.Windows.Forms.Label _lblSlotHeader;
         private System.Windows.Forms.Panel _settingsPanel;
         private System.Windows.Forms.Label _lblSettingsHeader;
+        private System.Windows.Forms.Label _lblSlotName;
+        private System.Windows.Forms.TextBox _txtSlotName;
         private System.Windows.Forms.Label _lblPortName;
         private System.Windows.Forms.ComboBox _cmbPortName;
         private System.Windows.Forms.Label _lblBaudRate;
@@ -59,6 +61,8 @@ namespace VisualMaster.Forms
             this._lblSlotHeader = new System.Windows.Forms.Label();
             this._settingsPanel = new System.Windows.Forms.Panel();
             this._lblSettingsHeader = new System.Windows.Forms.Label();
+            this._lblSlotName = new System.Windows.Forms.Label();
+            this._txtSlotName = new System.Windows.Forms.TextBox();
             this._configPanel = new System.Windows.Forms.Panel();
             this._lblPortName = new System.Windows.Forms.Label();
             this._cmbPortName = new System.Windows.Forms.ComboBox();
@@ -215,6 +219,8 @@ namespace VisualMaster.Forms
             // 
             // _configPanel
             // 
+            this._configPanel.Controls.Add(this._lblSlotName);
+            this._configPanel.Controls.Add(this._txtSlotName);
             this._configPanel.Controls.Add(this._lblPortName);
             this._configPanel.Controls.Add(this._cmbPortName);
             this._configPanel.Controls.Add(this._lblBaudRate);
@@ -238,11 +244,28 @@ namespace VisualMaster.Forms
             this._lblSettingsHeader.Text = "配置";
             this._lblSettingsHeader.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
+            // _lblSlotName
+            // 
+            this._lblSlotName.AutoSize = true;
+            this._lblSlotName.Font = new System.Drawing.Font("Microsoft YaHei", 9F);
+            this._lblSlotName.Location = new System.Drawing.Point(12, 4);
+            this._lblSlotName.Name = "_lblSlotName";
+            this._lblSlotName.Size = new System.Drawing.Size(56, 24);
+            this._lblSlotName.Text = "名称:";
+            this._lblSlotName.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // _txtSlotName
+            // 
+            this._txtSlotName.Font = new System.Drawing.Font("Microsoft YaHei", 9F);
+            this._txtSlotName.Location = new System.Drawing.Point(80, 2);
+            this._txtSlotName.Name = "_txtSlotName";
+            this._txtSlotName.Size = new System.Drawing.Size(150, 27);
+            // 
             // _lblPortName
             // 
             this._lblPortName.AutoSize = true;
             this._lblPortName.Font = new System.Drawing.Font("Microsoft YaHei", 9F);
-            this._lblPortName.Location = new System.Drawing.Point(12, 32);
+            this._lblPortName.Location = new System.Drawing.Point(12, 38);
             this._lblPortName.Name = "_lblPortName";
             this._lblPortName.Size = new System.Drawing.Size(56, 24);
             this._lblPortName.Text = "端口:";
@@ -250,17 +273,16 @@ namespace VisualMaster.Forms
             // 
             // _cmbPortName
             // 
-            this._cmbPortName.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this._cmbPortName.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDown;
             this._cmbPortName.Font = new System.Drawing.Font("Microsoft YaHei", 9F);
-            this._cmbPortName.Location = new System.Drawing.Point(80, 30);
-            this._cmbPortName.Name = "_cmbPortName";
+            this._cmbPortName.Location = new System.Drawing.Point(80, 36);
             this._cmbPortName.Size = new System.Drawing.Size(120, 30);
             // 
             // _lblBaudRate
             // 
             this._lblBaudRate.AutoSize = true;
             this._lblBaudRate.Font = new System.Drawing.Font("Microsoft YaHei", 9F);
-            this._lblBaudRate.Location = new System.Drawing.Point(12, 68);
+            this._lblBaudRate.Location = new System.Drawing.Point(12, 76);
             this._lblBaudRate.Name = "_lblBaudRate";
             this._lblBaudRate.Size = new System.Drawing.Size(68, 24);
             this._lblBaudRate.Text = "波特率:";
@@ -270,7 +292,7 @@ namespace VisualMaster.Forms
             // 
             this._numBaudRate.Font = new System.Drawing.Font("Microsoft YaHei", 9F);
             this._numBaudRate.Increment = new decimal(new int[] { 1200, 0, 0, 0 });
-            this._numBaudRate.Location = new System.Drawing.Point(80, 66);
+            this._numBaudRate.Location = new System.Drawing.Point(80, 74);
             this._numBaudRate.Maximum = new decimal(new int[] { 256000, 0, 0, 0 });
             this._numBaudRate.Minimum = new decimal(new int[] { 1200, 0, 0, 0 });
             this._numBaudRate.Name = "_numBaudRate";
@@ -281,7 +303,7 @@ namespace VisualMaster.Forms
             // 
             this._lblParity.AutoSize = true;
             this._lblParity.Font = new System.Drawing.Font("Microsoft YaHei", 9F);
-            this._lblParity.Location = new System.Drawing.Point(12, 104);
+            this._lblParity.Location = new System.Drawing.Point(12, 112);
             this._lblParity.Name = "_lblParity";
             this._lblParity.Size = new System.Drawing.Size(50, 24);
             this._lblParity.Text = "校验:";
@@ -292,7 +314,7 @@ namespace VisualMaster.Forms
             this._cmbParity.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this._cmbParity.Font = new System.Drawing.Font("Microsoft YaHei", 9F);
             this._cmbParity.Items.AddRange(new object[] { "None", "Odd", "Even", "Mark", "Space" });
-            this._cmbParity.Location = new System.Drawing.Point(80, 102);
+            this._cmbParity.Location = new System.Drawing.Point(80, 110);
             this._cmbParity.Name = "_cmbParity";
             this._cmbParity.SelectedIndex = 0;
             this._cmbParity.Size = new System.Drawing.Size(100, 30);
@@ -301,7 +323,7 @@ namespace VisualMaster.Forms
             // 
             this._lblStopBits.AutoSize = true;
             this._lblStopBits.Font = new System.Drawing.Font("Microsoft YaHei", 9F);
-            this._lblStopBits.Location = new System.Drawing.Point(12, 140);
+            this._lblStopBits.Location = new System.Drawing.Point(12, 148);
             this._lblStopBits.Name = "_lblStopBits";
             this._lblStopBits.Size = new System.Drawing.Size(68, 24);
             this._lblStopBits.Text = "停止位:";
@@ -312,7 +334,7 @@ namespace VisualMaster.Forms
             this._cmbStopBits.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this._cmbStopBits.Font = new System.Drawing.Font("Microsoft YaHei", 9F);
             this._cmbStopBits.Items.AddRange(new object[] { "One", "Two", "OnePointFive" });
-            this._cmbStopBits.Location = new System.Drawing.Point(80, 138);
+            this._cmbStopBits.Location = new System.Drawing.Point(80, 146);
             this._cmbStopBits.Name = "_cmbStopBits";
             this._cmbStopBits.SelectedIndex = 0;
             this._cmbStopBits.Size = new System.Drawing.Size(100, 30);
@@ -321,7 +343,7 @@ namespace VisualMaster.Forms
             // 
             this._lblDataBits.AutoSize = true;
             this._lblDataBits.Font = new System.Drawing.Font("Microsoft YaHei", 9F);
-            this._lblDataBits.Location = new System.Drawing.Point(12, 176);
+            this._lblDataBits.Location = new System.Drawing.Point(12, 184);
             this._lblDataBits.Name = "_lblDataBits";
             this._lblDataBits.Size = new System.Drawing.Size(68, 24);
             this._lblDataBits.Text = "数据位:";
@@ -330,7 +352,7 @@ namespace VisualMaster.Forms
             // _numDataBits
             // 
             this._numDataBits.Font = new System.Drawing.Font("Microsoft YaHei", 9F);
-            this._numDataBits.Location = new System.Drawing.Point(80, 174);
+            this._numDataBits.Location = new System.Drawing.Point(80, 182);
             this._numDataBits.Maximum = new decimal(new int[] { 8, 0, 0, 0 });
             this._numDataBits.Minimum = new decimal(new int[] { 5, 0, 0, 0 });
             this._numDataBits.Name = "_numDataBits";

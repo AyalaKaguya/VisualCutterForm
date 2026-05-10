@@ -66,8 +66,17 @@ namespace VisualMaster.Forms
 
         private void AddSlot()
         {
-            var port = _cmbPortName.Text;
-            if (string.IsNullOrEmpty(port)) return;
+            var port = _cmbPortName.Text?.Trim();
+            if (string.IsNullOrEmpty(port))
+            {
+                MessageBox.Show("请输入或选择一个串口名称。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            if (_vision.IsSerialOpen(port))
+            {
+                MessageBox.Show($"串口 {port} 已打开。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
             try
             {
                 var parity = _cmbParity.Text;
@@ -109,11 +118,13 @@ namespace VisualMaster.Forms
 
             if (hasSel)
             {
+                _txtSlotName.Text = item.PortName;
                 _cmbPortName.Text = item.PortName;
                 _lblSlotStatus.Text = isOpen ? $"{item.PortName} 已连接" : $"{item.PortName} 未连接";
             }
             else
             {
+                _txtSlotName.Text = "";
                 _lblSlotStatus.Text = "";
             }
         }
