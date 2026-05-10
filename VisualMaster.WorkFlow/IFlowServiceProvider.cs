@@ -15,7 +15,8 @@ namespace VisualMaster.WorkFlow
         CameraSlot GetCameraSlot(string serial);
         bool TriggerCommunication(string portName, SerialTriggerRule rule);
         void OnSerialDataReceived(string portName, string data);
-        CameraSlot GetSlotById(string slotId);
-        List<CameraSlot> GetAllCameraSlots();
+        SerialSlot GetSerialSlot(string slotId);
+        IReadOnlyDictionary<string, ISerialPort> SerialPorts { get; }
+        string GetFirstSlotId();
     }
 }

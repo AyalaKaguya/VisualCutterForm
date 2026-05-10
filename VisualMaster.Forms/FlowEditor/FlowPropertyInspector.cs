@@ -452,7 +452,6 @@ namespace VisualMaster.Forms.FlowEditor
             var innerWidth = _scrollPanel.ClientSize.Width - 16;
             var y = 4;
 
-            AddSubGraphPropertyRow(innerWidth, ref y, "触发模式", sg.Trigger.ToDisplayName());
             AddSubGraphPropertyRow(innerWidth, ref y, "节点数", sg.Nodes.Count.ToString());
             AddSubGraphPropertyRow(innerWidth, ref y, "连线数", sg.Connections.Count.ToString());
             AddSubGraphPropertyRow(innerWidth, ref y, "ID", sg.Id.ToString("N").Substring(0, 8));

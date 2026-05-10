@@ -4,19 +4,10 @@ using System.Linq;
 
 namespace VisualMaster.WorkFlow
 {
-    public enum SubGraphTrigger
-    {
-        HardCameraTrigger,
-        SoftManualTrigger,
-        CommunicationTrigger,
-        AlwaysRunning,
-    }
-
     public class FlowSubGraph
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Name { get; set; } = "子图";
-        public SubGraphTrigger Trigger { get; set; } = SubGraphTrigger.SoftManualTrigger;
         public List<FlowNode> Nodes { get; set; } = new List<FlowNode>();
         public List<NodeConnection> Connections { get; set; } = new List<NodeConnection>();
         public bool IsRunning { get; set; }
@@ -32,7 +23,6 @@ namespace VisualMaster.WorkFlow
             {
                 Id = Id,
                 Name = Name,
-                Trigger = Trigger,
                 Nodes = new List<FlowNode>(Nodes),
                 Connections = new List<NodeConnection>(Connections),
             };

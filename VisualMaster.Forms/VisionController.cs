@@ -2,6 +2,7 @@ using VisualMaster.Api;
 using VisualMaster.CameraLink;
 using VisualMaster.Communication;
 using VisualMaster.WorkFlow;
+using VisualMaster.WorkFlow.Data;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -10,7 +11,7 @@ using System.Linq;
 
 namespace VisualMaster.Forms
 {
-    public class VisionController : IDisposable
+    public class VisionController : IDisposable, IFlowServiceProvider
     {
         private readonly CameraManager _cameraManager;
         private readonly Dictionary<string, ISerialPort> _serialPorts;
@@ -118,6 +119,30 @@ namespace VisualMaster.Forms
             return s?.SlotId;
         }
 
+        public CameraSlot GetCameraSlot(string serial)
+        {
+            foreach (var s in _cameraManager.Slots)
+                if (s.AssignedSerial == serial) return s;
+            return null;
+        }
+
+        public bool TriggerCommunication(string portName, SerialTriggerRule rule)
+        {
+            return false;
+        }
+
+        public void OnSerialDataReceived(string portName, string data)
+        {
+        }
+
+        void IFlowServiceProvider.OutputResult(string portName, object data)
+        {
+            if (data is string s)
+                OutputResult(portName, s);
+            else if (data is byte[] b)
+                OutputResult(portName, b);
+        }
+
         public SerialSlot GetSerialSlot(string slotId)
         {
             if (_serialPorts.TryGetValue(slotId, out var sp))
@@ -219,6 +244,11 @@ namespace VisualMaster.Forms
 
             _serialPorts[portName] = sp;
             NotifyStatus($"Serial port opened: {portName} @ {baudRate}");
+        }
+
+        void IFlowServiceProvider.ConnectSerial(string portName, int baudRate)
+        {
+            ConnectSerial(portName, baudRate);
         }
 
         public void DisconnectSerial(string portName)

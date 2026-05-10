@@ -63,7 +63,8 @@
     <Compile Include="NodeAttributes.cs" />
     <Compile Include="NodeFactory.cs" />
     <Compile Include="PinTypeResolver.cs" />
-    <Compile Include="TriggerExtensions.cs" />
+    <Compile Include="Triggers\TriggerEntry.cs" />
+    <Compile Include="Triggers\TriggerManager.cs" />
     <Compile Include="ImageConverter.cs" />
     <Compile Include="ServiceProvider.cs" />
     <Compile Include="IFlowServiceProvider.cs" />

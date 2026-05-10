@@ -26,8 +26,6 @@ namespace VisualMaster.Forms.FlowEditor
         private ToolStripButton _btnRunOnce;
         private ToolStripButton _btnRunContinuous;
         private ToolStripButton _btnStop;
-        private ToolStripComboBox _cmbTriggerMode;
-        private bool _syncingTriggerCombo;
         private bool _runningContinuous;
         private SplitContainer _mainSplit;
         private VisionController _visionController;
@@ -41,7 +39,7 @@ namespace VisualMaster.Forms.FlowEditor
             InitializeForm();
 
             if (_graph.SubGraphs.Count == 0)
-                _graph.AddSubGraph("子图1", SubGraphTrigger.SoftManualTrigger);
+                _graph.AddSubGraph("子图1");
 
             _canvas.SubGraph = _graph.SubGraphs[0];
             _tabSubGraphs.TabPages.Add(new TabPage(_graph.SubGraphs[0].Name) { Tag = _graph.SubGraphs[0].Id });
@@ -183,24 +181,6 @@ namespace VisualMaster.Forms.FlowEditor
             _runToolbar.Items.Add(_btnRunOnce);
             _runToolbar.Items.Add(_btnRunContinuous);
             _runToolbar.Items.Add(_btnStop);
-
-            _cmbTriggerMode = new ToolStripComboBox("触发模式")
-            {
-                DropDownStyle = ComboBoxStyle.DropDownList,
-                ForeColor = Color.White,
-                BackColor = Color.FromArgb(70, 70, 70),
-                Width = 130,
-            };
-            _cmbTriggerMode.Items.AddRange(new[]
-            {
-                "手动触发",
-                "相机触发",
-                "通讯触发",
-                "持续运行",
-            });
-            _cmbTriggerMode.SelectedIndexChanged += OnTriggerModeChanged;
-            _runToolbar.Items.Add(new ToolStripLabel("触发:") { ForeColor = Color.FromArgb(180, 180, 180) });
-            _runToolbar.Items.Add(_cmbTriggerMode);
 
             var btnToggleLog = new ToolStripButton("日志", null, (s, e) =>
             {
@@ -400,30 +380,10 @@ namespace VisualMaster.Forms.FlowEditor
                 if (sg != null)
                 {
                     _canvas.SubGraph = sg;
-                    SyncTriggerCombo(sg.Trigger);
                     _canvas.ClearSelection();
                     _inspector.ShowSubGraph(sg);
                 }
             }
-        }
-
-        private void OnTriggerModeChanged(object sender, EventArgs e)
-        {
-            if (_syncingTriggerCombo) return;
-            if (_cmbTriggerMode.SelectedIndex < 0) return;
-            var sg = _canvas.SubGraph;
-            if (sg == null) return;
-
-            sg.Trigger = (SubGraphTrigger)_cmbTriggerMode.SelectedIndex;
-        }
-
-        private void SyncTriggerCombo(SubGraphTrigger trigger)
-        {
-            _syncingTriggerCombo = true;
-            var idx = (int)trigger;
-            if (_cmbTriggerMode.SelectedIndex != idx)
-                _cmbTriggerMode.SelectedIndex = idx;
-            _syncingTriggerCombo = false;
         }
 
         private void DeleteCurrentSubGraph()
@@ -490,7 +450,6 @@ namespace VisualMaster.Forms.FlowEditor
             _tabSubGraphs.TabPages.Clear();
             _tabSubGraphs.TabPages.Add(new TabPage("子图1") { Tag = _graph.SubGraphs[0].Id });
             _canvas.SubGraph = _graph.SubGraphs[0];
-            SyncTriggerCombo(SubGraphTrigger.SoftManualTrigger);
             _executor.LoadGraph(_graph);
         }
 

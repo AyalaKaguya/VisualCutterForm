@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using VisualMaster.Api;
+using VisualMaster.WorkFlow.Triggers;
 
 namespace VisualMaster.WorkFlow
 {
@@ -15,6 +16,7 @@ namespace VisualMaster.WorkFlow
         public List<FlowSubGraph> SubGraphs { get; set; } = new List<FlowSubGraph>();
         public List<CameraSlot> CameraSlots { get; set; } = new List<CameraSlot>();
         public List<SerialSlot> SerialSlots { get; set; } = new List<SerialSlot>();
+        public List<TriggerEntry> Triggers { get; set; } = new List<TriggerEntry>();
 
         public FlowSubGraph FindSubGraph(Guid id)
         {
@@ -26,12 +28,11 @@ namespace VisualMaster.WorkFlow
             return SubGraphs.Find(s => s.Name == name);
         }
 
-        public FlowSubGraph AddSubGraph(string name, SubGraphTrigger trigger = SubGraphTrigger.SoftManualTrigger)
+        public FlowSubGraph AddSubGraph(string name)
         {
             var sg = new FlowSubGraph
             {
                 Name = name ?? $"子图{SubGraphs.Count + 1}",
-                Trigger = trigger,
             };
             SubGraphs.Add(sg);
             return sg;

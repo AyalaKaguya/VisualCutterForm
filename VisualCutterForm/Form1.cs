@@ -391,7 +391,7 @@ namespace VisualCutterForm
                     _flowExecutor.LoadGraph(_flowGraph);
                     _flowExecutor.Start();
                     OnStatusChanged(this, "流程已启动");
-                    foreach (var sg in _flowGraph.SubGraphs.Where(sg2 => sg2.Trigger == SubGraphTrigger.SoftManualTrigger))
+                    foreach (var sg in _flowGraph.SubGraphs)
                     {
                         await _flowExecutor.TriggerSubGraph(sg.Id);
                     }
@@ -405,7 +405,7 @@ namespace VisualCutterForm
             foreach (var sg in _flowGraph.SubGraphs)
             {
                 var sgCaptured = sg;
-                var label = $"{sgCaptured.Name} ({sgCaptured.Trigger.ToDisplayName()})";
+                var label = sgCaptured.Name;
                 var miItem = new ToolStripMenuItem(label, null, async (s, e) =>
                 {
                     _flowExecutor.LoadGraph(_flowGraph);

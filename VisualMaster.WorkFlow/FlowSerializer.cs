@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using VisualMaster.Api;
+using VisualMaster.WorkFlow.Nodes;
+using VisualMaster.WorkFlow.Triggers;
 
 namespace VisualMaster.WorkFlow
 {
@@ -54,6 +56,7 @@ namespace VisualMaster.WorkFlow
                 SubGraphs = graph.SubGraphs.Select(SerializeSubGraph).ToList(),
                 CameraSlots = graph.CameraSlots.Select(SerializeCameraSlot).ToList(),
                 SerialSlots = graph.SerialSlots.Select(SerializeSerialSlot).ToList(),
+                Triggers = graph.Triggers?.Select(SerializeTrigger).ToList() ?? new List<SerializedTrigger>(),
             };
         }
 
@@ -107,6 +110,14 @@ namespace VisualMaster.WorkFlow
                 graph.SubGraphs.Add(subGraph);
             }
 
+            if (s.Triggers != null)
+            {
+                foreach (var st in s.Triggers)
+                    graph.Triggers.Add(DeserializeTrigger(st));
+            }
+
+            MigrateOldTriggers(s, graph);
+
             graph.WireAllConnections();
             return graph;
         }
@@ -117,7 +128,6 @@ namespace VisualMaster.WorkFlow
             {
                 Id = sg.Id,
                 Name = sg.Name,
-                Trigger = sg.Trigger.ToString(),
                 Nodes = sg.Nodes.Select(SerializeNode).ToList(),
                 Connections = sg.Connections.Select(c => new SerializedConnection
                 {
@@ -136,8 +146,6 @@ namespace VisualMaster.WorkFlow
             {
                 Id = s.Id,
                 Name = s.Name,
-                Trigger = Enum.TryParse(s.Trigger, out SubGraphTrigger trigger)
-                    ? trigger : SubGraphTrigger.SoftManualTrigger,
             };
 
             foreach (var sn in s.Nodes)
@@ -273,6 +281,88 @@ namespace VisualMaster.WorkFlow
             };
         }
 
+        private static SerializedTrigger SerializeTrigger(TriggerEntry trigger)
+        {
+            return new SerializedTrigger
+            {
+                Id = trigger.Id,
+                Name = trigger.Name,
+                SourceType = trigger.SourceType.ToString(),
+                TargetSubGraphId = trigger.TargetSubGraphId,
+                Enabled = trigger.Enabled,
+                CameraSlotId = trigger.CameraSlotId,
+                MaxConcurrent = trigger.MaxConcurrent,
+                TimerIntervalMs = trigger.TimerIntervalMs,
+                SerialSlotId = trigger.SerialSlotId,
+                MatchRule = trigger.MatchRule,
+            };
+        }
+
+        private static TriggerEntry DeserializeTrigger(SerializedTrigger st)
+        {
+            var entry = new TriggerEntry
+            {
+                Id = st.Id,
+                Name = st.Name ?? "新触发器",
+                TargetSubGraphId = st.TargetSubGraphId,
+                Enabled = st.Enabled,
+                CameraSlotId = st.CameraSlotId ?? "",
+                MaxConcurrent = st.MaxConcurrent > 0 ? st.MaxConcurrent : 1,
+                TimerIntervalMs = st.TimerIntervalMs > 0 ? st.TimerIntervalMs : 100,
+                SerialSlotId = st.SerialSlotId ?? "",
+                MatchRule = st.MatchRule,
+            };
+
+            if (Enum.TryParse(st.SourceType, out TriggerSourceType sourceType))
+                entry.SourceType = sourceType;
+
+            return entry;
+        }
+
+        private static void MigrateOldTriggers(SerializedGraph s, FlowGraph graph)
+        {
+            if (s.SubGraphs == null) return;
+
+            foreach (var sg in s.SubGraphs)
+            {
+                if (string.IsNullOrEmpty(sg.Trigger)) continue;
+
+                if (sg.Trigger == "HardCameraTrigger")
+                {
+                    string slotId = "";
+                    foreach (var sn in sg.Nodes)
+                    {
+                        if (sn.NodeTypeName?.Contains("CameraAcquisitionNode") == true
+                            && sn.Properties != null
+                            && sn.Properties.TryGetValue("相机槽位ID", out var sid))
+                        {
+                            slotId = sid?.ToString() ?? "";
+                            break;
+                        }
+                    }
+                    graph.Triggers.Add(new TriggerEntry
+                    {
+                        Name = $"相机触发 → {sg.Name ?? "未知"}",
+                        SourceType = TriggerSourceType.CameraFrame,
+                        TargetSubGraphId = sg.Id,
+                        CameraSlotId = slotId,
+                        MaxConcurrent = 1,
+                    });
+                }
+                else if (sg.Trigger == "AlwaysRunning")
+                {
+                    graph.Triggers.Add(new TriggerEntry
+                    {
+                        Name = $"持续运行 → {sg.Name ?? "未知"}",
+                        SourceType = TriggerSourceType.Timer,
+                        TargetSubGraphId = sg.Id,
+                        TimerIntervalMs = 10,
+                        MaxConcurrent = 1,
+                    });
+                }
+            }
+        }
+
         private class SerializedGraph
         {
             public string Name;
@@ -281,6 +371,7 @@ namespace VisualMaster.WorkFlow
             public List<SerializedSubGraph> SubGraphs;
             public List<SerializedCameraSlot> CameraSlots;
             public List<SerializedSerialSlot> SerialSlots;
+            public List<SerializedTrigger> Triggers;
         }
 
         private class SerializedSubGraph
@@ -337,6 +428,20 @@ namespace VisualMaster.WorkFlow
             public int DataBits;
             public string Parity;
             public string StopBits;
+        }
+
+        private class SerializedTrigger
+        {
+            public Guid Id;
+            public string Name;
+            public string SourceType;
+            public Guid TargetSubGraphId;
+            public bool Enabled;
+            public string CameraSlotId;
+            public int MaxConcurrent;
+            public int TimerIntervalMs;
+            public string SerialSlotId;
+            public Data.SerialTriggerRule MatchRule;
         }
     }
 }
