@@ -146,6 +146,9 @@ namespace VisualMaster.Forms.FlowEditor
                 GetActiveCameras = () => _visionController?.CameraManager?.Slots?
                     .Select(s => new FlowPropertyInspector.SlotDisplayItem { SlotId = s.SlotId, Display = $"{s.SlotName} ({s.SlotId.Substring(0, 8)})" })
                     .ToList() ?? new List<FlowPropertyInspector.SlotDisplayItem>(),
+                GetActiveSerialSlots = () => _visionController?.GetSerialSlots()?
+                    .Select(s => new FlowPropertyInspector.SlotDisplayItem { SlotId = s.SlotId, Display = $"{s.SlotName} ({s.PortName})" })
+                    .ToList() ?? new List<FlowPropertyInspector.SlotDisplayItem>(),
             };
             _inspector.PropertyChanged += (node, prop, val) =>
             {

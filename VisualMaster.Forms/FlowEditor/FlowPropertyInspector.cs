@@ -22,6 +22,7 @@ namespace VisualMaster.Forms.FlowEditor
         public event Action<FlowNode, string, object> PropertyChanged;
 
         internal Func<List<SlotDisplayItem>> GetActiveCameras { get; set; }
+        internal Func<List<SlotDisplayItem>> GetActiveSerialSlots { get; set; }
 
         public FlowPropertyInspector()
         {
@@ -554,7 +555,49 @@ namespace VisualMaster.Forms.FlowEditor
                     return btnEdit;
                 }
 
-                if (pd.Name == "CameraSerial" || pd.Name == "相机序列号" || pd.Name == "SlotId" || pd.Name == "相机槽位ID")
+                if (pd.Name == "CameraSerial" || pd.Name == "相机序列号" || pd.Name == "相机槽位ID" || 
+                    (pd.Name == "SlotId" && (_selectedNode is VisualMaster.WorkFlow.Nodes.SerialReceiveNode || _selectedNode is VisualMaster.WorkFlow.Nodes.SerialSendNode)))
+                {
+                    var cmb = new ComboBox
+                    {
+                        Size = new Size(200, 22),
+                        DropDownStyle = ComboBoxStyle.DropDownList,
+                        BackColor = Color.FromArgb(70, 70, 70),
+                        ForeColor = Color.White,
+                    };
+
+                    cmb.Items.Add(new SlotDisplayItem { SlotId = "", Display = "(手动指定)" });
+
+                    var activeSerialSlots = GetActiveSerialSlots?.Invoke();
+                    if (activeSerialSlots != null)
+                    {
+                        foreach (var item in activeSerialSlots)
+                            cmb.Items.Add(item);
+                    }
+
+                    var curVal = pd.Getter()?.ToString() ?? "";
+                    for (int i = 0; i < cmb.Items.Count; i++)
+                    {
+                        if ((cmb.Items[i] as SlotDisplayItem)?.SlotId == curVal)
+                        {
+                            cmb.SelectedIndex = i;
+                            break;
+                        }
+                    }
+                    if (cmb.SelectedIndex < 0 && cmb.Items.Count > 0)
+                        cmb.SelectedIndex = 0;
+
+                    cmb.SelectedIndexChanged += (s3, e3) =>
+                    {
+                        var item = cmb.SelectedItem as SlotDisplayItem;
+                        var val = item?.SlotId ?? "";
+                        pd.Setter(val);
+                        PropertyChanged?.Invoke(_selectedNode, pd.Name, val);
+                    };
+                    return cmb;
+                }
+
+                if (pd.Name == "SlotId" || pd.Name == "相机槽位ID")
                 {
                     var cmb = new ComboBox
                     {
