@@ -50,6 +50,8 @@
     <Compile Include="CameraSlot.cs" />
     <Compile Include="CameraSettings.cs" />
     <Compile Include="ICameraManager.cs" />
+    <Compile Include="SerialSlot.cs" />
+    <Compile Include="ISerialManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

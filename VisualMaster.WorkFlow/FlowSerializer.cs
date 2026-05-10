@@ -53,6 +53,7 @@ namespace VisualMaster.WorkFlow
                 CreatedAt = graph.CreatedAt,
                 SubGraphs = graph.SubGraphs.Select(SerializeSubGraph).ToList(),
                 CameraSlots = graph.CameraSlots.Select(SerializeCameraSlot).ToList(),
+                SerialSlots = graph.SerialSlots.Select(SerializeSerialSlot).ToList(),
             };
         }
 
@@ -79,6 +80,23 @@ namespace VisualMaster.WorkFlow
                         AssignedSerial = cs.AssignedSerial,
                         Settings = cs.Settings ?? new CameraSettings(),
                         Fifo = new ImageFifo(cs.Settings?.FifoCapacity ?? 10),
+                    });
+                }
+            }
+
+            if (s.SerialSlots != null)
+            {
+                foreach (var ss in s.SerialSlots)
+                {
+                    graph.SerialSlots.Add(new SerialSlot
+                    {
+                        SlotId = ss.SlotId,
+                        SlotName = ss.SlotName,
+                        PortName = ss.PortName,
+                        BaudRate = ss.BaudRate,
+                        DataBits = ss.DataBits,
+                        Parity = ss.Parity,
+                        StopBits = ss.StopBits,
                     });
                 }
             }
@@ -241,6 +259,20 @@ namespace VisualMaster.WorkFlow
             };
         }
 
+        private static SerializedSerialSlot SerializeSerialSlot(SerialSlot slot)
+        {
+            return new SerializedSerialSlot
+            {
+                SlotId = slot.SlotId,
+                SlotName = slot.SlotName,
+                PortName = slot.PortName,
+                BaudRate = slot.BaudRate,
+                DataBits = slot.DataBits,
+                Parity = slot.Parity,
+                StopBits = slot.StopBits,
+            };
+        }
+
         private class SerializedGraph
         {
             public string Name;
@@ -248,6 +280,7 @@ namespace VisualMaster.WorkFlow
             public DateTime CreatedAt;
             public List<SerializedSubGraph> SubGraphs;
             public List<SerializedCameraSlot> CameraSlots;
+            public List<SerializedSerialSlot> SerialSlots;
         }
 
         private class SerializedSubGraph
@@ -293,6 +326,17 @@ namespace VisualMaster.WorkFlow
             public string SlotName;
             public string AssignedSerial;
             public CameraSettings Settings;
+        }
+
+        private class SerializedSerialSlot
+        {
+            public string SlotId;
+            public string SlotName;
+            public string PortName;
+            public int BaudRate;
+            public int DataBits;
+            public string Parity;
+            public string StopBits;
         }
     }
 }

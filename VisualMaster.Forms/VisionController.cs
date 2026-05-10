@@ -118,6 +118,43 @@ namespace VisualMaster.Forms
             return s?.SlotId;
         }
 
+        public SerialSlot GetSerialSlot(string slotId)
+        {
+            if (_serialPorts.TryGetValue(slotId, out var sp))
+            {
+                return new SerialSlot
+                {
+                    SlotId = slotId,
+                    SlotName = slotId,
+                    PortName = slotId,
+                    Port = sp,
+                    IsConnected = sp.IsOpen,
+                };
+            }
+            return null;
+        }
+
+        public List<SerialSlot> GetSerialSlots()
+        {
+            var result = new List<SerialSlot>();
+            foreach (var kv in _serialPorts)
+            {
+                result.Add(new SerialSlot
+                {
+                    SlotId = kv.Key,
+                    SlotName = kv.Key,
+                    PortName = kv.Key,
+                    BaudRate = 9600,
+                    DataBits = 8,
+                    Parity = "None",
+                    StopBits = "One",
+                    Port = kv.Value,
+                    IsConnected = kv.Value.IsOpen,
+                });
+            }
+            return result;
+        }
+
         public string GetFirstActiveSerial()
         {
             foreach (var slot in _cameraManager.Slots)
@@ -273,6 +310,18 @@ namespace VisualMaster.Forms
                     Fifo = new ImageFifo(slot.Settings?.FifoCapacity ?? 10),
                 });
             }
+
+            graph.SerialSlots.Clear();
+            foreach (var kv in _serialPorts)
+            {
+                graph.SerialSlots.Add(new SerialSlot
+                {
+                    SlotId = kv.Key,
+                    SlotName = kv.Key,
+                    PortName = kv.Key,
+                    IsConnected = kv.Value.IsOpen,
+                });
+            }
         }
 
         public void SyncFromGraph(FlowGraph graph)
@@ -300,6 +349,19 @@ namespace VisualMaster.Forms
                         catch { }
                     }
                 }
+            }
+
+            DisconnectAllSerials();
+            foreach (var ss in graph.SerialSlots)
+            {
+                try
+                {
+                    var parity = ParseParity(ss.Parity);
+                    var stopBits = ParseStopBits(ss.StopBits);
+                    ConnectSerial(ss.PortName, ss.BaudRate, ss.DataBits,
+                        ss.Parity, ss.StopBits);
+                }
+                catch { }
             }
         }
 

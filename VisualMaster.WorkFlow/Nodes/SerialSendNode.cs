@@ -9,6 +9,9 @@ namespace VisualMaster.WorkFlow.Nodes
     [NodeCategory("通信", "串口发送")]
     public class SerialSendNode : FlowNode
     {
+        [NodeProperty("串口槽位", Category = "通信")]
+        public string SlotId { get; set; } = "";
+
         [NodeProperty("串口", Category = "通信")]
         public string SerialPort { get; set; } = "COM1";
 
@@ -27,13 +30,26 @@ namespace VisualMaster.WorkFlow.Nodes
             if (vc == null)
                 throw new InvalidOperationException("VisionController not found in context.");
 
-            if (!string.IsNullOrEmpty(SerialPort) && !vc.IsSerialOpen(SerialPort))
+            var portName = SerialPort;
+            var baud = BaudRate;
+
+            if (!string.IsNullOrEmpty(SlotId))
             {
-                vc.ConnectSerial(SerialPort, BaudRate);
+                var slot = vc.GetSerialSlot(SlotId);
+                if (slot != null)
+                {
+                    portName = slot.PortName;
+                    baud = slot.BaudRate;
+                }
             }
 
-            if (!vc.IsSerialOpen(SerialPort))
-                throw new InvalidOperationException($"Serial port {SerialPort} is not connected.");
+            if (!string.IsNullOrEmpty(portName) && !vc.IsSerialOpen(portName))
+            {
+                vc.ConnectSerial(portName, baud);
+            }
+
+            if (!vc.IsSerialOpen(portName))
+                throw new InvalidOperationException($"Serial port {portName} is not connected.");
 
             var pinText = FindInput("发送文本");
             var pinBytes = FindInput("发送字节");
@@ -43,7 +59,7 @@ namespace VisualMaster.WorkFlow.Nodes
                 var val = pinText.GetValue(context);
                 if (val is string s && !string.IsNullOrEmpty(s))
                 {
-                    vc.OutputResult(SerialPort, s);
+                    vc.OutputResult(portName, s);
                     return;
                 }
             }

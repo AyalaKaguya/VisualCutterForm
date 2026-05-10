@@ -14,6 +14,7 @@ namespace VisualMaster.WorkFlow
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public List<FlowSubGraph> SubGraphs { get; set; } = new List<FlowSubGraph>();
         public List<CameraSlot> CameraSlots { get; set; } = new List<CameraSlot>();
+        public List<SerialSlot> SerialSlots { get; set; } = new List<SerialSlot>();
 
         public FlowSubGraph FindSubGraph(Guid id)
         {

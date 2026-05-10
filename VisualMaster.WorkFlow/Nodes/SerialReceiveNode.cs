@@ -11,6 +11,9 @@ namespace VisualMaster.WorkFlow.Nodes
     [NodeBackground]
     public class SerialReceiveNode : FlowNode
     {
+        [NodeProperty("串口槽位", Category = "通信")]
+        public string SlotId { get; set; } = "";
+
         [NodeProperty("串口", Category = "通信")]
         public string SerialPort { get; set; } = "COM1";
 
@@ -48,17 +51,30 @@ namespace VisualMaster.WorkFlow.Nodes
             if (vc == null)
                 throw new InvalidOperationException("VisionController not found in context.");
 
-            if (!string.IsNullOrEmpty(SerialPort) && !vc.IsSerialOpen(SerialPort))
+            var portName = SerialPort;
+            var baud = BaudRate;
+
+            if (!string.IsNullOrEmpty(SlotId))
             {
-                vc.ConnectSerial(SerialPort, BaudRate);
+                var slot = vc.GetSerialSlot(SlotId);
+                if (slot != null)
+                {
+                    portName = slot.PortName;
+                    baud = slot.BaudRate;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(portName) && !vc.IsSerialOpen(portName))
+            {
+                vc.ConnectSerial(portName, baud);
             }
 
             var ports = (System.Collections.Generic.IReadOnlyDictionary<string, ISerialPort>)vc.SerialPorts;
-            if (!vc.IsSerialOpen(SerialPort))
-                throw new InvalidOperationException($"Serial port {SerialPort} is not connected.");
+            if (!vc.IsSerialOpen(portName))
+                throw new InvalidOperationException($"Serial port {portName} is not connected.");
             ISerialPort serialPort;
-            if (!ports.TryGetValue(SerialPort, out serialPort))
-                throw new InvalidOperationException($"Serial port {SerialPort} is not connected.");
+            if (!ports.TryGetValue(portName, out serialPort))
+                throw new InvalidOperationException($"Serial port {portName} is not connected.");
 
             _cts = new CancellationTokenSource();
             var token = _cts.Token;
