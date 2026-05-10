@@ -1,6 +1,7 @@
 using VisualMaster.Api;
 using System;
 using System.Drawing;
+using System.Linq;
 using System.Threading;
 using MvCameraControl;
 
@@ -170,6 +171,24 @@ namespace VisualMaster.CameraLink
 
             if (!string.IsNullOrEmpty(settings.PixelFormat))
                 _device.Parameters.SetEnumValueByString("PixelFormat", settings.PixelFormat);
+        }
+
+        public string[] GetAvailablePixelFormats()
+        {
+            if (_device == null) return new string[0];
+            try
+            {
+                _device.Parameters.GetEnumValue("PixelFormat", out MvCameraControl.IEnumValue enumValue);
+                if (enumValue?.SupportEnumEntries == null) return new string[0];
+                return enumValue.SupportEnumEntries
+                    .Select(e => e.Symbolic)
+                    .Where(s => !string.IsNullOrEmpty(s))
+                    .ToArray();
+            }
+            catch
+            {
+                return new string[0];
+            }
         }
 
         public void Dispose()

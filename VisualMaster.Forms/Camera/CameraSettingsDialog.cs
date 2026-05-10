@@ -63,6 +63,7 @@ namespace VisualMaster.Forms.Camera
             };
 
             PopulateCameraInfo();
+            PopulatePixelFormats();
             PopulateFromSettings();
         }
 
@@ -237,6 +238,24 @@ namespace VisualMaster.Forms.Camera
             _lblSerial.Text = _cameraInfo.SerialNumber ?? "-";
             _lblTransport.Text = _cameraInfo.TransportTypeName ?? "-";
             _lblVersion.Text = _cameraInfo.DeviceVersion ?? "-";
+        }
+
+        private void PopulatePixelFormats()
+        {
+            try
+            {
+                var slot = _vision?.GetSlotById(_slotId);
+                if (slot?.Camera != null)
+                {
+                    var formats = slot.Camera.GetAvailablePixelFormats();
+                    if (formats != null && formats.Length > 0)
+                    {
+                        _cmbPixelFormat.Items.Clear();
+                        _cmbPixelFormat.Items.AddRange(formats);
+                    }
+                }
+            }
+            catch { }
         }
 
         private void PopulateFromSettings()

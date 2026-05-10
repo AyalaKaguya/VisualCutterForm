@@ -120,6 +120,13 @@ namespace VisualMaster.Forms.Camera
             _numFifoCapacity.Enabled = !_isReadOnly;
         }
 
+        public void PopulatePixelFormats(string[] formats)
+        {
+            if (formats == null || formats.Length == 0) return;
+            _cmbPixelFormat.Items.Clear();
+            _cmbPixelFormat.Items.AddRange(formats);
+        }
+
         private static void SetNumSafe(System.Windows.Forms.NumericUpDown num, decimal value)
         {
             num.Value = value < num.Minimum ? num.Minimum : value > num.Maximum ? num.Maximum : value;

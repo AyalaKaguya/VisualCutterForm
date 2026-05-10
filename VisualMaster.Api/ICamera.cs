@@ -23,6 +23,7 @@ namespace VisualMaster.Api
         void TriggerSoftware();
         void ApplySettings(CameraSettings settings);
         bool TryGrabImage(out Bitmap bitmap, int timeoutMs = 2000);
+        string[] GetAvailablePixelFormats();
 
         event EventHandler<Bitmap> ImageAcquired;
         event EventHandler Disconnected;
