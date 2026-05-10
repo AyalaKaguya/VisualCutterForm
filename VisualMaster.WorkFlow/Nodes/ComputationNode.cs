@@ -21,7 +21,7 @@ namespace VisualMaster.WorkFlow.Nodes
     public OpenCvSharp.Mat Result;
 
     // 注入 FlowContext 对象 (自动赋值)
-    public VisualCutterForm.Lib.Flow.FlowContext Context;
+    public VisualMaster.WorkFlow.FlowContext Context;
 
     public void Execute()
     {

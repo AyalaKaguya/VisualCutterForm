@@ -132,6 +132,7 @@ namespace VisualMaster.Forms.FlowEditor
             _subGraph.RebuildNodeIndex();
             _nodeViews.Remove(view);
             _viewIndex.Remove(view.Node.Id);
+            DeselectAll?.Invoke();
             Invalidate();
         }
 
@@ -235,13 +236,13 @@ namespace VisualMaster.Forms.FlowEditor
 
             if (_subGraph == null) return;
 
+            DrawConnections(g);
+
             foreach (var view in _nodeViews)
             {
                 view.Draw(g, _font, _offset, _zoom);
                 view.DrawTiming(g, _font, _offset, _zoom);
             }
-
-            DrawConnections(g);
 
             if (_isConnecting)
             {
