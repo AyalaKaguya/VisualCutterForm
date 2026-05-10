@@ -89,9 +89,7 @@
       <SubType>Form</SubType>
     </Compile>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="VisualCutterForm\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup />
   <ItemGroup>
     <PackageReference Include="OpenCvSharp4.Windows" Version="4.8.0.20230708" />

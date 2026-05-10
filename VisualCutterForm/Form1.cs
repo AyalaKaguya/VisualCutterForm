@@ -623,6 +623,7 @@ namespace VisualCutterForm
             {
                 var warnings = new List<string>();
                 _flowGraph = FlowSerializer.DeserializeFromFile(path, warnings);
+                _vision?.SyncFromGraph(_flowGraph);
                 _flowExecutor.LoadGraph(_flowGraph);
                 _config.FlowFilePath = path;
                 _config.SaveDebounced();

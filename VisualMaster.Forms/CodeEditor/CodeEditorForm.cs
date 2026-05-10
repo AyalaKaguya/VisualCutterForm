@@ -115,8 +115,7 @@ public class UserCode
                     _editor.Text = GetDefaultTemplate();
             });
             miFile.DropDownItems.Add(new ToolStripSeparator());
-            miFile.DropDownItems.Add("保存并关闭", null, (s, e) => { DialogResult = DialogResult.OK; Close(); });
-            miFile.DropDownItems.Add("取消", null, (s, e) => { DialogResult = DialogResult.Cancel; Close(); });
+            miFile.DropDownItems.Add("关闭", null, (s, e) => Close());
 
             var miEdit = new ToolStripMenuItem("编辑(&E)");
             miEdit.DropDownItems.Add("撤销", null, (s, e) => _editor.Undo());
@@ -609,11 +608,105 @@ public class UserCode
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
+            if (DialogResult == DialogResult.OK)
+            {
+                _kwBrush?.Dispose();
+                _cmBrush?.Dispose();
+                _stBrush?.Dispose();
+                _nuBrush?.Dispose();
+                base.OnFormClosing(e);
+                return;
+            }
+
+            if (_editor.Text == _originalCode)
+            {
+                DialogResult = DialogResult.Cancel;
+                _kwBrush?.Dispose();
+                _cmBrush?.Dispose();
+                _stBrush?.Dispose();
+                _nuBrush?.Dispose();
+                base.OnFormClosing(e);
+                return;
+            }
+
+            if (!TryReleaseCompile())
+            {
+                var result = MessageBox.Show("编译失败。是否回退修改？", "代码编辑器",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (result == DialogResult.Yes)
+                {
+                    _editor.Text = _originalCode;
+                    DialogResult = DialogResult.Cancel;
+                }
+                else
+                {
+                    e.Cancel = true;
+                    _kwBrush?.Dispose();
+                    _cmBrush?.Dispose();
+                    _stBrush?.Dispose();
+                    _nuBrush?.Dispose();
+                    return;
+                }
+            }
+            else
+            {
+                DialogResult = DialogResult.OK;
+            }
+
             _kwBrush?.Dispose();
             _cmBrush?.Dispose();
             _stBrush?.Dispose();
             _nuBrush?.Dispose();
             base.OnFormClosing(e);
+        }
+
+        private bool TryReleaseCompile()
+        {
+            _logBox.Clear();
+            AppendLog("正在 Release 编译...", Color.FromArgb(200, 200, 0));
+
+            try
+            {
+                var node = new VisualMaster.WorkFlow.Nodes.ComputationNode
+                {
+                    SourceCode = _editor.Text,
+                    ExtraReferences = ExtraReferences,
+                    NuGetPackages = NuGetPackages,
+                    IsDebug = false,
+                };
+
+                foreach (var pin in _node.Inputs)
+                {
+                    if (!node.Inputs.Any(p => p.Name == pin.Name))
+                        node.AddInputPin(pin.Name, pin.DataType);
+                }
+                foreach (var pin in _node.Outputs)
+                {
+                    if (!node.Outputs.Any(p => p.Name == pin.Name))
+                        node.AddOutputPin(pin.Name, pin.DataType);
+                }
+
+                var ok = node.Compile();
+                if (ok)
+                {
+                    AppendLog("编译成功", Color.FromArgb(100, 200, 100));
+                    _miRelease.Checked = true;
+                    _miDebug.Checked = false;
+                    return true;
+                }
+                else
+                {
+                    AppendLog("编译失败:", Color.FromArgb(231, 76, 60));
+                    foreach (var err in node.CompileErrors)
+                        AppendLog("  " + err, Color.FromArgb(231, 76, 60));
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                AppendLog("编译异常: " + ex.Message, Color.FromArgb(231, 76, 60));
+                return false;
+            }
         }
     }
 }

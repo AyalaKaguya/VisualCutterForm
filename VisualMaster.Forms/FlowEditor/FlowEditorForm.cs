@@ -505,6 +505,7 @@ namespace VisualMaster.Forms.FlowEditor
                     {
                         var warnings = new List<string>();
                         _graph = FlowSerializer.DeserializeFromFile(dlg.FileName, warnings);
+                        _visionController?.SyncFromGraph(_graph);
                         _executor.LoadGraph(_graph);
 
                         if (warnings.Count > 0)
@@ -538,6 +539,7 @@ namespace VisualMaster.Forms.FlowEditor
 
             try
             {
+                _visionController?.SyncToGraph(_graph);
                 FlowSerializer.SerializeToFile(_graph, _currentFilePath);
             }
             catch (Exception ex)
@@ -560,6 +562,7 @@ namespace VisualMaster.Forms.FlowEditor
                 if (dlg.ShowDialog() == DialogResult.OK)
                 {
                     _currentFilePath = dlg.FileName;
+                    _visionController?.SyncToGraph(_graph);
                     FlowSerializer.SerializeToFile(_graph, _currentFilePath);
                 }
             }

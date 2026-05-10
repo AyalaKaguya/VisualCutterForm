@@ -1,6 +1,7 @@
 using VisualMaster.Api;
 using VisualMaster.CameraLink;
 using VisualMaster.Communication;
+using VisualMaster.WorkFlow;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -254,6 +255,51 @@ namespace VisualMaster.Forms
                 case "Two": return System.IO.Ports.StopBits.Two;
                 case "OnePointFive": return System.IO.Ports.StopBits.OnePointFive;
                 default: return System.IO.Ports.StopBits.One;
+            }
+        }
+
+        public void SyncToGraph(FlowGraph graph)
+        {
+            if (graph == null) return;
+            graph.CameraSlots.Clear();
+            foreach (var slot in _cameraManager.Slots)
+            {
+                graph.CameraSlots.Add(new CameraSlot
+                {
+                    SlotId = slot.SlotId,
+                    SlotName = slot.SlotName,
+                    Settings = slot.Settings?.Clone() as CameraSettings ?? new CameraSettings(),
+                    AssignedSerial = slot.AssignedSerial,
+                    Fifo = new ImageFifo(slot.Settings?.FifoCapacity ?? 10),
+                });
+            }
+        }
+
+        public void SyncFromGraph(FlowGraph graph)
+        {
+            if (graph == null) return;
+
+            foreach (var slot in _cameraManager.Slots.ToList())
+                _cameraManager.RemoveSlot(slot.SlotId);
+
+            foreach (var cs in graph.CameraSlots)
+            {
+                var slot = _cameraManager.AddSlot(cs.SlotName ?? "相机", cs.Settings?.Clone() as CameraSettings ?? new CameraSettings());
+                slot.SlotId = cs.SlotId;
+                slot.SlotName = cs.SlotName;
+                slot.AssignedSerial = cs.AssignedSerial;
+
+                if (!string.IsNullOrEmpty(cs.AssignedSerial))
+                {
+                    var cameras = _cameraManager.Cameras;
+                    if (cameras.Count == 0) _cameraManager.EnumerateCameras();
+                    var info = _cameraManager.Cameras.FirstOrDefault(c => c.SerialNumber == cs.AssignedSerial);
+                    if (info != null)
+                    {
+                        try { _cameraManager.OpenSlot(slot.SlotId, info); }
+                        catch { }
+                    }
+                }
             }
         }
 
