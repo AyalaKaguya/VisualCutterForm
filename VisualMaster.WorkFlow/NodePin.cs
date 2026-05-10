@@ -12,7 +12,8 @@ namespace VisualMaster.WorkFlow
         public FlowNode Owner { get; set; }
         public bool IsConnected { get; protected set; }
         public bool UserDefined { get; set; }
-        public object LastValue { get; set; }
+        private volatile object _lastValue;
+        public object LastValue { get { return _lastValue; } set { _lastValue = value; } }
         public abstract bool IsInput { get; }
         public abstract bool IsOutput { get; }
 

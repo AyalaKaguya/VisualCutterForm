@@ -38,12 +38,29 @@ namespace VisualMaster.WorkFlow
             Task.Run(() => StopAsync()).Wait();
             _graph = graph;
             _graph.WireAllConnections();
+            PreCompileNodes();
 
             foreach (var sg in _graph.SubGraphs)
             {
                 if (sg.Trigger == SubGraphTrigger.AlwaysRunning)
                 {
                     StartSubGraph(sg);
+                }
+            }
+        }
+
+        private void PreCompileNodes()
+        {
+            if (_graph == null) return;
+            foreach (var sg in _graph.SubGraphs)
+            {
+                foreach (var node in sg.Nodes)
+                {
+                    if (node is ComputationNode cn)
+                    {
+                        try { cn.Compile(); }
+                        catch { }
+                    }
                 }
             }
         }
@@ -219,38 +236,49 @@ namespace VisualMaster.WorkFlow
             context.OnLogWarning += msg => LogMessage?.Invoke(this, $"[警告] {msg}");
             context.OnLogError += msg => LogMessage?.Invoke(this, $"[错误] {msg}");
 
-            var ordered = sg.GetTopologicalOrder();
+            var levels = sg.GetTopologicalLevels();
 
-            foreach (var node in ordered.Where(n => !n.IsBackgroundWorker))
+            foreach (var level in levels)
             {
+                if (level.Count == 0) continue;
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var sw = Stopwatch.StartNew();
-                try
+                var tasks = new List<Task>();
+                foreach (var node in level)
                 {
-                    node.BindInputsToProperties(context);
-                    await node.ExecuteAsync(context, cancellationToken);
-                    node.WriteOutputsFromProperties(context);
+                    if (node.IsBackgroundWorker) continue;
+
+                    tasks.Add(Task.Run(async () =>
+                    {
+                        var sw = Stopwatch.StartNew();
+                        try
+                        {
+                            node.BindInputsToProperties(context);
+                            await node.ExecuteAsync(context, cancellationToken);
+                            node.WriteOutputsFromProperties(context);
                     foreach (var pin in node.Inputs)
                         pin.LastValue = pin.GetValue(context);
                     foreach (var pin in node.Outputs)
                         pin.LastValue = context.GetPinValue(pin);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                        }
+                        catch (Exception ex)
+                        {
+                            var msg = $"节点 [{node.Name}] 执行失败: {ex.Message}";
+                            LogMessage?.Invoke(this, msg);
+                            ExecutionError?.Invoke(this, new InvalidOperationException(msg, ex));
+                        }
+                        finally
+                        {
+                            sw.Stop();
+                            node.LastExecutionTimeMs = sw.Elapsed.TotalMilliseconds;
+                        }
+                    }, cancellationToken));
                 }
-                catch (OperationCanceledException)
-                {
-                    throw;
-                }
-                catch (Exception ex)
-                {
-                    var msg = $"节点 [{node.Name}] 执行失败: {ex.Message}";
-                    LogMessage?.Invoke(this, msg);
-                    ExecutionError?.Invoke(this, new InvalidOperationException(msg, ex));
-                }
-                finally
-                {
-                    sw.Stop();
-                    node.LastExecutionTimeMs = sw.Elapsed.TotalMilliseconds;
-                }
+
+                await Task.WhenAll(tasks);
             }
         }
 

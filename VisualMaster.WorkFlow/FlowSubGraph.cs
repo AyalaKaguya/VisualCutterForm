@@ -23,6 +23,7 @@ namespace VisualMaster.WorkFlow
 
         private Dictionary<Guid, FlowNode> _nodeIndex;
         private List<FlowNode> _cachedTopoOrder;
+        private List<List<FlowNode>> _cachedLevels;
         private bool _topoDirty = true;
 
         public FlowSubGraph Clone()
@@ -70,6 +71,63 @@ namespace VisualMaster.WorkFlow
             _cachedTopoOrder = sorted;
             _topoDirty = false;
             return sorted;
+        }
+
+        public List<List<FlowNode>> GetTopologicalLevels()
+        {
+            if (!_topoDirty && _cachedLevels != null)
+                return _cachedLevels;
+
+            if (_nodeIndex == null) RebuildNodeIndex();
+
+            var depth = new Dictionary<Guid, int>();
+            var queue = new Queue<FlowNode>();
+
+            foreach (var node in Nodes)
+            {
+                int inDegree = Connections.Count(c => c.ToNodeId == node.Id);
+                if (inDegree == 0)
+                {
+                    depth[node.Id] = 0;
+                    queue.Enqueue(node);
+                }
+            }
+
+            while (queue.Count > 0)
+            {
+                var node = queue.Dequeue();
+                int currentDepth = depth[node.Id];
+
+                foreach (var conn in Connections)
+                {
+                    if (conn.FromNodeId == node.Id)
+                    {
+                        if (_nodeIndex.TryGetValue(conn.ToNodeId, out var downstream))
+                        {
+                            int newDepth = currentDepth + 1;
+                            if (!depth.ContainsKey(downstream.Id) || depth[downstream.Id] < newDepth)
+                            {
+                                depth[downstream.Id] = newDepth;
+                                queue.Enqueue(downstream);
+                            }
+                        }
+                    }
+                }
+            }
+
+            var maxLevel = depth.Values.DefaultIfEmpty(0).Max();
+            var levels = new List<List<FlowNode>>();
+            for (int i = 0; i <= maxLevel; i++)
+                levels.Add(new List<FlowNode>());
+
+            foreach (var node in Nodes)
+            {
+                int level = depth.TryGetValue(node.Id, out int d) ? d : 0;
+                levels[level].Add(node);
+            }
+
+            _cachedLevels = levels;
+            return levels;
         }
 
         private void TopoVisit(FlowNode node, List<FlowNode> sorted,
