@@ -346,8 +346,9 @@ namespace VisualMaster.Forms.FlowEditor
             {
                 ClearSelection();
 
-                foreach (var view in _nodeViews)
+                for (int k = _nodeViews.Count - 1; k >= 0; k--)
                 {
+                    var view = _nodeViews[k];
                     int pinHit = view.HitTestPin(e.Location, _offset, _zoom);
                     if (pinHit != 0)
                     {
