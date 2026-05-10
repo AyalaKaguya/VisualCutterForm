@@ -305,8 +305,9 @@ namespace VisualMaster.Forms.FlowEditor
 
             if (e.Button == MouseButtons.Right)
             {
-                foreach (var view in _nodeViews)
+                for (int i = _nodeViews.Count - 1; i >= 0; i--)
                 {
+                    var view = _nodeViews[i];
                     if (view.HitTest(e.Location, _offset, _zoom))
                     {
                         ClearSelection();
@@ -371,8 +372,9 @@ namespace VisualMaster.Forms.FlowEditor
                     }
                 }
 
-                foreach (var view in _nodeViews)
+                for (int j = _nodeViews.Count - 1; j >= 0; j--)
                 {
+                    var view = _nodeViews[j];
                     if (view.HitTest(e.Location, _offset, _zoom))
                     {
                         view.IsSelected = true;

@@ -429,19 +429,15 @@ namespace VisualMaster.Forms.FlowEditor
 
         public void ShowSubGraph(FlowSubGraph sg)
         {
+            _selectedNode = null;
             _selectedSubGraph = sg;
             if (sg == null)
             {
-                if (_selectedNode == null)
-                {
-                    _lblNodeName.Text = "未选择节点 / 子图";
-                    _lblNodeType.Text = "";
-                }
+                _lblNodeName.Text = "未选择节点 / 子图";
+                _lblNodeType.Text = "";
                 _scrollPanel.Controls.Clear();
                 return;
             }
-
-            if (_selectedNode != null) return;
 
             _lblNodeName.Text = sg.Name;
             _lblNodeType.Text = $"子图 · {sg.Nodes.Count} 个节点";

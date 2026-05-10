@@ -198,13 +198,6 @@ public class UserCode
 
             var sb = new System.Text.StringBuilder();
 
-            // using statements
-            sb.AppendLine("using System;");
-            sb.AppendLine("using OpenCvSharp;");
-            sb.AppendLine("using VisualMaster.WorkFlow;");
-            sb.AppendLine("using VisualMaster.WorkFlow.Data;");
-            sb.AppendLine();
-
             sb.AppendLine(DefaultTemplate);
             sb.AppendLine();
 
@@ -226,7 +219,7 @@ public class UserCode
             }
 
             sb.AppendLine(@"    // Context 对象 (日志输出)
-    public FlowContext Context;
+    public VisualMaster.WorkFlow.FlowContext Context;
 
     public void Execute()
     {
@@ -261,10 +254,10 @@ public class UserCode
             if (t == typeof(double)) return "double";
             if (t == typeof(bool)) return "bool";
             if (t == typeof(byte[])) return "byte[]";
-            if (t == typeof(Bitmap)) return "Bitmap";
-            if (t == typeof(OpenCvSharp.Mat)) return "Mat";
-            if (t == typeof(OpenCvSharp.Point2d)) return "Point2d";
-            if (t == typeof(VisualMaster.WorkFlow.Data.AcquisitionResult)) return "AcquisitionResult";
+            if (t == typeof(Bitmap)) return "System.Drawing.Bitmap";
+            if (t == typeof(OpenCvSharp.Mat)) return "OpenCvSharp.Mat";
+            if (t == typeof(OpenCvSharp.Point2d)) return "OpenCvSharp.Point2d";
+            if (t == typeof(VisualMaster.WorkFlow.Data.AcquisitionResult)) return "VisualMaster.WorkFlow.Data.AcquisitionResult";
             if (t != null) return t.Name;
             return "object";
         }
