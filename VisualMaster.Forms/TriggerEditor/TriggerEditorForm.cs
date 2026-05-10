@@ -117,8 +117,8 @@ namespace VisualMaster.Forms.TriggerEditor
             _triggerList.SelectedIndexChanged += OnTriggerSelected;
             _triggerList.ItemChecked += OnTriggerChecked;
 
-            left.Controls.Add(_triggerList);
             left.Controls.Add(_btnPanel);
+            left.Controls.Add(_triggerList);
         }
 
         private void BuildRightPanel()
@@ -277,8 +277,8 @@ namespace VisualMaster.Forms.TriggerEditor
             };
             propPanel.Controls.Add(_cmbSerialSlot);
 
-            _rightPanel.Controls.Add(propPanel);
             _rightPanel.Controls.Add(_lblHeader);
+            _rightPanel.Controls.Add(propPanel);
         }
 
         private void AddLabel(Panel panel, string text, ref int y)
