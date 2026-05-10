@@ -89,6 +89,9 @@ namespace VisualMaster.Forms.FlowEditor
                 }
             }
 
+            foreach (var view in _nodeViews)
+                view.ComputePinLocations(_offset, _zoom);
+
             Invalidate();
         }
 

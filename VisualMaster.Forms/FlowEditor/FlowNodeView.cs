@@ -53,6 +53,33 @@ namespace VisualMaster.Forms.FlowEditor
             Bounds = new Rectangle(location.X, location.Y, NodeWidth, height);
         }
 
+        public void ComputePinLocations(Point offset, float zoom)
+        {
+            var bounds = ScaleBounds(offset, zoom);
+
+            InputPinLocations.Clear();
+            for (int i = 0; i < Node.Inputs.Count; i++)
+            {
+                int y = (int)(bounds.Y + HeaderHeight * zoom + 5 + i * RowHeight * zoom);
+                int pinX = bounds.Left + PinGap;
+                int pinY = (int)(y + RowHeight * zoom / 2);
+                InputPinLocations.Add(new Point(
+                    (int)(pinX / zoom) - offset.X,
+                    (int)(pinY / zoom) - offset.Y));
+            }
+
+            OutputPinLocations.Clear();
+            for (int i = 0; i < Node.Outputs.Count; i++)
+            {
+                int y = (int)(bounds.Y + HeaderHeight * zoom + 5 + i * RowHeight * zoom);
+                int pinX = bounds.Right - PinGap;
+                int pinY = (int)(y + RowHeight * zoom / 2);
+                OutputPinLocations.Add(new Point(
+                    (int)(pinX / zoom) - offset.X,
+                    (int)(pinY / zoom) - offset.Y));
+            }
+        }
+
         public void Draw(Graphics g, Font font, Point offset, float zoom)
         {
             var bounds = ScaleBounds(offset, zoom);
