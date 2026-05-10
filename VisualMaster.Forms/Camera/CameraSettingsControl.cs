@@ -76,6 +76,7 @@ namespace VisualMaster.Forms.Camera
             _settings.Height = (int)_numHeight.Value;
             _settings.OffsetX = (int)_numOffsetX.Value;
             _settings.OffsetY = (int)_numOffsetY.Value;
+            _settings.PixelFormat = _cmbPixelFormat.Text;
             _settings.FifoCapacity = (int)_numFifoCapacity.Value;
         }
 
@@ -98,6 +99,7 @@ namespace VisualMaster.Forms.Camera
             SetNumSafe(_numHeight, _settings.Height);
             SetNumSafe(_numOffsetX, _settings.OffsetX);
             SetNumSafe(_numOffsetY, _settings.OffsetY);
+            _cmbPixelFormat.Text = _settings.PixelFormat ?? "";
             SetNumSafe(_numFifoCapacity, _settings.FifoCapacity);
         }
 
@@ -114,6 +116,7 @@ namespace VisualMaster.Forms.Camera
             _numHeight.Enabled = !_isReadOnly;
             _numOffsetX.Enabled = !_isReadOnly;
             _numOffsetY.Enabled = !_isReadOnly;
+            _cmbPixelFormat.Enabled = !_isReadOnly;
             _numFifoCapacity.Enabled = !_isReadOnly;
         }
 

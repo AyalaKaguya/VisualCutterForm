@@ -21,6 +21,8 @@ namespace VisualMaster.Forms.Camera
         private Label lblOffsetY;
         private Label sep3;
         private Label lblFifoCap;
+        private Label lblPixelFormat;
+        private ComboBox _cmbPixelFormat;
         private ComboBox _cmbTriggerMode;
         private ComboBox _cmbTriggerSource;
         private ComboBox _cmbTriggerActivation;
@@ -57,6 +59,8 @@ namespace VisualMaster.Forms.Camera
             this.lblOffsetY = new System.Windows.Forms.Label();
             this.sep3 = new System.Windows.Forms.Label();
             this.lblFifoCap = new System.Windows.Forms.Label();
+            this.lblPixelFormat = new System.Windows.Forms.Label();
+            this._cmbPixelFormat = new System.Windows.Forms.ComboBox();
             this._cmbTriggerMode = new System.Windows.Forms.ComboBox();
             this._cmbTriggerSource = new System.Windows.Forms.ComboBox();
             this._cmbTriggerActivation = new System.Windows.Forms.ComboBox();
@@ -139,7 +143,7 @@ namespace VisualMaster.Forms.Camera
             // sep2
             // 
             this.sep2.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.sep2.Location = new System.Drawing.Point(8, 226);
+            this.sep2.Location = new System.Drawing.Point(8, 250);
             this.sep2.Name = "sep2";
             this.sep2.Size = new System.Drawing.Size(460, 1);
             this.sep2.TabIndex = 11;
@@ -147,7 +151,7 @@ namespace VisualMaster.Forms.Camera
             // lblWidth
             // 
             this.lblWidth.AutoSize = true;
-            this.lblWidth.Location = new System.Drawing.Point(8, 238);
+            this.lblWidth.Location = new System.Drawing.Point(8, 262);
             this.lblWidth.Name = "lblWidth";
             this.lblWidth.Size = new System.Drawing.Size(50, 24);
             this.lblWidth.TabIndex = 9;
@@ -157,7 +161,7 @@ namespace VisualMaster.Forms.Camera
             // lblHeight
             // 
             this.lblHeight.AutoSize = true;
-            this.lblHeight.Location = new System.Drawing.Point(8, 268);
+            this.lblHeight.Location = new System.Drawing.Point(8, 292);
             this.lblHeight.Name = "lblHeight";
             this.lblHeight.Size = new System.Drawing.Size(50, 24);
             this.lblHeight.TabIndex = 7;
@@ -167,7 +171,7 @@ namespace VisualMaster.Forms.Camera
             // lblOffsetX
             // 
             this.lblOffsetX.AutoSize = true;
-            this.lblOffsetX.Location = new System.Drawing.Point(8, 298);
+            this.lblOffsetX.Location = new System.Drawing.Point(8, 322);
             this.lblOffsetX.Name = "lblOffsetX";
             this.lblOffsetX.Size = new System.Drawing.Size(67, 24);
             this.lblOffsetX.TabIndex = 5;
@@ -177,7 +181,7 @@ namespace VisualMaster.Forms.Camera
             // lblOffsetY
             // 
             this.lblOffsetY.AutoSize = true;
-            this.lblOffsetY.Location = new System.Drawing.Point(8, 328);
+            this.lblOffsetY.Location = new System.Drawing.Point(8, 352);
             this.lblOffsetY.Name = "lblOffsetY";
             this.lblOffsetY.Size = new System.Drawing.Size(66, 24);
             this.lblOffsetY.TabIndex = 3;
@@ -187,15 +191,25 @@ namespace VisualMaster.Forms.Camera
             // sep3
             // 
             this.sep3.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.sep3.Location = new System.Drawing.Point(8, 362);
+            this.sep3.Location = new System.Drawing.Point(8, 386);
             this.sep3.Name = "sep3";
             this.sep3.Size = new System.Drawing.Size(460, 1);
             this.sep3.TabIndex = 2;
             // 
+            // lblPixelFormat
+            // 
+            this.lblPixelFormat.AutoSize = true;
+            this.lblPixelFormat.Location = new System.Drawing.Point(8, 216);
+            this.lblPixelFormat.Name = "lblPixelFormat";
+            this.lblPixelFormat.Size = new System.Drawing.Size(86, 24);
+            this.lblPixelFormat.TabIndex = 27;
+            this.lblPixelFormat.Text = "像素格式:";
+            this.lblPixelFormat.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
             // lblFifoCap
             // 
             this.lblFifoCap.AutoSize = true;
-            this.lblFifoCap.Location = new System.Drawing.Point(8, 374);
+            this.lblFifoCap.Location = new System.Drawing.Point(8, 398);
             this.lblFifoCap.Name = "lblFifoCap";
             this.lblFifoCap.Size = new System.Drawing.Size(95, 24);
             this.lblFifoCap.TabIndex = 0;
@@ -296,6 +310,26 @@ namespace VisualMaster.Forms.Camera
             this._trkGain.Size = new System.Drawing.Size(240, 69);
             this._trkGain.TabIndex = 12;
             // 
+            // _cmbPixelFormat
+            // 
+            this._cmbPixelFormat.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDown;
+            this._cmbPixelFormat.Items.AddRange(new object[] {
+            "Mono8",
+            "Mono10",
+            "Mono12",
+            "Mono16",
+            "BayerRG8",
+            "BayerGB8",
+            "BayerGR8",
+            "BayerBG8",
+            "RGB8Packed",
+            "BGR8Packed",
+            "YUV422Packed"});
+            this._cmbPixelFormat.Location = new System.Drawing.Point(180, 214);
+            this._cmbPixelFormat.Name = "_cmbPixelFormat";
+            this._cmbPixelFormat.Size = new System.Drawing.Size(140, 32);
+            this._cmbPixelFormat.TabIndex = 26;
+            // 
             // _numWidth
             // 
             this._numWidth.Increment = new decimal(new int[] {
@@ -303,7 +337,7 @@ namespace VisualMaster.Forms.Camera
             0,
             0,
             0});
-            this._numWidth.Location = new System.Drawing.Point(180, 236);
+            this._numWidth.Location = new System.Drawing.Point(180, 260);
             this._numWidth.Maximum = new decimal(new int[] {
             32768,
             0,
@@ -330,7 +364,7 @@ namespace VisualMaster.Forms.Camera
             0,
             0,
             0});
-            this._numHeight.Location = new System.Drawing.Point(180, 266);
+            this._numHeight.Location = new System.Drawing.Point(180, 290);
             this._numHeight.Maximum = new decimal(new int[] {
             32768,
             0,
@@ -357,7 +391,7 @@ namespace VisualMaster.Forms.Camera
             0,
             0,
             0});
-            this._numOffsetX.Location = new System.Drawing.Point(180, 296);
+            this._numOffsetX.Location = new System.Drawing.Point(180, 320);
             this._numOffsetX.Maximum = new decimal(new int[] {
             32768,
             0,
@@ -374,7 +408,7 @@ namespace VisualMaster.Forms.Camera
             0,
             0,
             0});
-            this._numOffsetY.Location = new System.Drawing.Point(180, 326);
+            this._numOffsetY.Location = new System.Drawing.Point(180, 350);
             this._numOffsetY.Maximum = new decimal(new int[] {
             32768,
             0,
@@ -386,7 +420,7 @@ namespace VisualMaster.Forms.Camera
             // 
             // _numFifoCapacity
             // 
-            this._numFifoCapacity.Location = new System.Drawing.Point(180, 372);
+            this._numFifoCapacity.Location = new System.Drawing.Point(180, 396);
             this._numFifoCapacity.Minimum = new decimal(new int[] {
             1,
             0,
@@ -418,6 +452,8 @@ namespace VisualMaster.Forms.Camera
             this.Controls.Add(this._numWidth);
             this.Controls.Add(this.sep2);
             this.Controls.Add(this._trkGain);
+            this.Controls.Add(this._cmbPixelFormat);
+            this.Controls.Add(this.lblPixelFormat);
             this.Controls.Add(this.lblGain);
             this.Controls.Add(this._numGain);
             this.Controls.Add(this.lblExposure);

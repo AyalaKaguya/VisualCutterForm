@@ -32,6 +32,7 @@ namespace VisualMaster.Forms.Camera
         private NumericUpDown _numOffsetX;
         private NumericUpDown _numOffsetY;
         private NumericUpDown _numFifoCapacity;
+        private ComboBox _cmbPixelFormat;
         private Button _btnOk;
         private Button _btnDebugSnap;
         private Button _btnDebugContinuous;
@@ -239,6 +240,33 @@ namespace VisualMaster.Forms.Camera
             AddNumeric(_panelRoi, "高度:", ref y, out _numHeight, 64, 32768, 0, 8);
             AddNumeric(_panelRoi, "偏移 X:", ref y, out _numOffsetX, 0, 32768, 0, 4);
             AddNumeric(_panelRoi, "偏移 Y:", ref y, out _numOffsetY, 0, 32768, 0, 4);
+            y += 8;
+
+            var lblPf = new Label
+            {
+                Text = "像素格式:",
+                Location = new Point(12, y + 4),
+                Size = new Size(160, 22),
+                Font = new Font("Microsoft YaHei", 9F),
+                TextAlign = ContentAlignment.MiddleRight,
+            };
+            _cmbPixelFormat = new ComboBox
+            {
+                Location = new Point(184, y + 2),
+                Size = new Size(220, 22),
+                Font = new Font("Microsoft YaHei", 9F),
+                DropDownStyle = ComboBoxStyle.DropDown,
+                Enabled = false,
+            };
+            _cmbPixelFormat.Items.AddRange(new[] {
+                "Mono8", "Mono10", "Mono12", "Mono16",
+                "BayerRG8", "BayerGB8", "BayerGR8", "BayerBG8",
+                "RGB8Packed", "BGR8Packed", "YUV422Packed"
+            });
+            _panelRoi.Controls.Add(lblPf);
+            _panelRoi.Controls.Add(_cmbPixelFormat);
+            y += 32;
+
             y += 12;
             AddNumeric(_panelRoi, "FIFO 容量:", ref y, out _numFifoCapacity, 1, 100, 10, 1);
 
