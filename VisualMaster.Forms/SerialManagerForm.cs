@@ -85,8 +85,8 @@ namespace VisualMaster.Forms
             {
                 Dock = DockStyle.Fill,
                 Orientation = Orientation.Vertical,
-                SplitterDistance = 200,
-                Panel1MinSize = 150,
+                SplitterDistance = 160,
+                Panel1MinSize = 100,
             };
 
             _slotListBox = new ListBox { Dock = DockStyle.Fill, IntegralHeight = false, Font = new Font("Microsoft YaHei", 9F) };
