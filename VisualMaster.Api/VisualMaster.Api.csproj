@@ -43,13 +43,20 @@
   <ItemGroup>
     <Compile Include="ICamera.cs" />
     <Compile Include="CameraInfo.cs" />
+    <Compile Include="CameraFrameBuffer.cs" />
+    <Compile Include="CameraFrameSnapshot.cs" />
+    <Compile Include="CameraDeviceConfig.cs" />
+    <Compile Include="CameraDeviceStatus.cs" />
     <Compile Include="UserRole.cs" />
     <Compile Include="ISerialPort.cs" />
     <Compile Include="ImageFifo.cs" />
+    <Compile Include="RuntimeDiagnosticEvent.cs" />
+    <Compile Include="RuntimeDiagnosticsHub.cs" />
     <Compile Include="IniFile.cs" />
     <Compile Include="CameraSlot.cs" />
     <Compile Include="CameraSettings.cs" />
     <Compile Include="ICameraManager.cs" />
+    <Compile Include="SerialDeviceConfig.cs" />
     <Compile Include="SerialSlot.cs" />
     <Compile Include="ISerialManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

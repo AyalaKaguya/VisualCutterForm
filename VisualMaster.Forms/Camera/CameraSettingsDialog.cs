@@ -88,26 +88,21 @@ namespace VisualMaster.Forms.Camera
 
             try
             {
-                var slot = _vision.GetSlotById(_slotId);
-                if (slot?.Camera != null)
+                Bitmap grabbed;
+                bool ok = _vision.TryGrabImage(_slotId, 2000, out grabbed);
+                if (ok && grabbed != null)
                 {
-                    var bmp = slot.Camera.TryGrabImage(out var grabbed, 2000)
-                        ? grabbed : null;
+                    var old = _previewBox.Image;
+                    _previewBox.Image = grabbed;
+                    old?.Dispose();
 
-                    if (bmp != null)
-                    {
-                        var old = _previewBox.Image;
-                        _previewBox.Image = bmp;
-                        old?.Dispose();
-
-                        var lbl = _panelDebug?.Controls.Find("lblDebugStatus", true);
-                        if (lbl.Length > 0) lbl[0].Text = $"单帧触发 · {bmp.Width}x{bmp.Height}";
-                    }
-                    else
-                    {
-                        var lbl = _panelDebug?.Controls.Find("lblDebugStatus", true);
-                        if (lbl.Length > 0) lbl[0].Text = "单帧触发超时";
-                    }
+                    var lbl = _panelDebug?.Controls.Find("lblDebugStatus", true);
+                    if (lbl.Length > 0) lbl[0].Text = $"单帧触发 · {grabbed.Width}x{grabbed.Height}";
+                }
+                else
+                {
+                    var lbl = _panelDebug?.Controls.Find("lblDebugStatus", true);
+                    if (lbl.Length > 0) lbl[0].Text = "单帧触发超时";
                 }
             }
             catch
@@ -124,10 +119,7 @@ namespace VisualMaster.Forms.Camera
             var btn = sender as Button;
             if (btn == null) return;
 
-            var slot = _vision.GetSlotById(_slotId);
-            if (slot == null) return;
-
-            if (slot.IsGrabbing)
+            if (_vision.IsCameraGrabbing(_slotId))
             {
                 _vision.StopAcquisition(_slotId);
                 btn.Text = "连续采集";
@@ -184,8 +176,7 @@ namespace VisualMaster.Forms.Camera
 
             try
             {
-                var slot = _vision.GetSlotById(_slotId);
-                bool grabbing = slot != null && slot.IsGrabbing;
+                bool grabbing = _vision != null && _vision.IsCameraGrabbing(_slotId);
 
                 var btnContinuous = _panelDebug?.Controls.Find("btnContinuous", true);
                 if (btnContinuous.Length > 0 && btnContinuous[0] is Button btn)
@@ -244,10 +235,9 @@ namespace VisualMaster.Forms.Camera
         {
             try
             {
-                var slot = _vision?.GetSlotById(_slotId);
-                if (slot?.Camera != null)
+                if (_vision != null && !string.IsNullOrEmpty(_slotId))
                 {
-                    var formats = slot.Camera.GetAvailablePixelFormats();
+                    var formats = _vision.GetAvailablePixelFormats(_slotId);
                     if (formats != null && formats.Length > 0)
                     {
                         _cmbPixelFormat.Items.Clear();

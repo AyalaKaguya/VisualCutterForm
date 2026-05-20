@@ -46,9 +46,15 @@
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="VisionController.cs" />
+    <Compile Include="VisionCameraRuntime.cs" />
+    <Compile Include="VisionGraphSync.cs" />
+    <Compile Include="VisionSerialRuntime.cs" />
     <Compile Include="AppConfig.cs" />
     <Compile Include="DarkTheme.cs" />
     <Compile Include="DisplayItem.cs" />
+    <Compile Include="RuntimeDiagnosticsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="SerialManagerForm.cs">
       <SubType>Form</SubType>
     </Compile>

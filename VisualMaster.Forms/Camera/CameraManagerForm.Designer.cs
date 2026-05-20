@@ -129,7 +129,7 @@ namespace VisualMaster.Forms.Camera
             this._tabSlotManager.Name = "_tabSlotManager";
             this._tabSlotManager.Size = new System.Drawing.Size(1309, 754);
             this._tabSlotManager.TabIndex = 1;
-            this._tabSlotManager.Text = "相机槽位";
+            this._tabSlotManager.Text = "相机设备";
             // 
             // _tab2Split
             // 
@@ -215,7 +215,7 @@ namespace VisualMaster.Forms.Camera
             this._lblSlotHeader.Padding = new System.Windows.Forms.Padding(6, 0, 0, 0);
             this._lblSlotHeader.Size = new System.Drawing.Size(281, 36);
             this._lblSlotHeader.TabIndex = 2;
-            this._lblSlotHeader.Text = "槽位";
+            this._lblSlotHeader.Text = "相机资源";
             this._lblSlotHeader.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // _settingsPanel

@@ -494,7 +494,7 @@ namespace VisualMaster.Forms.FlowEditor
         {
             return pd.Name == "SourceCode" || pd.Name == "源代码"
                 || pd.Name == "CameraSerial" || pd.Name == "相机序列号"
-                || pd.Name == "SlotId" || pd.Name == "相机槽位ID" || pd.Name == "串口槽位"
+                || pd.Name == "SlotId" || pd.Name == "相机设备" || pd.Name == "串口设备" || pd.Name == "相机槽位ID" || pd.Name == "串口槽位"
                 || pd.Name.ToLower().Contains("port")
                 || pd.Name == "ExtraReferences" || pd.Name == "额外引用"
                 || pd.Name == "NuGetPackages" || pd.Name == "NuGet包"
@@ -570,7 +570,7 @@ namespace VisualMaster.Forms.FlowEditor
                     return btnEdit;
                 }
 
-                if (pd.Name == "CameraSerial" || pd.Name == "相机序列号" || pd.Name == "相机槽位ID" || 
+                if (pd.Name == "CameraSerial" || pd.Name == "相机序列号" || pd.Name == "相机设备" || pd.Name == "相机槽位ID" || 
                     (pd.Name == "SlotId" && (_selectedNode is VisualMaster.WorkFlow.Nodes.SerialReceiveNode || _selectedNode is VisualMaster.WorkFlow.Nodes.SerialSendNode)))
                 {
                     var cmb = new ComboBox
@@ -611,7 +611,7 @@ namespace VisualMaster.Forms.FlowEditor
                     return cmb;
                 }
 
-                if (pd.Name == "SlotId" || pd.Name == "相机槽位ID")
+                if (pd.Name == "SlotId" || pd.Name == "相机设备" || pd.Name == "相机槽位ID")
                 {
                     var cmb = new ComboBox
                     {

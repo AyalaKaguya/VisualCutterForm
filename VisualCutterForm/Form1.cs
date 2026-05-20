@@ -1,4 +1,6 @@
 using VisualMaster.WorkFlow;
+using VisualMaster.WorkFlow.Data;
+using VisualMaster.WorkFlow.Triggers;
 using VisualMaster.Api;
 using VisualMaster.CameraLink;
 using VisualMaster.Communication;
@@ -393,7 +395,8 @@ namespace VisualCutterForm
                     OnStatusChanged(this, "流程已启动");
                     foreach (var sg in _flowGraph.SubGraphs)
                     {
-                        await _flowExecutor.TriggerSubGraph(sg.Id);
+                        using (var ctx = new FlowTriggerContext { SourceType = TriggerSourceType.Manual, TriggerName = "手动全部" })
+                            await _flowExecutor.TriggerSubGraph(sg.Id, ctx);
                     }
                     OnStatusChanged(this, "流程执行完毕");
                 });
@@ -411,7 +414,8 @@ namespace VisualCutterForm
                     _flowExecutor.LoadGraph(_flowGraph);
                     _flowExecutor.Start();
                     OnStatusChanged(this, $"执行子图: {sgCaptured.Name}");
-                    await _flowExecutor.TriggerSubGraph(sgCaptured.Id);
+                    using (var ctx = new FlowTriggerContext { SourceType = TriggerSourceType.Manual, TriggerName = sgCaptured.Name })
+                        await _flowExecutor.TriggerSubGraph(sgCaptured.Id, ctx);
                     OnStatusChanged(this, $"子图 [{sgCaptured.Name}] 执行完毕");
                 });
                 miItem.Enabled = canRun;
@@ -763,19 +767,8 @@ namespace VisualCutterForm
 
         private void ShowDiagnostics()
         {
-            var sb = new System.Text.StringBuilder();
-            sb.AppendLine($"版本: {Application.ProductVersion}");
-            sb.AppendLine($"运行目录: {AppDomain.CurrentDomain.BaseDirectory}");
-            sb.AppendLine($"配置文件: {_config?.FilePath ?? "无"}");
-            sb.AppendLine($"登录角色: {RoleDisplayName()}");
-            sb.AppendLine($"加载流程: {_config?.FlowFilePath ?? "无"}");
-            sb.AppendLine($"注册相机数: {_vision?.CameraManager?.Cameras?.Count ?? 0}");
-            sb.AppendLine($"相机槽位: {(_vision?.CameraManager?.Slots?.Count > 0 ? string.Join(", ", _vision.CameraManager.Slots.Select(s => s.SlotName + (s.IsConnected ? $" ({s.AssignedSerial})" : " (未连接)"))) : "无")}");
-            var openPorts = _vision?.SerialPorts?.Where(kv => kv.Value.IsOpen).Select(kv => kv.Key).ToList();
-            sb.AppendLine($"串口状态: {(openPorts != null && openPorts.Count > 0 ? $"已连接 ({string.Join(", ", openPorts)})" : "未连接")}");
-            sb.AppendLine($"日期: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-
-            MessageBox.Show(sb.ToString(), "诊断信息", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            using (var dlg = new RuntimeDiagnosticsForm(_vision.RuntimeDiagnostics))
+                dlg.ShowDialog(this);
         }
 
         private void ShowAbout()

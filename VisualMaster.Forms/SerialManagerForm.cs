@@ -3,12 +3,14 @@ using System.Drawing;
 using System.IO.Ports;
 using System.Linq;
 using System.Windows.Forms;
+using VisualMaster.Api;
 
 namespace VisualMaster.Forms
 {
     public partial class SerialManagerForm : Form
     {
         private VisionController _vision;
+        private SerialDeviceConfig _selectedDevice;
 
         public SerialManagerForm()
         {
@@ -18,17 +20,27 @@ namespace VisualMaster.Forms
         public SerialManagerForm(VisionController vision) : this()
         {
             _vision = vision ?? throw new ArgumentNullException(nameof(vision));
-            Text = "串口管理器";
+            Text = "通信资源管理";
             StartPosition = FormStartPosition.CenterParent;
             Font = new Font("Microsoft YaHei", 9F);
 
             _btnRefreshPorts.Click += (s, e) => RefreshPortList();
-            _btnAddSlot.Click += (s, e) => AddSlot();
-            _btnRemoveSlot.Click += (s, e) => RemoveSelectedSlot();
-            _btnConnect.Click += (s, e) => AddSlot();
-            _btnDisconnect.Click += (s, e) => RemoveSelectedSlot();
+            _btnAddSlot.Click += (s, e) => AddDevice();
+            _btnRemoveSlot.Click += (s, e) => RemoveSelectedDevice();
+            _btnConnect.Click += (s, e) => ConnectSelectedDevice();
+            _btnDisconnect.Click += (s, e) => DisconnectSelectedDevice();
             _slotListBox.SelectedIndexChanged += OnSlotSelected;
-            Closing += (s, e) => { foreach (var kv in _vision.SerialPorts.ToList()) _vision.DisconnectSerial(kv.Key); };
+            _txtSlotName.TextChanged += OnDeviceNameChanged;
+            _cmbPortName.TextChanged += OnDeviceConfigChanged;
+            _cmbParity.SelectedIndexChanged += OnDeviceConfigChanged;
+            _cmbStopBits.SelectedIndexChanged += OnDeviceConfigChanged;
+            _numBaudRate.ValueChanged += OnDeviceConfigChanged;
+            _numDataBits.ValueChanged += OnDeviceConfigChanged;
+            Closing += (s, e) =>
+            {
+                foreach (var device in _vision.GetSerialDeviceConfigs())
+                    _vision.DisconnectSerialDevice(device.DeviceId);
+            };
 
             RefreshPortList();
             RefreshSlotList();
@@ -57,33 +69,46 @@ namespace VisualMaster.Forms
         private void RefreshSlotList()
         {
             _slotListBox.Items.Clear();
-            foreach (var kv in _vision.SerialPorts)
+            foreach (var device in _vision.GetSerialDeviceConfigs())
             {
-                var status = kv.Value.IsOpen ? " [已连接]" : " [未连接]";
-                _slotListBox.Items.Add(new DisplayItem(kv.Key, $"{kv.Key}{status}"));
+                var status = _vision.IsSerialDeviceConnected(device.DeviceId) ? " [已连接]" : " [未连接]";
+                _slotListBox.Items.Add(new DisplayItem(device.DeviceId, $"{device.DisplayName}{status}") { Tag = device });
             }
+
+            if (_selectedDevice != null)
+            {
+                for (int i = 0; i < _slotListBox.Items.Count; i++)
+                {
+                    var item = _slotListBox.Items[i] as DisplayItem;
+                    if (item?.Id == _selectedDevice.DeviceId)
+                    {
+                        _slotListBox.SelectedIndex = i;
+                        return;
+                    }
+                }
+            }
+
+            if (_slotListBox.Items.Count > 0 && _selectedDevice == null)
+                _slotListBox.SelectedIndex = 0;
         }
 
-        private void AddSlot()
+        private void AddDevice()
         {
-            var port = _cmbPortName.Text?.Trim();
-            if (string.IsNullOrEmpty(port))
-            {
-                MessageBox.Show("请输入或选择一个串口名称。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            _selectedDevice = _vision.AddSerialDevice($"通信设备{_vision.GetSerialDeviceConfigs().Count + 1}", _cmbPortName.Text?.Trim());
+            SyncDeviceEditors();
+            RefreshSlotList();
+        }
+
+        private void ConnectSelectedDevice()
+        {
+            if (_selectedDevice == null)
                 return;
-            }
-            if (_vision.IsSerialOpen(port))
-            {
-                MessageBox.Show($"串口 {port} 已打开。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
+
             try
             {
-                var parity = _cmbParity.Text;
-                var stopBits = _cmbStopBits.Text;
-                var baud = (int)_numBaudRate.Value;
-                var dataBits = (int)_numDataBits.Value;
-                _vision.ConnectSerial(port, baud, dataBits, parity, stopBits);
+                SaveSelectedDevice();
+                _vision.ConnectSerialDevice(_selectedDevice.DeviceId);
+                _selectedDevice = _vision.GetSerialDeviceConfig(_selectedDevice.DeviceId);
                 RefreshPortList();
                 RefreshSlotList();
             }
@@ -93,11 +118,23 @@ namespace VisualMaster.Forms
             }
         }
 
-        private void RemoveSelectedSlot()
+        private void DisconnectSelectedDevice()
         {
-            var item = _slotListBox.SelectedItem as DisplayItem;
-            if (item == null) return;
-            _vision.DisconnectSerial(item.Id);
+            if (_selectedDevice == null)
+                return;
+
+            _vision.DisconnectSerialDevice(_selectedDevice.DeviceId);
+            RefreshPortList();
+            RefreshSlotList();
+        }
+
+        private void RemoveSelectedDevice()
+        {
+            if (_selectedDevice == null)
+                return;
+
+            _vision.RemoveSerialDevice(_selectedDevice.DeviceId);
+            _selectedDevice = null;
             RefreshPortList();
             RefreshSlotList();
             _btnConnect.Enabled = false;
@@ -108,8 +145,9 @@ namespace VisualMaster.Forms
         private void OnSlotSelected(object sender, EventArgs e)
         {
             var item = _slotListBox.SelectedItem as DisplayItem;
-            bool hasSel = item != null;
-            bool isOpen = hasSel && _vision.IsSerialOpen(item.Id);
+            _selectedDevice = item?.Tag as SerialDeviceConfig;
+            bool hasSel = _selectedDevice != null;
+            bool isOpen = hasSel && _vision.IsSerialDeviceConnected(_selectedDevice.DeviceId);
 
             _btnRemoveSlot.Enabled = hasSel;
             _btnConnect.Enabled = hasSel && !isOpen;
@@ -118,15 +156,66 @@ namespace VisualMaster.Forms
 
             if (hasSel)
             {
-                _txtSlotName.Text = item.Id;
-                _cmbPortName.Text = item.Id;
-                _lblSlotStatus.Text = isOpen ? $"{item.Id} 已连接" : $"{item.Id} 未连接";
+                SyncDeviceEditors();
+                _lblSlotStatus.Text = isOpen ? $"{_selectedDevice.DisplayName} 已连接" : $"{_selectedDevice.DisplayName} 未连接";
             }
             else
             {
                 _txtSlotName.Text = "";
+                _cmbPortName.Text = "";
                 _lblSlotStatus.Text = "";
             }
+        }
+
+        private void OnDeviceNameChanged(object sender, EventArgs e)
+        {
+            if (_selectedDevice == null)
+                return;
+
+            SaveSelectedDevice();
+            RefreshSlotList();
+        }
+
+        private void OnDeviceConfigChanged(object sender, EventArgs e)
+        {
+            if (_selectedDevice == null)
+                return;
+
+            SaveSelectedDevice();
+            RefreshSlotList();
+        }
+
+        private void SaveSelectedDevice()
+        {
+            if (_selectedDevice == null)
+                return;
+
+            var updated = new SerialDeviceConfig
+            {
+                DeviceId = _selectedDevice.DeviceId,
+                DisplayName = string.IsNullOrWhiteSpace(_txtSlotName.Text) ? _selectedDevice.DisplayName : _txtSlotName.Text.Trim(),
+                PortName = _cmbPortName.Text?.Trim(),
+                BaudRate = (int)_numBaudRate.Value,
+                DataBits = (int)_numDataBits.Value,
+                Parity = _cmbParity.Text,
+                StopBits = _cmbStopBits.Text,
+            };
+
+            _vision.UpdateSerialDevice(updated);
+            _selectedDevice = _vision.GetSerialDeviceConfig(updated.DeviceId);
+        }
+
+        private void SyncDeviceEditors()
+        {
+            if (_selectedDevice == null)
+                return;
+
+            _txtSlotName.Text = _selectedDevice.DisplayName ?? string.Empty;
+            _cmbPortName.Text = _selectedDevice.PortName ?? string.Empty;
+            _numBaudRate.Value = _selectedDevice.BaudRate;
+            _numDataBits.Value = _selectedDevice.DataBits;
+            _cmbParity.Text = string.IsNullOrWhiteSpace(_selectedDevice.Parity) ? "None" : _selectedDevice.Parity;
+            _cmbStopBits.Text = string.IsNullOrWhiteSpace(_selectedDevice.StopBits) ? "One" : _selectedDevice.StopBits;
         }
     }
 }

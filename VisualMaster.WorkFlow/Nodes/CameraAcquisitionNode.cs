@@ -17,7 +17,7 @@ namespace VisualMaster.WorkFlow.Nodes
     [NodeCategory("取像", "相机取像")]
     public class CameraAcquisitionNode : FlowNode
     {
-        [NodeProperty("相机槽位ID", Category = "取像")]
+        [NodeProperty("相机设备", Category = "取像")]
         public string SlotId { get; set; }
 
         [NodeProperty("触发模式", Category = "取像")]
@@ -26,6 +26,18 @@ namespace VisualMaster.WorkFlow.Nodes
         [NodeProperty("超时(ms)", Category = "取像", DefaultValue = 3000, Min = 100, Max = 60000)]
         public int TimeoutMs { get; set; } = 3000;
 
+        /// <summary>
+        /// 流程级曝光覆盖（微秒）。设为 -1 表示不覆盖，使用相机当前设置。
+        /// </summary>
+        [NodeProperty("曝光覆盖(us)", Category = "取像", DefaultValue = -1, Min = -1, Max = 1000000)]
+        public int ExposureOverrideUs { get; set; } = -1;
+
+        /// <summary>
+        /// 流程级增益覆盖（dB × 10，即 100 = 10.0 dB）。设为 -1 表示不覆盖。
+        /// </summary>
+        [NodeProperty("增益覆盖(dB×10)", Category = "取像", DefaultValue = -1, Min = -1, Max = 500)]
+        public int GainOverrideDb10 { get; set; } = -1;
+
         [NodeOutput("取像结果", Description = "AcquisitionResult")]
         public AcquisitionResult Result { get; set; }
 
@@ -33,65 +45,116 @@ namespace VisualMaster.WorkFlow.Nodes
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            dynamic vc = context.GetVariable<object>("VisionController");
-            if (vc == null)
-                throw new InvalidOperationException("VisionController not found in context.");
+            // 优先使用 context.Services，向后兼容保留 GetVariable 路径
+            var services = context.Services ?? context.GetVariable<IFlowServiceProvider>("VisionController");
+            if (services == null)
+                throw new InvalidOperationException("IFlowServiceProvider not found in context.");
 
-            CameraSlot slot = null;
-            if (!string.IsNullOrEmpty(SlotId))
-            {
-                slot = vc.GetSlotById(SlotId);
-            }
-            if (slot == null)
-            {
-                slot = vc.GetFirstSlot();
-            }
-            if (slot == null)
+            var slotId = !string.IsNullOrEmpty(SlotId)
+                ? SlotId
+                : services.GetFirstCameraDeviceId();
+
+            if (string.IsNullOrEmpty(slotId))
                 throw new InvalidOperationException("No camera slot available.");
+
+            // 应用流程级参数覆盖
+            ApplyParameterOverrides(services, slotId);
 
             if (Trigger == AcquisitionTriggerMode.HardTrigger)
             {
-                var fifo = vc.GetFifo(slot.SlotId);
-                if (fifo == null)
-                    throw new InvalidOperationException("Camera FIFO not available.");
-
-                var bmp = fifo.TryDequeue(TimeoutMs);
-                if (bmp == null)
-                    throw new TimeoutException("Timeout waiting for frame from camera.");
-
-                using (bmp)
+                // 优先消费本次触发帧（同一设备的触发快照）
+                if (context.TryGetTriggeredFrameClone(out var triggeredBmp, slotId))
                 {
-                    var mat = ImageConverter.BitmapToMat(bmp);
-                    Result = new AcquisitionResult(mat)
+                    using (triggeredBmp)
                     {
-                        CameraSerial = slot.AssignedSerial ?? slot.SlotName,
-                        Timestamp = DateTime.Now,
-                        TriggerModeUsed = "HardTrigger",
-                    };
-                    mat.Dispose();
+                        Result = CreateResultFromBitmap(triggeredBmp, services, slotId, "TriggerFrame");
+                    }
+                    // 将触发快照注册到 context
+                    if (context.Trigger?.CameraSnapshot != null)
+                        context.RegisterSnapshot(slotId, context.Trigger.CameraSnapshot);
+                    return;
+                }
+
+                var afterSequence = services.GetLatestFrameSequenceNumber(slotId);
+                using (var snapshot = services.WaitForNextFrameSnapshot(slotId, afterSequence, TimeoutMs))
+                {
+                    if (snapshot == null)
+                        throw new TimeoutException("Timeout waiting for frame from camera.");
+
+                    context.RegisterSnapshot(slotId, snapshot);
+                    using (var bmp = snapshot.CloneFrame())
+                    {
+                        Result = CreateResultFromBitmap(bmp, services, slotId, "HardTrigger");
+                    }
                 }
             }
             else
             {
-                if (!slot.IsConnected || slot.Camera == null)
+                if (!services.IsCameraConnected(slotId))
                     throw new InvalidOperationException("Camera is not connected.");
 
-                bool got = slot.Camera.TryGrabImage(out Bitmap bmp, TimeoutMs);
-                if (!got || bmp == null)
-                    throw new TimeoutException("Soft trigger grab timed out.");
+                var afterSequence = services.GetLatestFrameSequenceNumber(slotId);
+                services.TriggerSoftware(slotId);
 
-                using (bmp)
+                using (var snapshot = services.WaitForNextFrameSnapshot(slotId, afterSequence, TimeoutMs))
                 {
-                    var mat = ImageConverter.BitmapToMat(bmp);
-                    Result = new AcquisitionResult(mat)
+                    if (snapshot == null)
+                        throw new TimeoutException("Soft trigger grab timed out.");
+
+                    context.RegisterSnapshot(slotId, snapshot);
+                    using (var bmp = snapshot.CloneFrame())
                     {
-                        CameraSerial = slot.AssignedSerial ?? slot.SlotName,
-                        Timestamp = DateTime.Now,
-                        TriggerModeUsed = "SoftTrigger",
-                    };
-                    mat.Dispose();
+                        Result = CreateResultFromBitmap(bmp, services, slotId, "SoftTrigger");
+                    }
                 }
+            }
+        }
+
+        private void ApplyParameterOverrides(IFlowServiceProvider services, string slotId)
+        {
+            if (ExposureOverrideUs < 0 && GainOverrideDb10 < 0)
+                return;
+
+            var current = services.GetCameraSettings(slotId);
+            if (current == null) return;
+
+            var updated = current.Clone();
+            bool changed = false;
+
+            if (ExposureOverrideUs >= 0)
+            {
+                updated.ExposureTimeUs = ExposureOverrideUs;
+                changed = true;
+            }
+            if (GainOverrideDb10 >= 0)
+            {
+                updated.GainRaw = GainOverrideDb10 / 10.0;
+                changed = true;
+            }
+
+            if (changed)
+                services.UpdateCameraSettings(slotId, updated);
+        }
+
+        private static AcquisitionResult CreateResultFromBitmap(Bitmap bmp, IFlowServiceProvider services, string slotId, string triggerMode)
+        {
+            var mat = ImageConverter.BitmapToMat(bmp);
+            try
+            {
+                return new AcquisitionResult(mat)
+                {
+                    CameraSerial = services.GetCameraAssignedSerial(slotId) ?? services.GetCameraDisplayName(slotId) ?? slotId,
+                    Timestamp = DateTime.Now,
+                    Width = bmp.Width,
+                    Height = bmp.Height,
+                    TriggerModeUsed = triggerMode,
+                };
+            }
+            finally
+            {
+                mat.Dispose();
             }
         }
     }
 }
+

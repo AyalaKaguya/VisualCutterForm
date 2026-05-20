@@ -8,19 +8,18 @@ namespace VisualMaster.Api
 {
     public class ImageFifo : IDisposable
     {
+        private readonly CameraFrameBuffer _buffer;
         private readonly ConcurrentQueue<Bitmap> _queue;
         private readonly object _lock = new object();
         private Bitmap _latestFrame;
-        private volatile int _capacity;
         private volatile bool _disposed;
 
         public int Capacity
         {
-            get { return _capacity; }
+            get { return _buffer.Capacity; }
             set
             {
-                if (value < 1) value = 1;
-                _capacity = value;
+                _buffer.Capacity = value;
                 TrimToCapacity();
             }
         }
@@ -43,15 +42,24 @@ namespace VisualMaster.Api
 
         public event EventHandler<Bitmap> FrameEnqueued;
 
+        public CameraFrameBuffer Buffer => _buffer;
+
         public ImageFifo(int capacity = 10)
+            : this(new CameraFrameBuffer(capacity))
         {
-            _capacity = Math.Max(1, capacity);
+        }
+
+        public ImageFifo(CameraFrameBuffer buffer)
+        {
+            _buffer = buffer ?? throw new ArgumentNullException(nameof(buffer));
             _queue = new ConcurrentQueue<Bitmap>();
         }
 
-        public void Enqueue(Bitmap frame)
+        public void Enqueue(Bitmap frame, string deviceId = null, string correlationId = null)
         {
             if (_disposed || frame == null) return;
+
+            _buffer.Publish(frame, deviceId, correlationId);
 
             var queueClone = (Bitmap)frame.Clone();
             _queue.Enqueue(queueClone);
@@ -151,11 +159,12 @@ namespace VisualMaster.Api
             }
 
             Clear();
+            _buffer.Dispose();
         }
 
         private void TrimToCapacity()
         {
-            while (_queue.Count > _capacity)
+            while (_queue.Count > _buffer.Capacity)
             {
                 if (_queue.TryDequeue(out var oldFrame))
                 {

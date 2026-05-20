@@ -2,9 +2,9 @@ using VisualMaster.Api;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
+using VisualMaster.WorkFlow.Data;
 
 namespace VisualMaster.WorkFlow.Triggers
 {
@@ -30,7 +30,7 @@ namespace VisualMaster.WorkFlow.Triggers
             foreach (var entry in entries)
             {
                 if (!entry.Enabled) continue;
-                if (entry.TargetSubGraphId == Guid.Empty) continue;
+                if (entry.GetTargetSubGraphIds().Count == 0) continue;
 
                 var state = new ActiveTriggerState
                 {
@@ -67,7 +67,7 @@ namespace VisualMaster.WorkFlow.Triggers
 
             try
             {
-                await _executor.TriggerSubGraph(state.Entry.TargetSubGraphId);
+                await DispatchTrigger(state.Entry, CreateTriggerContext(state.Entry));
             }
             catch (Exception ex)
             {
@@ -97,21 +97,21 @@ namespace VisualMaster.WorkFlow.Triggers
 
         private IDisposable BindCameraFrame(TriggerEntry entry, SemaphoreSlim semaphore)
         {
-            if (string.IsNullOrEmpty(entry.CameraSlotId)) return null;
+            if (string.IsNullOrEmpty(entry.CameraDeviceId)) return null;
 
-            var fifo = _services.GetFifo(entry.CameraSlotId);
-            if (fifo == null) return null;
+            var fifo = _services.GetFifo(entry.CameraDeviceId);
+            var buffer = fifo?.Buffer;
+            if (buffer == null) return null;
 
-            var capturedId = entry.TargetSubGraphId;
             var capturedName = entry.Name;
 
-            async void handler(object s, Bitmap frame)
+            async void handler(object s, CameraFrameSnapshot snapshot)
             {
                 if (_disposed) return;
                 if (!await semaphore.WaitAsync(0)) return;
                 try
                 {
-                    await _executor.TriggerSubGraph(capturedId);
+                    await DispatchTrigger(entry, CreateCameraTriggerContext(entry, snapshot));
                 }
                 catch (Exception ex)
                 {
@@ -123,16 +123,15 @@ namespace VisualMaster.WorkFlow.Triggers
                 }
             }
 
-            fifo.FrameEnqueued += handler;
+            buffer.SnapshotPublished += handler;
             return new BindingDisposer(() =>
             {
-                fifo.FrameEnqueued -= handler;
+                buffer.SnapshotPublished -= handler;
             });
         }
 
         private IDisposable BindTimer(TriggerEntry entry, SemaphoreSlim semaphore)
         {
-            var capturedId = entry.TargetSubGraphId;
             var capturedName = entry.Name;
             var interval = Math.Max(1, entry.TimerIntervalMs);
 
@@ -147,7 +146,7 @@ namespace VisualMaster.WorkFlow.Triggers
                     {
                         try
                         {
-                            await _executor.TriggerSubGraph(capturedId);
+                            await DispatchTrigger(entry, CreateTriggerContext(entry));
                         }
                         catch (Exception ex)
                         {
@@ -172,21 +171,22 @@ namespace VisualMaster.WorkFlow.Triggers
 
         private IDisposable BindSerialMatch(TriggerEntry entry, SemaphoreSlim semaphore)
         {
-            if (string.IsNullOrEmpty(entry.SerialSlotId) || entry.MatchRule == null) return null;
+            if (string.IsNullOrEmpty(entry.SerialDeviceId) || entry.MatchRule == null) return null;
 
-            var slot = _services.GetSerialSlot(entry.SerialSlotId);
-            if (slot == null) return null;
+            var portName = _services.GetSerialPortName(entry.SerialDeviceId);
+            if (string.IsNullOrEmpty(portName)) return null;
 
-            if (!_services.IsSerialOpen(slot.PortName))
+            var baudRate = _services.GetSerialBaudRate(entry.SerialDeviceId);
+
+            if (!_services.IsSerialOpen(portName))
             {
-                try { _services.ConnectSerial(slot.PortName, slot.BaudRate); }
+                try { _services.ConnectSerial(portName, baudRate); }
                 catch { return null; }
             }
 
             var portsObj = _services.SerialPorts;
-            if (!portsObj.TryGetValue(slot.PortName, out var sp) || sp == null) return null;
+            if (!portsObj.TryGetValue(portName, out var sp) || sp == null) return null;
 
-            var capturedId = entry.TargetSubGraphId;
             var capturedRule = entry.MatchRule;
             var capturedName = entry.Name;
 
@@ -194,22 +194,22 @@ namespace VisualMaster.WorkFlow.Triggers
             {
                 if (_disposed) return;
                 if (capturedRule.Matches(text))
-                    FireMatch(text, null);
+                    FireMatch(text, null, capturedRule.RuleId);
             }
 
             void dataHandler(object s, byte[] data)
             {
                 if (_disposed) return;
                 if (capturedRule.MatchesBinary(data))
-                    FireMatch(null, data);
+                    FireMatch(null, data, capturedRule.RuleId);
             }
 
-            async void FireMatch(string text, byte[] data)
+            async void FireMatch(string text, byte[] data, string matchedRuleId)
             {
                 if (!await semaphore.WaitAsync(0)) return;
                 try
                 {
-                    await _executor.TriggerSubGraph(capturedId);
+                    await DispatchTrigger(entry, CreateSerialTriggerContext(entry, text, data, matchedRuleId));
                 }
                 catch (Exception ex)
                 {
@@ -235,6 +235,70 @@ namespace VisualMaster.WorkFlow.Triggers
         {
             _disposed = true;
             Deactivate();
+        }
+
+        private static FlowTriggerContext CreateTriggerContext(TriggerEntry entry)
+        {
+            return new FlowTriggerContext
+            {
+                TriggerId = entry.Id,
+                TriggerName = entry.Name,
+                SourceType = entry.SourceType,
+                SourceDeviceId = entry.SourceType == TriggerSourceType.CameraFrame ? entry.CameraDeviceId : entry.SerialDeviceId,
+                OccurredAt = DateTime.Now,
+            };
+        }
+
+        private static FlowTriggerContext CreateCameraTriggerContext(TriggerEntry entry, CameraFrameSnapshot snapshot)
+        {
+            var context = CreateTriggerContext(entry);
+            context.CameraSnapshot = snapshot?.AddRef();
+            return context;
+        }
+
+        private static FlowTriggerContext CreateSerialTriggerContext(TriggerEntry entry, string text, byte[] data, string matchedRuleId)
+        {
+            var context = CreateTriggerContext(entry);
+            context.SerialText = text;
+            context.SerialData = data != null ? (byte[])data.Clone() : null;
+            context.MatchedRuleId = matchedRuleId;
+            return context;
+        }
+
+        private async Task DispatchTrigger(TriggerEntry entry, FlowTriggerContext triggerContext)
+        {
+            var targetIds = entry.GetTargetSubGraphIds();
+            if (targetIds.Count == 0)
+                return;
+
+            try
+            {
+                var tasks = new List<Task>(targetIds.Count);
+                foreach (var targetId in targetIds)
+                {
+                    var targetSubGraph = _executor.Graph?.FindSubGraph(targetId);
+                    _services.RuntimeDiagnostics?.Record(new RuntimeDiagnosticEvent
+                    {
+                        EventType = RuntimeDiagnosticEventType.TriggerDispatched,
+                        CorrelationId = triggerContext?.CorrelationId,
+                        DeviceId = triggerContext?.SourceDeviceId,
+                        SnapshotId = triggerContext?.CameraSnapshotId,
+                        SnapshotSequence = triggerContext?.CameraSnapshotSequence ?? 0,
+                        TriggerId = entry.Id.ToString(),
+                        TriggerName = entry.Name,
+                        FlowId = targetId.ToString("N"),
+                        FlowName = targetSubGraph?.Name,
+                        Message = $"触发器已分发到流程: {targetSubGraph?.Name ?? targetId.ToString()}",
+                    });
+                    tasks.Add(_executor.TriggerSubGraph(targetId, triggerContext?.Clone()));
+                }
+
+                await Task.WhenAll(tasks);
+            }
+            finally
+            {
+                triggerContext?.Dispose();
+            }
         }
 
         private class ActiveTriggerState

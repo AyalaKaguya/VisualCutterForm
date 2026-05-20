@@ -31,7 +31,7 @@ namespace VisualMaster.Forms.TriggerEditor
             this._chkEnabled = new System.Windows.Forms.CheckBox();
             this._txtName = new System.Windows.Forms.TextBox();
             this._cmbSourceType = new System.Windows.Forms.ComboBox();
-            this._cmbTargetSubGraph = new System.Windows.Forms.ComboBox();
+            this._lstTargetSubGraphs = new System.Windows.Forms.CheckedListBox();
             this._numMaxConcurrent = new System.Windows.Forms.NumericUpDown();
             this._cmbCameraSlot = new System.Windows.Forms.ComboBox();
             this._numTimerInterval = new System.Windows.Forms.NumericUpDown();
@@ -176,7 +176,7 @@ namespace VisualMaster.Forms.TriggerEditor
             this._propPanel.Controls.Add(this._chkEnabled);
             this._propPanel.Controls.Add(this._txtName);
             this._propPanel.Controls.Add(this._cmbSourceType);
-            this._propPanel.Controls.Add(this._cmbTargetSubGraph);
+            this._propPanel.Controls.Add(this._lstTargetSubGraphs);
             this._propPanel.Controls.Add(this._numMaxConcurrent);
             this._propPanel.Controls.Add(this._cmbCameraSlot);
             this._propPanel.Controls.Add(this._numTimerInterval);
@@ -276,32 +276,33 @@ namespace VisualMaster.Forms.TriggerEditor
             // 
             this._propPanel.Controls.Add(new System.Windows.Forms.Label
             {
-                Text = "目标子图:",
+                Text = "目标流程:",
                 Location = new System.Drawing.Point(14, 140),
                 Size = new System.Drawing.Size(100, 22),
                 ForeColor = System.Drawing.Color.FromArgb(180, 180, 180),
                 TextAlign = System.Drawing.ContentAlignment.MiddleRight,
             });
             // 
-            // _cmbTargetSubGraph
+            // _lstTargetSubGraphs
             // 
-            this._cmbTargetSubGraph.BackColor = System.Drawing.Color.FromArgb(70, 70, 70);
-            this._cmbTargetSubGraph.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this._cmbTargetSubGraph.ForeColor = System.Drawing.Color.White;
-            this._cmbTargetSubGraph.Font = new System.Drawing.Font("Microsoft YaHei", 9F);
-            this._cmbTargetSubGraph.Location = new System.Drawing.Point(120, 136);
-            this._cmbTargetSubGraph.Name = "_cmbTargetSubGraph";
-            this._cmbTargetSubGraph.Size = new System.Drawing.Size(300, 32);
-            this._cmbTargetSubGraph.TabIndex = 4;
+            this._lstTargetSubGraphs.BackColor = System.Drawing.Color.FromArgb(70, 70, 70);
+            this._lstTargetSubGraphs.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this._lstTargetSubGraphs.CheckOnClick = true;
+            this._lstTargetSubGraphs.ForeColor = System.Drawing.Color.White;
+            this._lstTargetSubGraphs.Font = new System.Drawing.Font("Microsoft YaHei", 9F);
+            this._lstTargetSubGraphs.Location = new System.Drawing.Point(120, 136);
+            this._lstTargetSubGraphs.Name = "_lstTargetSubGraphs";
+            this._lstTargetSubGraphs.Size = new System.Drawing.Size(300, 70);
+            this._lstTargetSubGraphs.TabIndex = 4;
             // 
             // _lblCameraSlot
             // 
             this._lblCameraSlot.AutoSize = true;
-            this._lblCameraSlot.Location = new System.Drawing.Point(14, 178);
+            this._lblCameraSlot.Location = new System.Drawing.Point(14, 216);
             this._lblCameraSlot.Name = "_lblCameraSlot";
             this._lblCameraSlot.Size = new System.Drawing.Size(100, 24);
             this._lblCameraSlot.TabIndex = 11;
-            this._lblCameraSlot.Text = "相机槽位:";
+            this._lblCameraSlot.Text = "相机设备:";
             this._lblCameraSlot.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this._lblCameraSlot.ForeColor = System.Drawing.Color.FromArgb(180, 180, 180);
             // 
@@ -311,7 +312,7 @@ namespace VisualMaster.Forms.TriggerEditor
             this._cmbCameraSlot.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this._cmbCameraSlot.ForeColor = System.Drawing.Color.White;
             this._cmbCameraSlot.Font = new System.Drawing.Font("Microsoft YaHei", 9F);
-            this._cmbCameraSlot.Location = new System.Drawing.Point(120, 174);
+            this._cmbCameraSlot.Location = new System.Drawing.Point(120, 212);
             this._cmbCameraSlot.Name = "_cmbCameraSlot";
             this._cmbCameraSlot.Size = new System.Drawing.Size(300, 32);
             this._cmbCameraSlot.TabIndex = 5;
@@ -319,7 +320,7 @@ namespace VisualMaster.Forms.TriggerEditor
             // _lblTimerInterval
             // 
             this._lblTimerInterval.AutoSize = true;
-            this._lblTimerInterval.Location = new System.Drawing.Point(14, 216);
+            this._lblTimerInterval.Location = new System.Drawing.Point(14, 254);
             this._lblTimerInterval.Name = "_lblTimerInterval";
             this._lblTimerInterval.Size = new System.Drawing.Size(100, 24);
             this._lblTimerInterval.TabIndex = 12;
@@ -332,7 +333,7 @@ namespace VisualMaster.Forms.TriggerEditor
             this._numTimerInterval.BackColor = System.Drawing.Color.FromArgb(70, 70, 70);
             this._numTimerInterval.ForeColor = System.Drawing.Color.White;
             this._numTimerInterval.Font = new System.Drawing.Font("Microsoft YaHei", 9F);
-            this._numTimerInterval.Location = new System.Drawing.Point(120, 212);
+            this._numTimerInterval.Location = new System.Drawing.Point(120, 250);
             this._numTimerInterval.Maximum = new decimal(new int[] { 60000, 0, 0, 0 });
             this._numTimerInterval.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             this._numTimerInterval.Name = "_numTimerInterval";
@@ -343,11 +344,11 @@ namespace VisualMaster.Forms.TriggerEditor
             // _lblSerialSlot
             // 
             this._lblSerialSlot.AutoSize = true;
-            this._lblSerialSlot.Location = new System.Drawing.Point(14, 254);
+            this._lblSerialSlot.Location = new System.Drawing.Point(14, 292);
             this._lblSerialSlot.Name = "_lblSerialSlot";
             this._lblSerialSlot.Size = new System.Drawing.Size(100, 24);
             this._lblSerialSlot.TabIndex = 13;
-            this._lblSerialSlot.Text = "串口槽位:";
+            this._lblSerialSlot.Text = "串口设备:";
             this._lblSerialSlot.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this._lblSerialSlot.ForeColor = System.Drawing.Color.FromArgb(180, 180, 180);
             // 
@@ -357,7 +358,7 @@ namespace VisualMaster.Forms.TriggerEditor
             this._cmbSerialSlot.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this._cmbSerialSlot.ForeColor = System.Drawing.Color.White;
             this._cmbSerialSlot.Font = new System.Drawing.Font("Microsoft YaHei", 9F);
-            this._cmbSerialSlot.Location = new System.Drawing.Point(120, 250);
+            this._cmbSerialSlot.Location = new System.Drawing.Point(120, 288);
             this._cmbSerialSlot.Name = "_cmbSerialSlot";
             this._cmbSerialSlot.Size = new System.Drawing.Size(300, 32);
             this._cmbSerialSlot.TabIndex = 7;

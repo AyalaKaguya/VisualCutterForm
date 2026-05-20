@@ -47,7 +47,7 @@ namespace VisualMaster.WorkFlow
         private void PreCompileNodes()
         {
             if (_graph == null) return;
-            foreach (var sg in _graph.SubGraphs)
+            foreach (var sg in _graph.Project.SubGraphs)
             {
                 foreach (var node in sg.Nodes)
                 {
@@ -67,7 +67,7 @@ namespace VisualMaster.WorkFlow
 
             _triggerManager?.Dispose();
             _triggerManager = new TriggerManager(_services, this);
-            _triggerManager.Activate(_graph.Triggers).Wait();
+            _triggerManager.Activate(_graph.Project.Routing.Triggers).Wait();
         }
 
         public void Stop()
@@ -83,22 +83,22 @@ namespace VisualMaster.WorkFlow
             }
 
             _runningCts.Clear();
-            foreach (var sg in _graph?.SubGraphs ?? Enumerable.Empty<FlowSubGraph>())
+            foreach (var sg in _graph?.Project?.SubGraphs ?? Enumerable.Empty<FlowSubGraph>())
                 sg.IsRunning = false;
         }
 
-        public async Task TriggerSubGraph(Guid subGraphId)
+        public async Task TriggerSubGraph(Guid subGraphId, FlowTriggerContext triggerContext = null)
         {
             var sg = _graph?.FindSubGraph(subGraphId);
             if (sg == null) return;
-            await RunSubGraphOnce(sg, CancellationToken.None);
+            await RunSubGraphOnce(sg, CancellationToken.None, triggerContext);
         }
 
-        public async Task TriggerSubGraphByName(string name)
+        public async Task TriggerSubGraphByName(string name, FlowTriggerContext triggerContext = null)
         {
             var sg = _graph?.FindSubGraphByName(name);
             if (sg != null)
-                await RunSubGraphOnce(sg, CancellationToken.None);
+                await RunSubGraphOnce(sg, CancellationToken.None, triggerContext);
         }
 
         public async Task FireManualTrigger(Guid triggerId)
@@ -107,57 +107,118 @@ namespace VisualMaster.WorkFlow
                 await _triggerManager.FireManual(triggerId);
         }
 
-        private async Task RunSubGraphOnce(FlowSubGraph sg, CancellationToken cancellationToken)
+        private async Task RunSubGraphOnce(FlowSubGraph sg, CancellationToken cancellationToken, FlowTriggerContext triggerContext = null)
         {
-            var context = new FlowContext(sg.Id.ToString());
-            context.SetVariable("VisionController", _services);
-            context.OnLog += msg => LogMessage?.Invoke(this, $"[信息] {msg}");
-            context.OnLogWarning += msg => LogMessage?.Invoke(this, $"[警告] {msg}");
-            context.OnLogError += msg => LogMessage?.Invoke(this, $"[错误] {msg}");
-
-            var levels = sg.GetTopologicalLevels();
-
-            foreach (var level in levels)
+            using (var context = new FlowContext(sg.Id.ToString()))
             {
-                if (level.Count == 0) continue;
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var tasks = new List<Task>();
-                foreach (var node in level)
+                var meta = new FlowRunMetadata
                 {
-                    if (node.IsBackgroundWorker) continue;
+                    SubGraphId = sg.Id.ToString(),
+                    SubGraphName = sg.Name,
+                    CorrelationId = triggerContext?.CorrelationId,
+                };
+                context.Initialize(meta, _services);
+                context.SetTrigger(triggerContext?.Clone());
+                context.OnLog += msg => LogMessage?.Invoke(this, $"[信息] {msg}");
+                context.OnLogWarning += msg => LogMessage?.Invoke(this, $"[警告] {msg}");
+                context.OnLogError += msg => LogMessage?.Invoke(this, $"[错误] {msg}");
 
-                    tasks.Add(Task.Run(async () =>
+                _services.RuntimeDiagnostics?.Record(new RuntimeDiagnosticEvent
+                {
+                    EventType = RuntimeDiagnosticEventType.FlowStarted,
+                    CorrelationId = triggerContext?.CorrelationId,
+                    DeviceId = triggerContext?.SourceDeviceId,
+                    SnapshotId = triggerContext?.CameraSnapshotId,
+                    SnapshotSequence = triggerContext?.CameraSnapshotSequence ?? 0,
+                    TriggerId = triggerContext?.TriggerId.ToString(),
+                    TriggerName = triggerContext?.TriggerName,
+                    FlowId = meta.RunId,
+                    FlowName = sg.Name,
+                    Message = $"流程开始: {sg.Name}",
+                });
+
+                var levels = sg.GetTopologicalLevels();
+
+                try
+                {
+                    foreach (var level in levels)
                     {
-                        var sw = Stopwatch.StartNew();
-                        try
-                        {
-                            node.BindInputsToProperties(context);
-                            await node.ExecuteAsync(context, cancellationToken);
-                            node.WriteOutputsFromProperties(context);
-                    foreach (var pin in node.Inputs)
-                        pin.LastValue = pin.GetValue(context);
-                    foreach (var pin in node.Outputs)
-                        pin.LastValue = context.GetPinValue(pin);
-                        }
-                        catch (OperationCanceledException)
-                        {
-                        }
-                        catch (Exception ex)
-                        {
-                            var msg = $"节点 [{node.Name}] 执行失败: {ex.Message}";
-                            LogMessage?.Invoke(this, msg);
-                            ExecutionError?.Invoke(this, new InvalidOperationException(msg, ex));
-                        }
-                        finally
-                        {
-                            sw.Stop();
-                            node.LastExecutionTimeMs = sw.Elapsed.TotalMilliseconds;
-                        }
-                    }, cancellationToken));
-                }
+                        if (level.Count == 0) continue;
+                        cancellationToken.ThrowIfCancellationRequested();
 
-                await Task.WhenAll(tasks);
+                        var tasks = new List<Task>();
+                        foreach (var node in level)
+                        {
+                            if (node.IsBackgroundWorker) continue;
+
+                            tasks.Add(Task.Run(async () =>
+                            {
+                                var sw = Stopwatch.StartNew();
+                                try
+                                {
+                                    node.BindInputsToProperties(context);
+                                    await node.ExecuteAsync(context, cancellationToken);
+                                    node.WriteOutputsFromProperties(context);
+                                    foreach (var pin in node.Inputs)
+                                        pin.LastValue = pin.GetValue(context);
+                                    foreach (var pin in node.Outputs)
+                                        pin.LastValue = context.GetPinValue(pin);
+                                }
+                                catch (OperationCanceledException)
+                                {
+                                }
+                                catch (Exception ex)
+                                {
+                                    var msg = $"节点 [{node.Name}] 执行失败: {ex.Message}";
+                                    LogMessage?.Invoke(this, msg);
+                                    ExecutionError?.Invoke(this, new InvalidOperationException(msg, ex));
+                                }
+                                finally
+                                {
+                                    sw.Stop();
+                                    node.LastExecutionTimeMs = sw.Elapsed.TotalMilliseconds;
+                                }
+                            }, cancellationToken));
+                        }
+
+                        await Task.WhenAll(tasks);
+                    }
+
+                    meta.CompletedAt = DateTime.Now;
+                    meta.Succeeded = true;
+                    _services.RuntimeDiagnostics?.Record(new RuntimeDiagnosticEvent
+                    {
+                        EventType = RuntimeDiagnosticEventType.FlowCompleted,
+                        CorrelationId = triggerContext?.CorrelationId,
+                        DeviceId = triggerContext?.SourceDeviceId,
+                        SnapshotId = triggerContext?.CameraSnapshotId,
+                        SnapshotSequence = triggerContext?.CameraSnapshotSequence ?? 0,
+                        TriggerId = triggerContext?.TriggerId.ToString(),
+                        TriggerName = triggerContext?.TriggerName,
+                        FlowId = meta.RunId,
+                        FlowName = sg.Name,
+                        Message = $"流程完成: {sg.Name}",
+                    });
+                }
+                catch (Exception ex)
+                {
+                    meta.CompletedAt = DateTime.Now;
+                    meta.Succeeded = false;
+                    _services.RuntimeDiagnostics?.Record(new RuntimeDiagnosticEvent
+                    {
+                        EventType = RuntimeDiagnosticEventType.FlowFailed,
+                        CorrelationId = triggerContext?.CorrelationId,
+                        DeviceId = triggerContext?.SourceDeviceId,
+                        SnapshotId = triggerContext?.CameraSnapshotId,
+                        SnapshotSequence = triggerContext?.CameraSnapshotSequence ?? 0,
+                        TriggerId = triggerContext?.TriggerId.ToString(),
+                        TriggerName = triggerContext?.TriggerName,
+                        FlowId = meta.RunId,
+                        FlowName = sg.Name,
+                        Message = $"流程失败: {ex.Message}",
+                    });
+                    throw;
+                }
             }
         }
 

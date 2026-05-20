@@ -10,13 +10,105 @@ namespace VisualMaster.WorkFlow
     {
         public const string CurrentVersion = "1.2";
 
-        public string Name { get; set; } = "流程图";
-        public string Version { get; set; } = CurrentVersion;
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
-        public List<FlowSubGraph> SubGraphs { get; set; } = new List<FlowSubGraph>();
-        public List<CameraSlot> CameraSlots { get; set; } = new List<CameraSlot>();
-        public List<SerialSlot> SerialSlots { get; set; } = new List<SerialSlot>();
-        public List<TriggerEntry> Triggers { get; set; } = new List<TriggerEntry>();
+        private FlowProjectDefinition _project = FlowProjectDefinition.CreateDefault(CurrentVersion);
+
+        public FlowProjectDefinition Project
+        {
+            get
+            {
+                if (_project == null)
+                    _project = FlowProjectDefinition.CreateDefault(CurrentVersion);
+
+                _project.EnsureInitialized(CurrentVersion);
+                return _project;
+            }
+            set
+            {
+                _project = value ?? FlowProjectDefinition.CreateDefault(CurrentVersion);
+                _project.EnsureInitialized(CurrentVersion);
+            }
+        }
+
+        public string Name
+        {
+            get => Project.Metadata.Name;
+            set => Project.Metadata.Name = string.IsNullOrWhiteSpace(value) ? "流程图" : value;
+        }
+
+        public string Version
+        {
+            get => Project.Metadata.Version;
+            set => Project.Metadata.Version = string.IsNullOrWhiteSpace(value) ? CurrentVersion : value;
+        }
+
+        public DateTime CreatedAt
+        {
+            get => Project.Metadata.CreatedAt;
+            set => Project.Metadata.CreatedAt = value;
+        }
+
+        public List<FlowSubGraph> SubGraphs
+        {
+            get => Project.SubGraphs;
+            set => Project.SubGraphs = value ?? new List<FlowSubGraph>();
+        }
+
+        public List<CameraDeviceConfig> CameraDevices
+        {
+            get => Project.Resources.CameraDevices;
+            set => Project.Resources.CameraDevices = value ?? new List<CameraDeviceConfig>();
+        }
+
+        public List<SerialDeviceConfig> SerialDevices
+        {
+            get => Project.Resources.SerialDevices;
+            set => Project.Resources.SerialDevices = value ?? new List<SerialDeviceConfig>();
+        }
+
+        public List<TriggerEntry> Triggers
+        {
+            get => Project.Routing.Triggers;
+            set => Project.Routing.Triggers = value ?? new List<TriggerEntry>();
+        }
+
+        public IReadOnlyList<CameraDeviceConfig> GetCameraDevicesOrLegacy()
+        {
+            return CameraDevices ?? new List<CameraDeviceConfig>();
+        }
+
+        public IReadOnlyList<SerialDeviceConfig> GetSerialDevicesOrLegacy()
+        {
+            return SerialDevices ?? new List<SerialDeviceConfig>();
+        }
+
+        public IReadOnlyList<CameraSlot> CreateLegacyCameraSlots()
+        {
+            return GetCameraDevicesOrLegacy()
+                .Select(device => new CameraSlot
+                {
+                    SlotId = device.DeviceId,
+                    SlotName = device.DisplayName,
+                    AssignedSerial = device.AssignedSerial,
+                    Settings = device.Settings?.Clone() ?? new CameraSettings(),
+                })
+                .ToList();
+        }
+
+        public IReadOnlyList<SerialSlot> CreateLegacySerialSlots()
+        {
+            return GetSerialDevicesOrLegacy()
+                .Select(device => new SerialSlot
+                {
+                    SlotId = device.DeviceId,
+                    SlotName = device.DisplayName,
+                    PortName = device.PortName,
+                    BaudRate = device.BaudRate,
+                    DataBits = device.DataBits,
+                    Parity = device.Parity,
+                    StopBits = device.StopBits,
+                })
+                .ToList();
+        }
 
         public FlowSubGraph FindSubGraph(Guid id)
         {

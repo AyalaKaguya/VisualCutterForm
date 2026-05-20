@@ -54,6 +54,7 @@
   <ItemGroup>
     <Compile Include="FlowNode.cs" />
     <Compile Include="FlowGraph.cs" />
+    <Compile Include="FlowProjectDefinition.cs" />
     <Compile Include="FlowSubGraph.cs" />
     <Compile Include="FlowExecutor.cs" />
     <Compile Include="FlowContext.cs" />
@@ -66,9 +67,15 @@
     <Compile Include="Triggers\TriggerEntry.cs" />
     <Compile Include="Triggers\TriggerManager.cs" />
     <Compile Include="ImageConverter.cs" />
+    <Compile Include="ICameraRuntimeService.cs" />
+    <Compile Include="ISerialRuntimeService.cs" />
     <Compile Include="ServiceProvider.cs" />
+    <Compile Include="IDeviceConfigurationService.cs" />
     <Compile Include="IFlowServiceProvider.cs" />
     <Compile Include="Data\AcquisitionResult.cs" />
+    <Compile Include="Data\FlowLogEntry.cs" />
+    <Compile Include="Data\FlowRunMetadata.cs" />
+    <Compile Include="Data\FlowTriggerContext.cs" />
     <Compile Include="Data\SerialTriggerRule.cs" />
     <Compile Include="Nodes\AcqResultToMatNode.cs" />
     <Compile Include="Nodes\CameraAcquisitionNode.cs" />

@@ -1,5 +1,11 @@
+using System;
+
 namespace VisualMaster.Api
 {
+    /// <summary>
+    /// 已废弃的串口槽位类。配置请使用 <see cref="SerialDeviceConfig"/>。
+    /// </summary>
+    [Obsolete("Use SerialDeviceConfig for configuration.", false)]
     public class SerialSlot
     {
         public string SlotId { get; set; }
@@ -9,7 +15,6 @@ namespace VisualMaster.Api
         public int DataBits { get; set; } = 8;
         public string Parity { get; set; } = "None";
         public string StopBits { get; set; } = "One";
-        public ISerialPort Port { get; set; }
-        public bool IsConnected { get; set; }
     }
 }
+

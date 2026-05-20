@@ -142,7 +142,7 @@ namespace VisualMaster.Forms
             this._tabSlotManager.Name = "_tabSlotManager";
             this._tabSlotManager.Size = new System.Drawing.Size(826, 460);
             this._tabSlotManager.TabIndex = 1;
-            this._tabSlotManager.Text = "串口槽位";
+            this._tabSlotManager.Text = "串口设备";
             // 
             // _slotSplit
             // 
@@ -203,7 +203,7 @@ namespace VisualMaster.Forms
             this._lblSlotHeader.Height = 24;
             this._lblSlotHeader.Name = "_lblSlotHeader";
             this._lblSlotHeader.Padding = new System.Windows.Forms.Padding(4, 0, 0, 0);
-            this._lblSlotHeader.Text = "槽位";
+            this._lblSlotHeader.Text = "通信资源";
             this._lblSlotHeader.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // _settingsPanel

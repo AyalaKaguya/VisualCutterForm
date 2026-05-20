@@ -6,6 +6,8 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Threading.Tasks;
 using VisualMaster.WorkFlow;
+using VisualMaster.WorkFlow.Data;
+using VisualMaster.WorkFlow.Triggers;
 using VisualMaster.Communication;
 using VisualMaster.Forms;
 using VisualMaster.Forms.Camera;
@@ -27,6 +29,7 @@ namespace VisualMaster.Forms.FlowEditor
         private ToolStripButton _btnRunOnce;
         private ToolStripButton _btnRunContinuous;
         private ToolStripButton _btnStop;
+        private ToolStripLabel _lblTriggerBindings;
         private bool _runningContinuous;
         private SplitContainer _mainSplit;
         private VisionController _visionController;
@@ -39,12 +42,13 @@ namespace VisualMaster.Forms.FlowEditor
 
             InitializeForm();
 
-            if (_graph.SubGraphs.Count == 0)
+            if (_graph.Project.SubGraphs.Count == 0)
                 _graph.AddSubGraph("子图1");
 
-            _canvas.SubGraph = _graph.SubGraphs[0];
-            _tabSubGraphs.TabPages.Add(new TabPage(_graph.SubGraphs[0].Name) { Tag = _graph.SubGraphs[0].Id });
+            _canvas.SubGraph = _graph.Project.SubGraphs[0];
+            _tabSubGraphs.TabPages.Add(new TabPage(_graph.Project.SubGraphs[0].Name) { Tag = _graph.Project.SubGraphs[0].Id });
             _tabSubGraphs.SelectedTab = _tabSubGraphs.TabPages[0];
+            UpdateCurrentSubGraphBindingSummary();
         }
 
         public void LoadGraphData(FlowGraph graph)
@@ -54,11 +58,12 @@ namespace VisualMaster.Forms.FlowEditor
             _executor.LoadGraph(_graph);
 
             _tabSubGraphs.TabPages.Clear();
-            foreach (var sg in _graph.SubGraphs)
+            foreach (var sg in _graph.Project.SubGraphs)
             {
                 _tabSubGraphs.TabPages.Add(new TabPage(sg.Name) { Tag = sg.Id });
             }
-            _canvas.SubGraph = _graph.SubGraphs.FirstOrDefault();
+            _canvas.SubGraph = _graph.Project.SubGraphs.FirstOrDefault();
+            UpdateCurrentSubGraphBindingSummary();
         }
 
         private void InitializeForm()
@@ -92,7 +97,7 @@ namespace VisualMaster.Forms.FlowEditor
             miEdit.DropDownItems.Add(new ToolStripSeparator());
             miEdit.DropDownItems.Add("添加子图", null, (s, e) =>
             {
-                var sg = _graph.AddSubGraph($"子图{_graph.SubGraphs.Count + 1}");
+                var sg = _graph.AddSubGraph($"子图{_graph.Project.SubGraphs.Count + 1}");
                 AddSubGraphTab(sg);
             });
             miEdit.DropDownItems.Add("删除当前子图", null, (s, e) => DeleteCurrentSubGraph());
@@ -122,6 +127,8 @@ namespace VisualMaster.Forms.FlowEditor
             {
                 using (var dlg = new TriggerEditorForm(_graph, _executor, _visionController))
                     dlg.ShowDialog(this);
+
+                UpdateCurrentSubGraphBindingSummary();
             });
 
             _menuStrip.Items.Add(miFile);
@@ -147,11 +154,11 @@ namespace VisualMaster.Forms.FlowEditor
             _inspector = new FlowPropertyInspector
             {
                 Dock = DockStyle.Fill,
-                GetActiveCameras = () => _visionController?.CameraManager?.Slots?
-                    .Select(s => new DisplayItem(s.SlotId, $"{s.SlotName} ({s.SlotId.Substring(0, 8)})"))
+                GetActiveCameras = () => _visionController?.GetCameraDeviceConfigs()?
+                    .Select(s => new DisplayItem(s.DeviceId, $"{s.DisplayName} ({ShortId(s.DeviceId)})"))
                     .ToList() ?? new List<DisplayItem>(),
-                GetActiveSerialSlots = () => _visionController?.GetSerialSlots()?
-                    .Select(s => new DisplayItem(s.SlotId, $"{s.SlotName} ({s.PortName})"))
+                GetActiveSerialSlots = () => _visionController?.GetSerialDeviceConfigs()?
+                    .Select(s => new DisplayItem(s.DeviceId, $"{s.DisplayName} ({s.PortName})"))
                     .ToList() ?? new List<DisplayItem>(),
             };
             _inspector.PropertyChanged += (node, prop, val) =>
@@ -187,6 +194,14 @@ namespace VisualMaster.Forms.FlowEditor
             _runToolbar.Items.Add(_btnRunOnce);
             _runToolbar.Items.Add(_btnRunContinuous);
             _runToolbar.Items.Add(_btnStop);
+            _runToolbar.Items.Add(new ToolStripSeparator());
+            _runToolbar.Items.Add(new ToolStripLabel("当前流程绑定:") { ForeColor = Color.FromArgb(180, 180, 180) });
+            _lblTriggerBindings = new ToolStripLabel("无")
+            {
+                ForeColor = Color.FromArgb(220, 220, 220),
+                AutoToolTip = true,
+            };
+            _runToolbar.Items.Add(_lblTriggerBindings);
 
             var btnManualTrigger = new ToolStripDropDownButton("▶ 手动触发")
             {
@@ -196,13 +211,18 @@ namespace VisualMaster.Forms.FlowEditor
             btnManualTrigger.DropDownOpening += (s, e) =>
             {
                 btnManualTrigger.DropDownItems.Clear();
-                var manualTriggers = _graph?.Triggers?.Where(t => t.Enabled && t.SourceType == VisualMaster.WorkFlow.Triggers.TriggerSourceType.Manual).ToList();
+                var manualTriggers = _graph?.Project?.Routing?.Triggers?.Where(t => t.Enabled && t.SourceType == VisualMaster.WorkFlow.Triggers.TriggerSourceType.Manual).ToList();
                 if (manualTriggers != null && manualTriggers.Count > 0)
                 {
                     foreach (var t in manualTriggers)
                     {
-                        var sg = _graph.FindSubGraph(t.TargetSubGraphId);
-                        var label = sg != null ? $"{t.Name} → {sg.Name}" : t.Name;
+                        var targetNames = t.GetTargetSubGraphIds()
+                            .Select(id => _graph.FindSubGraph(id)?.Name)
+                            .Where(name => !string.IsNullOrEmpty(name))
+                            .ToList();
+                        var label = targetNames.Count > 0
+                            ? $"{t.Name} → {string.Join(", ", targetNames)}"
+                            : t.Name;
                         btnManualTrigger.DropDownItems.Add(label, null, async (s2, e2) =>
                         {
                             await _executor.FireManualTrigger(t.Id);
@@ -214,6 +234,8 @@ namespace VisualMaster.Forms.FlowEditor
                 {
                     using (var dlg = new VisualMaster.Forms.TriggerEditor.TriggerEditorForm(_graph, _executor, _visionController))
                         dlg.ShowDialog(this);
+
+                    UpdateCurrentSubGraphBindingSummary();
                 });
             };
             _runToolbar.Items.Add(btnManualTrigger);
@@ -346,6 +368,14 @@ namespace VisualMaster.Forms.FlowEditor
             _executor.ExecutionError += OnExecError;
         }
 
+        private static string ShortId(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+                return "";
+
+            return id.Length <= 8 ? id : id.Substring(0, 8);
+        }
+
         private void OnExecLog(object sender, string msg)
         {
             AppendLog(msg, Color.FromArgb(180, 180, 180));
@@ -382,7 +412,8 @@ namespace VisualMaster.Forms.FlowEditor
             {
                 while (_runningContinuous)
                 {
-                    await _executor.TriggerSubGraph(sg.Id);
+                    using (var ctx = new FlowTriggerContext { SourceType = TriggerSourceType.Manual, TriggerName = "手动连续" })
+                        await _executor.TriggerSubGraph(sg.Id, ctx);
                     _canvas.Invalidate();
                     await Task.Delay(10);
                 }
@@ -406,6 +437,7 @@ namespace VisualMaster.Forms.FlowEditor
             var tab = new TabPage(sg.Name) { Tag = sg.Id };
             _tabSubGraphs.TabPages.Add(tab);
             _tabSubGraphs.SelectedTab = tab;
+            UpdateCurrentSubGraphBindingSummary();
         }
 
         private void OnSubGraphTabChanged(object sender, EventArgs e)
@@ -418,6 +450,7 @@ namespace VisualMaster.Forms.FlowEditor
                     _canvas.SubGraph = sg;
                     _canvas.ClearSelection();
                     _inspector.ShowSubGraph(sg);
+                    UpdateCurrentSubGraphBindingSummary();
                 }
             }
         }
@@ -441,7 +474,7 @@ namespace VisualMaster.Forms.FlowEditor
             var tab = _tabSubGraphs.SelectedTab;
             _tabSubGraphs.TabPages.Remove(tab);
 
-            if (_graph.SubGraphs.Count == 0)
+            if (_graph.Project.SubGraphs.Count == 0)
             {
                 var newSg = _graph.AddSubGraph("子图1");
                 _tabSubGraphs.TabPages.Add(new TabPage("子图1") { Tag = newSg.Id });
@@ -453,6 +486,8 @@ namespace VisualMaster.Forms.FlowEditor
                 _tabSubGraphs.SelectedTab = firstTab;
                 _canvas.SubGraph = _graph.FindSubGraph((Guid)firstTab.Tag);
             }
+
+            UpdateCurrentSubGraphBindingSummary();
         }
 
         private void RenameCurrentSubGraph()
@@ -468,6 +503,7 @@ namespace VisualMaster.Forms.FlowEditor
             {
                 sg.Name = newName;
                 _tabSubGraphs.SelectedTab.Text = sg.Name;
+                UpdateCurrentSubGraphBindingSummary();
             }
         }
 
@@ -484,9 +520,10 @@ namespace VisualMaster.Forms.FlowEditor
             _graph = new FlowGraph();
             _graph.AddSubGraph("子图1");
             _tabSubGraphs.TabPages.Clear();
-            _tabSubGraphs.TabPages.Add(new TabPage("子图1") { Tag = _graph.SubGraphs[0].Id });
-            _canvas.SubGraph = _graph.SubGraphs[0];
+            _tabSubGraphs.TabPages.Add(new TabPage("子图1") { Tag = _graph.Project.SubGraphs[0].Id });
+            _canvas.SubGraph = _graph.Project.SubGraphs[0];
             _executor.LoadGraph(_graph);
+            UpdateCurrentSubGraphBindingSummary();
         }
 
         private void OpenGraph()
@@ -513,11 +550,12 @@ namespace VisualMaster.Forms.FlowEditor
                         }
 
                         _tabSubGraphs.TabPages.Clear();
-                        foreach (var sg in _graph.SubGraphs)
+                        foreach (var sg in _graph.Project.SubGraphs)
                         {
                             _tabSubGraphs.TabPages.Add(new TabPage(sg.Name) { Tag = sg.Id });
                         }
-                        _canvas.SubGraph = _graph.SubGraphs.FirstOrDefault();
+                        _canvas.SubGraph = _graph.Project.SubGraphs.FirstOrDefault();
+                        UpdateCurrentSubGraphBindingSummary();
                     }
                     catch (Exception ex)
                     {
@@ -580,7 +618,8 @@ namespace VisualMaster.Forms.FlowEditor
 
             try
             {
-                await _executor.TriggerSubGraph(sg.Id);
+                using (var ctx = new FlowTriggerContext { SourceType = TriggerSourceType.Manual, TriggerName = "手动单次" })
+                    await _executor.TriggerSubGraph(sg.Id, ctx);
             }
             catch (Exception ex)
             {
@@ -590,6 +629,41 @@ namespace VisualMaster.Forms.FlowEditor
             {
                 _canvas.Invalidate();
             }
+        }
+
+        private void UpdateCurrentSubGraphBindingSummary()
+        {
+            if (_lblTriggerBindings == null)
+                return;
+
+            var subGraph = _canvas?.SubGraph;
+            if (subGraph == null)
+            {
+                _lblTriggerBindings.Text = "无";
+                _lblTriggerBindings.ToolTipText = "当前没有选中的流程。";
+                return;
+            }
+
+            var boundTriggers = _graph?.Project?.Routing?.Triggers?
+                .Where(t => t.GetTargetSubGraphIds().Contains(subGraph.Id))
+                .Select(t => t.Name)
+                .Where(name => !string.IsNullOrWhiteSpace(name))
+                .Distinct()
+                .ToList() ?? new List<string>();
+
+            if (boundTriggers.Count == 0)
+            {
+                _lblTriggerBindings.Text = "无";
+                _lblTriggerBindings.ToolTipText = $"流程 {subGraph.Name} 当前没有触发器绑定。";
+                return;
+            }
+
+            var summary = string.Join("，", boundTriggers.Take(3));
+            if (boundTriggers.Count > 3)
+                summary += $" 等 {boundTriggers.Count} 个";
+
+            _lblTriggerBindings.Text = summary;
+            _lblTriggerBindings.ToolTipText = string.Join(Environment.NewLine, boundTriggers);
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
