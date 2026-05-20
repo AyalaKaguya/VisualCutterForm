@@ -9,6 +9,13 @@ namespace VisualMaster.Api
         bool IsInitialized { get; }
         RuntimeDiagnosticsHub Diagnostics { get; set; }
         void Initialize();
+
+        /// <summary>
+        /// 将上层提供的相机系统配置注入管理器。
+        /// 必须在 Initialize() 之前或之后立即调用；调用后管理器拥有对该配置对象的引用。
+        /// </summary>
+        void LoadConfig(CameraSystemConfig config);
+
         IReadOnlyList<CameraInfo> Cameras { get; }
         List<CameraInfo> EnumerateCameras();
 

@@ -14,9 +14,15 @@ namespace VisualMaster.Api
         public string TriggerActivation { get; set; } = "RisingEdge";
         public int FifoCapacity { get; set; } = 10;
 
+        /// <summary>
+        /// 黑白模式：无论 PixelFormat 是彩色还是黑白，都将最终帧额外转换为灰度输出。
+        /// </summary>
+        public bool MonochromeOutput { get; set; } = false;
+
         public CameraSettings Clone()
         {
             return (CameraSettings)MemberwiseClone();
         }
     }
 }
+

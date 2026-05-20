@@ -1,8 +1,11 @@
 using VisualMaster.Api;
+using VisualMaster.CameraLink.Adapter;
+using VisualMaster.CameraLink.API;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Threading.Tasks;
 using MvCameraControl;
 
 namespace VisualMaster.CameraLink
@@ -36,9 +39,21 @@ namespace VisualMaster.CameraLink
         private readonly List<DeviceEntry> _devices = new List<DeviceEntry>();
         private volatile bool _disposed;
 
+        /// <summary>注册的相机适配器列表（多品牌扩展点）。</summary>
+        private readonly List<ICameraAdapter> _adapters = new List<ICameraAdapter>();
+
+        /// <summary>从 CameraSystemConfig 注入的配置容器。</summary>
+        private CameraSystemConfig _systemConfig;
+
         public IReadOnlyList<CameraInfo> Cameras => _enumeratedCameras.AsReadOnly();
         public bool IsInitialized { get; private set; }
         public RuntimeDiagnosticsHub Diagnostics { get; set; }
+
+        public CameraManager()
+        {
+            // 默认注册 Hikrobot MVS 适配器
+            _adapters.Add(new HikrobotAdapter());
+        }
 
         public IReadOnlyList<CameraDeviceConfig> CameraDevices =>
             _devices.Select(d => d.Config.Clone()).ToList().AsReadOnly();
@@ -63,11 +78,111 @@ namespace VisualMaster.CameraLink
             IsInitialized = true;
         }
 
+        /// <inheritdoc />
+        public void LoadConfig(CameraSystemConfig config)
+        {
+            // 取消旧配置事件订阅
+            if (_systemConfig != null)
+            {
+                _systemConfig.DeviceAdded   -= OnConfigDeviceAdded;
+                _systemConfig.DeviceRemoved -= OnConfigDeviceRemoved;
+                _systemConfig.DeviceUpdated -= OnConfigDeviceUpdated;
+            }
+
+            _systemConfig = config;
+
+            if (_systemConfig == null) return;
+
+            // 以配置为权威来源，同步 _devices 列表
+            SyncDevicesFromConfig(_systemConfig);
+
+            // 订阅后续配置变更
+            _systemConfig.DeviceAdded   += OnConfigDeviceAdded;
+            _systemConfig.DeviceRemoved += OnConfigDeviceRemoved;
+            _systemConfig.DeviceUpdated += OnConfigDeviceUpdated;
+        }
+
+        private void SyncDevicesFromConfig(CameraSystemConfig config)
+        {
+            var configIds = new HashSet<string>(config.Devices.Select(d => d.DeviceId));
+
+            // 移除已不在配置中的设备
+            foreach (var entry in _devices.ToList())
+            {
+                if (!configIds.Contains(entry.Config.DeviceId))
+                {
+                    if (entry.Camera != null) CloseDevice(entry.Config.DeviceId);
+                    _devices.Remove(entry);
+                }
+            }
+
+            // 添加新设备
+            foreach (var devCfg in config.Devices)
+            {
+                if (FindEntry(devCfg.DeviceId) == null)
+                    AddDeviceEntry(devCfg.Clone());
+            }
+        }
+
+        // ── CameraSystemConfig 变更事件 ───────────────────────────────
+        private void OnConfigDeviceAdded(object sender, CameraDeviceConfig cfg)
+        {
+            if (FindEntry(cfg.DeviceId) == null)
+                AddDeviceEntry(cfg.Clone());
+        }
+
+        private void OnConfigDeviceRemoved(object sender, string deviceId)
+        {
+            RemoveDevice(deviceId);
+        }
+
+        private void OnConfigDeviceUpdated(object sender, CameraDeviceConfig cfg)
+        {
+            UpdateDeviceSettings(cfg.DeviceId, cfg.Settings);
+        }
+
+
         public List<CameraInfo> EnumerateCameras()
         {
             _enumeratedCameras.Clear();
             if (!IsInitialized) Initialize();
 
+            // 并发扫描所有已注册的可用适配器
+            var availableAdapters = _adapters.Where(a => a.IsAvailable).ToList();
+            if (availableAdapters.Count > 0)
+            {
+                var tasks = availableAdapters.Select(adapter => Task.Run(() =>
+                {
+                    try
+                    {
+                        return (IList<CameraInfo>)adapter.Scan()
+                            .Select(d =>
+                            {
+                                // 仅转换信息，不实际 Open
+                                return new CameraInfo
+                                {
+                                    ModelName         = d.ModelName ?? "",
+                                    SerialNumber      = d.SerialNumber ?? "",
+                                    ManufacturerName  = d.ManufacturerName ?? "",
+                                    TransportTypeName = d.TransportType ?? "",
+                                    DeviceVersion     = d.DeviceVersion ?? "",
+                                    IpAddress         = IpStringToUint(d.IpAddress),
+                                    RawInfo           = d.RawInfo,
+                                };
+                            }).ToList();
+                    }
+                    catch { return (IList<CameraInfo>)new List<CameraInfo>(); }
+                })).ToArray();
+
+                Task.WaitAll(tasks);
+                foreach (var t in tasks)
+                    if (t.Result != null)
+                        _enumeratedCameras.AddRange(t.Result);
+
+                return _enumeratedCameras;
+            }
+
+            // 兜底：直接用 MVS SDK 枚举（向前兼容）
             var tLayerTypes = DeviceTLayerType.MvGigEDevice | DeviceTLayerType.MvUsbDevice
                 | DeviceTLayerType.MvGenTLGigEDevice | DeviceTLayerType.MvGenTLCXPDevice
                 | DeviceTLayerType.MvGenTLCameraLinkDevice | DeviceTLayerType.MvGenTLXoFDevice;
@@ -364,6 +479,18 @@ namespace VisualMaster.CameraLink
                 Settings = entry.Config.Settings?.Clone() ?? new CameraSettings(),
                 AssignedSerial = entry.AssignedSerial ?? entry.Config.AssignedSerial,
             };
+        }
+
+        private static uint IpStringToUint(string ip)
+        {
+            if (string.IsNullOrEmpty(ip)) return 0;
+            try
+            {
+                var bytes = System.Net.IPAddress.Parse(ip).GetAddressBytes();
+                return ((uint)bytes[0] << 24) | ((uint)bytes[1] << 16)
+                     | ((uint)bytes[2] << 8)  |  (uint)bytes[3];
+            }
+            catch { return 0; }
         }
 
         private static string TransportTypeToString(DeviceTLayerType type)

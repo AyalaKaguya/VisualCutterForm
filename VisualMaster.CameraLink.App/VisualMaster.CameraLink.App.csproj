@@ -4,10 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>afc9c44c-4155-40a6-b333-971924253c41</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>VisualMaster.Api</RootNamespace>
-    <AssemblyName>VisualMaster.Api</AssemblyName>
+    <ProjectGuid>{C2A1E3F7-5B8D-4C91-A0E2-7F3D9B4E6A2C}</ProjectGuid>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>VisualMaster.CameraLink.App</RootNamespace>
+    <AssemblyName>VisualMaster.CameraLink.App</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -33,34 +34,38 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
+    <!-- WPF -->
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="WindowsBase" />
+    <!-- JSON 序列化（无需 NuGet）-->
+    <Reference Include="System.Web.Extensions" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ICamera.cs" />
-    <Compile Include="CameraInfo.cs" />
-    <Compile Include="CameraFrameBuffer.cs" />
-    <Compile Include="CameraFrameSnapshot.cs" />
-    <Compile Include="CameraDeviceConfig.cs" />
-    <Compile Include="CameraDeviceStatus.cs" />
-    <Compile Include="CameraSystemConfig.cs" />
-    <Compile Include="UserRole.cs" />
-    <Compile Include="ISerialPort.cs" />
-    <Compile Include="ImageFifo.cs" />
-    <Compile Include="RuntimeDiagnosticEvent.cs" />
-    <Compile Include="RuntimeDiagnosticsHub.cs" />
-    <Compile Include="IniFile.cs" />
-    <Compile Include="CameraSlot.cs" />
-    <Compile Include="CameraSettings.cs" />
-    <Compile Include="ICameraManager.cs" />
-    <Compile Include="SerialDeviceConfig.cs" />
-    <Compile Include="SerialSlot.cs" />
-    <Compile Include="ISerialManager.cs" />
+    <!-- WPF 入口 -->
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <!-- 配置文件 -->
+    <Compile Include="CameraConfigFile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\VisualMaster.Api\VisualMaster.Api.csproj">
+      <Project>{afc9c44c-4155-40a6-b333-971924253c41}</Project>
+      <Name>VisualMaster.Api</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VisualMaster.CameraLink\VisualMaster.CameraLink.csproj">
+      <Project>{8AE7EBD1-875E-4868-9FA0-A6A89050CE98}</Project>
+      <Name>VisualMaster.CameraLink</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

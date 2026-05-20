@@ -5,6 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{8AE7EBD1-875E-4868-9FA0-A6A89050CE98}</ProjectGuid>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <RootNamespace>VisualMaster.CameraLink</RootNamespace>
     <AssemblyName>VisualMaster.CameraLink</AssemblyName>
@@ -39,14 +40,55 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+    <!-- WPF 引用 -->
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="WindowsBase" />
     <Reference Include="MvCameraControl.Net">
       <HintPath>C:\Program Files (x86)\MVS\Development\DotNet\AnyCpu\MvCameraControl.Net.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MvsCamera.cs" />
+    <!-- API 层 -->
+    <Compile Include="API\CameraAcquireMode.cs" />
+    <Compile Include="API\DiscoveredCamera.cs" />
+    <Compile Include="API\FrameAcquiredEventArgs.cs" />
+    <Compile Include="API\ICameraAdapter.cs" />
+    <Compile Include="API\ICameraDeviceDriver.cs" />
+    <!-- Adapter 层 -->
+    <Compile Include="Adapter\HikrobotAdapter.cs" />
+    <Compile Include="Adapter\HikrobotDevice.cs" />
+    <!-- Core 层 -->
+    <Compile Include="Core\ManagedCamera.cs" />
+    <!-- 根命名空间（保持对外 API 兼容） -->
     <Compile Include="CameraManager.cs" />
+    <Compile Include="MvsCamera.cs" />
+    <!-- UI / ViewModels -->
+    <Compile Include="UI\ViewModels\NotifyBase.cs" />
+    <Compile Include="UI\ViewModels\RelayCommand.cs" />
+    <Compile Include="UI\ViewModels\CameraConfigViewModel.cs" />
+    <Compile Include="UI\ViewModels\CameraItemViewModel.cs" />
+    <Compile Include="UI\ViewModels\CameraManagerViewModel.cs" />
+    <!-- UI / XAML code-behind -->
+    <Compile Include="UI\CameraManagerPanel.xaml.cs">
+      <DependentUpon>CameraManagerPanel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\CameraManagerWindow.xaml.cs">
+      <DependentUpon>CameraManagerWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- WPF XAML 文件 -->
+    <Page Include="UI\CameraManagerPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\CameraManagerWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VisualMaster.Api\VisualMaster.Api.csproj">
