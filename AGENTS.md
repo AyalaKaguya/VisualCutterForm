@@ -7,10 +7,11 @@
   ```
   VisualCutterForm (app shell) → VisualMaster.Forms (UI) → VisualMaster.WorkFlow (engine)
                                                   ↘ VisualMaster.Communication (serial)
-                                                  ↘ VisualMaster.CameraLink (cameras)
+                                                  ↘ VisualMaster.CameraLink (cameras) ← WPF
   ← All depend on VisualMaster.Api (interfaces + data types)
   ```
-- `VisualMaster.Forms` is the UI library (ImageViewer, VisionController, AppConfig, Camera/* forms, FlowEditor/* forms, TriggerEditor/*, CodeEditor/*) — all reusable controls live here
+- `VisualMaster.Forms` is the UI library (ImageViewer, VisionController, AppConfig, Camera/* forms, FlowEditor/* forms, TriggerEditor/*, CodeEditor/*) — all reusable WinForms controls live here
+- `VisualMaster.CameraLink` is a **WPF** project — contains camera HW abstractions, MVS SDK adapter, and WPF camera UI (CameraManagerWindow, CameraImageViewer, CameraPreviewControl). Has its own ViewModels with MVVM pattern.
 - `VisualCutterForm` only has shell forms: `Form1.cs`, `LoginForm.cs`, `DefaultLoginForm.cs`, `Program.cs`
 
 ## Dev Environment
@@ -72,6 +73,47 @@ When building WinForms controls in code (not Designer), you **must** call `Suspe
 - `FlowSubGraph` no longer has a `Trigger` property
 - Backward compat for old `.flow` files is intentionally NOT supported
 
+### CameraLink refactoring — critical changes
+
+#### CameraSlot is obsolete
+`CameraSlot` is marked `[Obsolete]`. Use `CameraDeviceConfig` / `CameraDeviceStatus` instead. The old slot-based API (`Slots`, `AddSlot`, `RemoveSlot`, `OpenSlot`, `CloseSlot`, `IsSlotOpen`) on `ICameraManager` is `[Obsolete]`. New API uses `Device`-based naming:
+- `CameraDevices` / `AddDevice` / `RemoveDevice` / `OpenDevice` / `CloseDevice` / `IsDeviceOpen`
+
+#### Two parallel camera access paths
+1. **Legacy path**: `MvsCamera` implements `ICamera` directly — uses `CameraInfo.RawInfo` as `IDeviceInfo`. Has `GetLatestFrame()`, internal `_latestFrame` cache, and `TriggerSoftware()` that reconfigures TriggerMode before commanding.
+2. **New path**: `HikrobotDevice` (implements `ICameraDeviceDriver`) → wrapped by `ManagedCamera` (aggregates driver + `CameraDeviceConfig` + `CameraFrameBuffer`) → managed by `CameraManager` (implements `ICameraManager`). Uses `HikrobotAdapter` for discovery.
+
+#### CameraFrameBuffer / CameraFrameSnapshot
+New thread-safe frame queue with `Publish()`, `PeekLatestSnapshot()`, `WaitForNextSnapshot()`. Snapshots are **ref-counted** — call `Dispose()` or use `CloneFrame()` for a standalone Bitmap. `ImageFifo` now has a `CameraFrameBuffer`-backed constructor overload.
+
+#### CameraSettings additions
+- `PixelFormat` (string) — camera pixel format, applied via `SetEnumValueByString("PixelFormat", ...)`
+- `MonochromeOutput` (bool, default false) — if true, `ManagedCamera.OnFrameAcquired` converts color frames to grayscale via ColorMatrix before publishing
+
+#### GetAvailablePixelFormats()
+Available on `ICamera`, `ICameraDeviceDriver`, `ManagedCamera`, `CameraManager`. Queries camera hardware via MVS SDK:
+```csharp
+_device.Parameters.GetEnumValue("PixelFormat", out IEnumValue enumValue);
+enumValue.SupportEnumEntries.Select(e => e.Symbolic).ToArray();
+```
+
+#### RuntimeDiagnosticsHub
+Thread-safe diagnostic event ring buffer on `ICameraManager.Diagnostics` and `ManagedCamera.Diagnostics`. Events: `SnapshotPublished`, `TriggerDispatched`, `FlowStarted/Completed/Failed`. Inject into `RuntimeDiagnosticEvent` with device/flow/trigger correlation IDs.
+
+#### MVS SDK calling conventions (HikrobotDevice / MvsCamera)
+```
+SetEnumValueByString("ParameterName", "EnumEntry")
+SetFloatValue("ExposureTime", ...) / SetFloatValue("Gain", ...)
+SetIntValue("Width"/"Height"/"OffsetX"/"OffsetY")
+SetCommandValue("TriggerSoftware")
+GetEnumValue("PixelFormat", out IEnumValue)
+GetFloatValue("ExposureTime", out IFloatValue) → ev.CurValue
+GetIntValue("Width", out IIntValue) → w.CurValue
+StreamGrabber.SetImageNodeNum(5u); StreamGrabber.StartGrabbing()
+StreamGrabber.GetImageBuffer(timeoutMs, out IFrameOut); frame.Image.ToBitmap()
+StreamGrabber.FrameGrabedEvent += OnFrameGrabbed
+```
+
 ### Namespace structure
 ```
 VisualMaster.Forms              — VisionController, AppConfig, DarkTheme, DisplayItem, ImageViewer
@@ -83,6 +125,12 @@ VisualMaster.WorkFlow           — FlowGraph, FlowExecutor, FlowSerializer, Flo
 VisualMaster.WorkFlow.Nodes     — All node types
 VisualMaster.WorkFlow.Triggers  — TriggerEntry, TriggerManager
 VisualMaster.WorkFlow.Data      — AcquisitionResult, SerialTriggerRule
+VisualMaster.CameraLink         — CameraManager, MvsCamera (legacy), HikrobotAdapter, HikrobotDevice
+VisualMaster.CameraLink.API     — ICameraAdapter, ICameraDeviceDriver, DiscoveredCamera
+VisualMaster.CameraLink.Core    — ManagedCamera
+VisualMaster.CameraLink.Adapter — HikrobotAdapter, HikrobotDevice
+VisualMaster.CameraLink.UI      — CameraManagerWindow, CameraManagerPanel, CameraImageViewer
+VisualMaster.CameraLink.UI.ViewModels — CameraManagerViewModel, CameraItemViewModel, etc.
 ```
 
 ### Shared helpers
@@ -90,9 +138,10 @@ VisualMaster.WorkFlow.Data      — AcquisitionResult, SerialTriggerRule
 - `DisplayItem` — replaces per-form SlotEntry/ComboItem/SlotDisplayItem patterns. Has `Id`, `Display`, `Tag`, `ToString()`.
 
 ### Slot-based HW pattern
-Both camera and serial use `SlotId`-based configuration persisted in `FlowGraph` and serialized to `.flow` JSON. Runtime connections restored by serial/port name matching via `VisionController.SyncToGraph`/`SyncFromGraph`.
+Both camera and serial use device/slot-ID-based configuration persisted in `FlowGraph` and serialized to `.flow` JSON. Runtime connections restored by serial/port name matching via `VisionController.SyncToGraph`/`SyncFromGraph`.
 
 ### Known gotchas
 - `FlowCanvas.OnPaint` draws connections BEFORE nodes (z-order: connections behind). Pin locations are pre-computed in `RebuildViews` via `ComputePinLocations`.
 - `FlowEditorForm` has NO subgraph-level trigger dropdown. All trigger config is in `TriggerEditorForm`.
 - Running process locks `VisualMaster.Forms.dll` copy — kill `VisualCutterForm.exe` before building when getting `MSB3021` errors.
+- `VisualMaster.CameraLink` is a WPF project — VS Designer for XAML requires WPF workload installed.
