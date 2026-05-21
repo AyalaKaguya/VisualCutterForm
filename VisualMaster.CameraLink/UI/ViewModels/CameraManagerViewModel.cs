@@ -74,6 +74,7 @@ namespace VisualMaster.CameraLink.UI.ViewModels
         public ICommand DisconnectCommand     { get; }
         public ICommand StartGrabbingCommand  { get; }
         public ICommand StopGrabbingCommand   { get; }
+        public ICommand OpenPreviewCommand    { get; }
         public ICommand SaveCommand           { get; }
         public ICommand RevertCommand         { get; }
 
@@ -89,6 +90,7 @@ namespace VisualMaster.CameraLink.UI.ViewModels
             DisconnectCommand    = new RelayCommand(ExecuteDisconnect,    () => !IsBusy && SelectedCamera != null && SelectedCamera.IsConnected);
             StartGrabbingCommand = new RelayCommand(ExecuteStartGrabbing, () => !IsBusy && SelectedCamera != null && SelectedCamera.IsConnected && !SelectedCamera.IsGrabbing);
             StopGrabbingCommand  = new RelayCommand(ExecuteStopGrabbing,  () => !IsBusy && SelectedCamera != null && SelectedCamera.IsGrabbing);
+            OpenPreviewCommand   = new RelayCommand(ExecuteOpenPreview,   () => !IsBusy && SelectedCamera != null && SelectedCamera.IsConnected);
             SaveCommand          = new RelayCommand(ExecuteSave,          () => !IsBusy);
             RevertCommand        = new RelayCommand(ExecuteRevert,        () => !IsBusy);
 
@@ -233,6 +235,17 @@ namespace VisualMaster.CameraLink.UI.ViewModels
             RefreshCommands();
         }
 
+        private void ExecuteOpenPreview()
+        {
+            if (SelectedCamera == null) return;
+            var window = new CameraPreviewWindow(_manager, SelectedCamera.DeviceId)
+            {
+                Title = $"相机预览 - {SelectedCamera.DisplayName}",
+                Owner = Application.Current?.MainWindow,
+            };
+            window.Show();
+        }
+
         private void ExecuteSave()
         {
             try
@@ -326,6 +339,7 @@ namespace VisualMaster.CameraLink.UI.ViewModels
             (DisconnectCommand    as RelayCommand)?.RaiseCanExecuteChanged();
             (StartGrabbingCommand as RelayCommand)?.RaiseCanExecuteChanged();
             (StopGrabbingCommand  as RelayCommand)?.RaiseCanExecuteChanged();
+            (OpenPreviewCommand   as RelayCommand)?.RaiseCanExecuteChanged();
             (SaveCommand          as RelayCommand)?.RaiseCanExecuteChanged();
             (RevertCommand        as RelayCommand)?.RaiseCanExecuteChanged();
         }

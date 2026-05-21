@@ -16,6 +16,7 @@ namespace VisualMaster.CameraLink.UI
         private Bitmap _bitmap;
         private bool _isPanning;
         private System.Windows.Point _lastPanPoint;
+        private bool _isFitMode = true;
 
         public CameraImageViewer()
         {
@@ -23,7 +24,13 @@ namespace VisualMaster.CameraLink.UI
             ScaleTransform.ScaleX = 1;
             ScaleTransform.ScaleY = 1;
             Loaded += (s, e) => FitToView();
-            SizeChanged += (s, e) => UpdateNavigator();
+            SizeChanged += (s, e) =>
+            {
+                if (_isFitMode)
+                    FitToView();
+                else
+                    UpdateNavigator();
+            };
         }
 
         public void SetBitmap(Bitmap bitmap)
@@ -66,20 +73,22 @@ namespace VisualMaster.CameraLink.UI
         {
             if (_bitmap == null || ActualWidth <= 0 || ActualHeight <= 0) return;
 
-            double scaleX = Math.Max(0.01, (ActualWidth - 24) / _bitmap.Width);
-            double scaleY = Math.Max(0.01, (ActualHeight - 24) / _bitmap.Height);
+            double viewWidth = Math.Max(1, ImageLayer.ActualWidth);
+            double viewHeight = Math.Max(1, ImageLayer.ActualHeight);
+            double scaleX = Math.Max(0.01, (viewWidth - 24) / _bitmap.Width);
+            double scaleY = Math.Max(0.01, (viewHeight - 24) / _bitmap.Height);
             double scale = Math.Min(scaleX, scaleY);
             SetZoom(scale);
-            TranslateTransform.X = 0;
-            TranslateTransform.Y = 0;
+            CenterImage();
+            _isFitMode = true;
             UpdateNavigator();
         }
 
         public void ActualSize()
         {
             SetZoom(1);
-            TranslateTransform.X = 0;
-            TranslateTransform.Y = 0;
+            CenterImage();
+            _isFitMode = false;
             UpdateNavigator();
         }
 
@@ -93,9 +102,19 @@ namespace VisualMaster.CameraLink.UI
         private void OnMouseWheel(object sender, MouseWheelEventArgs e)
         {
             if (_bitmap == null) return;
+
+            System.Windows.Point imagePoint = e.GetPosition(ImageBounds);
+            double oldZoom = ScaleTransform.ScaleX;
             double factor = e.Delta > 0 ? 1.15 : 1 / 1.15;
-            SetZoom(ScaleTransform.ScaleX * factor);
+            SetZoom(oldZoom * factor);
+
+            double newZoom = ScaleTransform.ScaleX;
+            TranslateTransform.X += imagePoint.X * (oldZoom - newZoom);
+            TranslateTransform.Y += imagePoint.Y * (oldZoom - newZoom);
+
+            _isFitMode = false;
             UpdateNavigator();
+            e.Handled = true;
         }
 
         private void OnImageMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -119,6 +138,7 @@ namespace VisualMaster.CameraLink.UI
             TranslateTransform.X += point.X - _lastPanPoint.X;
             TranslateTransform.Y += point.Y - _lastPanPoint.Y;
             _lastPanPoint = point;
+            _isFitMode = false;
             UpdateNavigator();
         }
 
@@ -170,24 +190,49 @@ namespace VisualMaster.CameraLink.UI
             }
 
             Navigator.Visibility = Visibility.Visible;
-            double imageRatio = (double)_bitmap.Width / Math.Max(1, _bitmap.Height);
-            double navRatio = Navigator.Width / Navigator.Height;
-            double imageW = imageRatio >= navRatio ? Navigator.Width : Navigator.Height * imageRatio;
-            double imageH = imageRatio >= navRatio ? Navigator.Width / imageRatio : Navigator.Height;
-            double imageX = (Navigator.Width - imageW) / 2;
-            double imageY = (Navigator.Height - imageH) / 2;
+            double viewWidth = Math.Max(1, ImageLayer.ActualWidth);
+            double viewHeight = Math.Max(1, ImageLayer.ActualHeight);
+            Rect viewportRect = new Rect(0, 0, viewWidth, viewHeight);
+            Rect imageRect = GetDisplayedImageRect();
+            Rect worldRect = Rect.Union(viewportRect, imageRect);
+            worldRect.Inflate(Math.Max(16, worldRect.Width * 0.05), Math.Max(16, worldRect.Height * 0.05));
 
-            NavigatorImage.Width = imageW;
-            NavigatorImage.Height = imageH;
-            Canvas.SetLeft(NavigatorImage, imageX);
-            Canvas.SetTop(NavigatorImage, imageY);
+            double scale = Math.Min(Navigator.Width / Math.Max(1, worldRect.Width),
+                Navigator.Height / Math.Max(1, worldRect.Height));
+            double offsetX = (Navigator.Width - worldRect.Width * scale) / 2;
+            double offsetY = (Navigator.Height - worldRect.Height * scale) / 2;
 
-            double visibleW = Math.Min(1, ActualWidth / Math.Max(1, _bitmap.Width * ScaleTransform.ScaleX));
-            double visibleH = Math.Min(1, ActualHeight / Math.Max(1, _bitmap.Height * ScaleTransform.ScaleY));
-            NavigatorViewport.Width = Math.Max(8, imageW * visibleW);
-            NavigatorViewport.Height = Math.Max(8, imageH * visibleH);
-            Canvas.SetLeft(NavigatorViewport, imageX);
-            Canvas.SetTop(NavigatorViewport, imageY);
+            SetNavigatorRect(NavigatorImage, imageRect, worldRect, scale, offsetX, offsetY);
+            SetNavigatorRect(NavigatorViewport, viewportRect, worldRect, scale, offsetX, offsetY);
+        }
+
+        private void CenterImage()
+        {
+            if (_bitmap == null) return;
+
+            double viewWidth = Math.Max(1, ImageLayer.ActualWidth);
+            double viewHeight = Math.Max(1, ImageLayer.ActualHeight);
+            TranslateTransform.X = (viewWidth - _bitmap.Width * ScaleTransform.ScaleX) / 2;
+            TranslateTransform.Y = (viewHeight - _bitmap.Height * ScaleTransform.ScaleY) / 2;
+        }
+
+        private Rect GetDisplayedImageRect()
+        {
+            if (_bitmap == null) return Rect.Empty;
+            return new Rect(
+                TranslateTransform.X,
+                TranslateTransform.Y,
+                _bitmap.Width * ScaleTransform.ScaleX,
+                _bitmap.Height * ScaleTransform.ScaleY);
+        }
+
+        private static void SetNavigatorRect(System.Windows.Shapes.Rectangle shape, Rect rect, Rect worldRect,
+            double scale, double offsetX, double offsetY)
+        {
+            shape.Width = Math.Max(2, rect.Width * scale);
+            shape.Height = Math.Max(2, rect.Height * scale);
+            Canvas.SetLeft(shape, offsetX + (rect.X - worldRect.X) * scale);
+            Canvas.SetTop(shape, offsetY + (rect.Y - worldRect.Y) * scale);
         }
 
         private static BitmapSource ToBitmapSource(Bitmap bitmap)

@@ -83,6 +83,12 @@
     <Compile Include="UI\CameraPreviewControl.xaml.cs">
       <DependentUpon>CameraPreviewControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UI\CameraPreviewWindow.xaml.cs">
+      <DependentUpon>CameraPreviewWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ImageViewerTestWindow.xaml.cs">
+      <DependentUpon>ImageViewerTestWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -100,6 +106,14 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="UI\CameraPreviewControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\CameraPreviewWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\ImageViewerTestWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

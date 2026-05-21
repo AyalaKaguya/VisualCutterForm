@@ -17,8 +17,9 @@ namespace VisualMaster.CameraLink.App
             base.OnStartup(e);
 
             // 从命令行获取配置文件路径，缺省使用当前目录下的 camera_config.json
-            string configPath = e.Args.Length > 0
-                ? Path.GetFullPath(e.Args[0])
+            string configArg = e.Args.FirstOrDefault(a => !a.StartsWith("--", StringComparison.Ordinal));
+            string configPath = !string.IsNullOrEmpty(configArg)
+                ? Path.GetFullPath(configArg)
                 : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "camera_config.json");
 
             // 加载或创建空配置
@@ -44,6 +45,14 @@ namespace VisualMaster.CameraLink.App
             _manager = new CameraManager();
             _manager.Initialize();
             _manager.LoadConfig(sysConfig);
+
+            if (e.Args.Any(a => string.Equals(a, "--test-image", StringComparison.OrdinalIgnoreCase)))
+            {
+                var testWindow = new ImageViewerTestWindow();
+                testWindow.Closed += (s, _) => Shutdown();
+                testWindow.Show();
+                return;
+            }
 
             // 打开相机管理窗口
             var window = new CameraManagerWindow(_manager, sysConfig);
