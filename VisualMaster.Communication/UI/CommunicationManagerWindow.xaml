@@ -5,7 +5,7 @@
         Title="通信管理器"
         Width="1100"
         Height="720"
-        Background="{StaticResource ColorRootBg}">
+        Background="{DynamicResource ColorRootBg}">
     <Window.Resources>
         <ResourceDictionary Source="../Themes/CommunicationDarkTheme.xaml"/>
     </Window.Resources>

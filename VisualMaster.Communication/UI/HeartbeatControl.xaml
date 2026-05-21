@@ -5,7 +5,7 @@
     <UserControl.Resources>
         <ResourceDictionary Source="../Themes/CommunicationDarkTheme.xaml"/>
     </UserControl.Resources>
-    <Grid Background="{StaticResource ColorRootBg}">
+    <Grid Background="{DynamicResource ColorRootBg}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="260"/>
             <ColumnDefinition Width="*"/>

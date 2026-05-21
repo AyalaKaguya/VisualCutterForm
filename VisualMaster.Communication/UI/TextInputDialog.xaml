@@ -5,7 +5,7 @@
         Height="160"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
-        Background="{StaticResource ColorRootBg}">
+        Background="{DynamicResource ColorRootBg}">
     <Window.Resources>
         <ResourceDictionary Source="../Themes/CommunicationDarkTheme.xaml"/>
     </Window.Resources>

@@ -38,7 +38,7 @@
             </Style>
         </ResourceDictionary>
     </UserControl.Resources>
-    <DockPanel Background="{StaticResource ColorRootBg}">
+    <DockPanel Background="{DynamicResource ColorRootBg}">
         <ToolBar DockPanel.Dock="Top" Background="#252525">
             <Button Content="新增块" Foreground="White"  Click="OnAddClick"/>
             <Button Content="删除块" Foreground="White" Click="OnRemoveClick"/>
