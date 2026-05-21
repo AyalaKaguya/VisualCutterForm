@@ -11,8 +11,9 @@
   ← All depend on VisualMaster.Api (interfaces + data types)
   ```
 - `VisualMaster.Forms` is the UI library (ImageViewer, VisionController, AppConfig, Camera/* forms, FlowEditor/* forms, TriggerEditor/*, CodeEditor/*) — all reusable WinForms controls live here
-- `VisualMaster.CameraLink` is a **WPF** project — contains camera HW abstractions, MVS SDK adapter, and WPF camera UI (CameraManagerWindow, CameraImageViewer, CameraPreviewControl). Has its own ViewModels with MVVM pattern.
-- `VisualCutterForm` only has shell forms: `Form1.cs`, `LoginForm.cs`, `DefaultLoginForm.cs`, `Program.cs`
+  - `VisualMaster.CameraLink` is a **WPF** project — contains camera HW abstractions, MVS SDK adapter, and WPF camera UI (CameraManagerWindow, CameraImageViewer, CameraPreviewControl). Has its own ViewModels with MVVM pattern.
+  - `VisualMaster.Communication` is a **WPF** project — contains serial/UART HW abstraction, driver-based architecture, and WPF communication UI (CommunicationManagerWindow, DeviceManagementControl, Input/Output/Heartbeat editors). Built on `ICommunicationDriver` plugin model.
+  - `VisualCutterForm` only has shell forms: `Form1.cs`, `LoginForm.cs`, `DefaultLoginForm.cs`, `Program.cs`
 
 ## Dev Environment
 VS Developer Command Prompt (Insiders):
@@ -73,6 +74,51 @@ When building WinForms controls in code (not Designer), you **must** call `Suspe
 - `FlowSubGraph` no longer has a `Trigger` property
 - Backward compat for old `.flow` files is intentionally NOT supported
 
+### Communication refactoring — critical changes
+
+#### Driver-based architecture
+`VisualMaster.Communication` has been rebuilt around an `ICommunicationDriver` plugin model:
+```
+CommunicationSystemConfig → CommunicationManager → ICommunicationDriver (UartDriver)
+                                                      └─ ICommunicationBlock[]
+```
+- `ICommunicationDriver` — abstract device interface (UART, future: TCP/Modbus/PLC)
+- `ICommunicationBlock` — addressable byte data block with read/write/poll lifecycle
+- `ICommunicationDriverFactory` — creates drivers from config
+- `UartDriver` / `UartDriverFactory` — the only current driver implementation (SerialPort)
+- `CommunicationManager` — manages drivers lifecycle, registers factories, bridges events
+
+#### VisionSerialRuntime bridge (in VisualMaster.Forms)
+The actual serial runtime is `VisionSerialRuntime` in `VisualMaster.Forms`, NOT `SerialPortAdapter`. It bridges the old `ISerialPort` API to `CommunicationManager → UartDriver → CommunicationBlock` pipeline. `VisionController` creates it internally.
+
+#### SerialSlot is obsolete
+`SerialSlot` is marked `[Obsolete]`. Use `SerialDeviceConfig` instead. `VisionController.GetSerialSlot` creates `SerialSlot` on-the-fly for backward compat but all internal state uses `SerialDeviceConfig`.
+
+#### SerialPortAdapter.cs is NOT compiled
+The file `SerialPortAdapter.cs` (direct `System.IO.Ports.SerialPort` wrapper) exists on disk but is **NOT included in `.csproj`**. It is dead/stale code — do not reference it.
+
+#### Communication UI (WPF)
+WPF controls under `UI/`:
+- `CommunicationManagerWindow` / `CommunicationManagerPanel` — main shell
+- `DeviceManagementControl` — add/remove/enable devices per driver type 
+- `UartDriverConfigControl` — UART port/baud/parity settings
+- `CommunicationBlockListControl` — per-device block management
+- `InputEventsControl` / `OutputEventsControl` / `HeartbeatControl` — event config editors
+- `RawBytesMonitorWindow` — live hex monitor for a block
+- `TextInputDialog` — simple text input dialog
+
+#### CommunicationSystemConfig / CommunicationDeviceConfig
+Snapshot-based config with `TakeSnapshot()` / `RevertChanges()` pattern (like `CameraSystemConfig`). Device config uses string-keyed `DriverSettings` dictionary to pass type-specific settings to drivers.
+
+#### Communication enums
+```
+CommunicationBlockDataType: Bytes, AsciiString, Int16, UInt16, Int32, UInt32, Single, Double
+CommunicationByteOrder: BigEndian, LittleEndian
+CommunicationUpdateMode: Passive, Polling
+CommunicationMatchOperator: Equals, GreaterThan, ..., ChangedTo, ChangedFrom, LengthAtLeast, Contains
+CommunicationOutputSegmentKind: Constant, Variable
+```
+
 ### CameraLink refactoring — critical changes
 
 #### CameraSlot is obsolete
@@ -131,6 +177,11 @@ VisualMaster.CameraLink.Core    — ManagedCamera
 VisualMaster.CameraLink.Adapter — HikrobotAdapter, HikrobotDevice
 VisualMaster.CameraLink.UI      — CameraManagerWindow, CameraManagerPanel, CameraImageViewer
 VisualMaster.CameraLink.UI.ViewModels — CameraManagerViewModel, CameraItemViewModel, etc.
+VisualMaster.Communication       — LogRingBuffer
+VisualMaster.Communication.Api   — ICommunicationDriver, ICommunicationBlock, CommunicationDeviceConfig, CommunicationSystemConfig
+VisualMaster.Communication.Core  — CommunicationManager, CommunicationDataConverter, CommunicationInputEvaluator, CommunicationOutputBuilder
+VisualMaster.Communication.Driver — UartDriver, UartDriverFactory, CommunicationBlock, CommunicationDriverBase
+VisualMaster.Communication.UI    — CommunicationManagerWindow, DeviceManagementControl, etc.
 ```
 
 ### Shared helpers
@@ -145,3 +196,4 @@ Both camera and serial use device/slot-ID-based configuration persisted in `Flow
 - `FlowEditorForm` has NO subgraph-level trigger dropdown. All trigger config is in `TriggerEditorForm`.
 - Running process locks `VisualMaster.Forms.dll` copy — kill `VisualCutterForm.exe` before building when getting `MSB3021` errors.
 - `VisualMaster.CameraLink` is a WPF project — VS Designer for XAML requires WPF workload installed.
+- `VisualMaster.Communication` is a WPF project — same XAML/WPF workload requirement.
