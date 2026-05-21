@@ -34,6 +34,10 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="WindowsBase" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -45,9 +49,95 @@
     <PackageReference Include="System.IO.Ports" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SerialPortAdapter.cs" />
+    <Compile Include="Api\CommunicationBlockConfig.cs" />
+    <Compile Include="Api\CommunicationDeviceConfig.cs" />
+    <Compile Include="Api\CommunicationEnums.cs" />
+    <Compile Include="Api\CommunicationEvents.cs" />
+    <Compile Include="Api\CommunicationSystemConfig.cs" />
+    <Compile Include="Api\DriverContracts.cs" />
+    <Compile Include="Api\InputOutputEventConfigs.cs" />
+    <Compile Include="Core\CommunicationDataConverter.cs" />
+    <Compile Include="Core\CommunicationInputEvaluator.cs" />
+    <Compile Include="Core\CommunicationManager.cs" />
+    <Compile Include="Core\CommunicationOutputBuilder.cs" />
+    <Compile Include="Driver\CommunicationBlock.cs" />
+    <Compile Include="Driver\CommunicationDriverBase.cs" />
+    <Compile Include="Driver\UartDriver.cs" />
+    <Compile Include="Driver\UartDriverFactory.cs" />
+    <Compile Include="UI\CommunicationBlockListControl.xaml.cs">
+      <DependentUpon>CommunicationBlockListControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\CommunicationManagerPanel.xaml.cs">
+      <DependentUpon>CommunicationManagerPanel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\CommunicationManagerWindow.xaml.cs">
+      <DependentUpon>CommunicationManagerWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\DeviceManagementControl.xaml.cs">
+      <DependentUpon>DeviceManagementControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\HeartbeatControl.xaml.cs">
+      <DependentUpon>HeartbeatControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\InputEventsControl.xaml.cs">
+      <DependentUpon>InputEventsControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\OutputEventsControl.xaml.cs">
+      <DependentUpon>OutputEventsControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\RawBytesMonitorWindow.xaml.cs">
+      <DependentUpon>RawBytesMonitorWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\TextInputDialog.xaml.cs">
+      <DependentUpon>TextInputDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\UartDriverConfigControl.xaml.cs">
+      <DependentUpon>UartDriverConfigControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="LogRingBuffer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="UI\CommunicationBlockListControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\CommunicationManagerPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\CommunicationManagerWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\DeviceManagementControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\HeartbeatControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\InputEventsControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\OutputEventsControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\RawBytesMonitorWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\TextInputDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\UartDriverConfigControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VisualMaster.Api\VisualMaster.Api.csproj">

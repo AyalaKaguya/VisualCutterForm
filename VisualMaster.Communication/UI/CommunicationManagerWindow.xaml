@@ -1,0 +1,10 @@
+<Window x:Class="VisualMaster.Communication.UI.CommunicationManagerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="clr-namespace:VisualMaster.Communication.UI"
+        Title="通信管理器"
+        Width="1100"
+        Height="720"
+        Background="#1E1E1E">
+    <Grid x:Name="Root"/>
+</Window>

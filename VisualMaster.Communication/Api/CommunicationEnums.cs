@@ -1,0 +1,51 @@
+namespace VisualMaster.Communication.Api
+{
+    public enum CommunicationBlockDataType
+    {
+        Bytes,
+        AsciiString,
+        Int16,
+        UInt16,
+        Int32,
+        UInt32,
+        Single,
+        Double,
+    }
+
+    public enum CommunicationByteOrder
+    {
+        BigEndian,
+        LittleEndian,
+    }
+
+    public enum CommunicationUpdateMode
+    {
+        Passive,
+        Polling,
+    }
+
+    public enum CommunicationMatchOperator
+    {
+        Equals,
+        GreaterThan,
+        GreaterThanOrEqual,
+        LessThan,
+        LessThanOrEqual,
+        ChangedTo,
+        ChangedFrom,
+        LengthAtLeast,
+        Contains,
+    }
+
+    public enum CommunicationOutputSegmentKind
+    {
+        Constant,
+        Variable,
+    }
+
+    public enum ByteDisplayMode
+    {
+        Short,
+        Hex,
+    }
+}
