@@ -95,7 +95,7 @@
                 <TextBlock Text="设备列表" FontWeight="SemiBold"/>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button Content="+" Width="30" Click="OnAddDeviceClick"/>
-                    <Button Content="-" Width="30" Click="OnRemoveClick"/>
+                    <Button Content="-" Width="30" Click="OnRemoveDeviceClick"/>
                 </StackPanel>
             </DockPanel>
             <ListBox x:Name="DeviceList"

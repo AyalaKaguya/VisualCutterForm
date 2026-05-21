@@ -86,6 +86,11 @@ namespace VisualMaster.Communication.UI
             }
             catch (Exception ex)
             {
+                try { await _manager.StopDeviceAsync(device.DeviceId); } catch { }
+                device.IsEnabled = false;
+                _config.UpdateDevice(device);
+                _manager.LoadConfig(_config);
+                RefreshDevices();
                 MessageBox.Show(Window.GetWindow(this), $"设备已创建，但连接失败：{ex.Message}\n\n请检查配置后重新启用。",
                     "连接失败", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
@@ -251,7 +256,7 @@ namespace VisualMaster.Communication.UI
             return null;
         }
 
-        private void OnRemoveClick(object sender, RoutedEventArgs e)
+        private void OnRemoveDeviceClick(object sender, RoutedEventArgs e)
         {
             if (_selectedDevice == null) return; ApplySelectedDeviceChanges(false);
         }
