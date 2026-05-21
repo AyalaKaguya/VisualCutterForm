@@ -3,7 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Foreground="White">
     <UserControl.Resources>
-        <DataTemplate x:Key="BlockItemTemplate">
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Themes/CommunicationDarkTheme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <DataTemplate x:Key="BlockItemTemplate">
             <Border Background="#242424" BorderBrush="#3A3A3A" BorderThickness="1" Padding="10" Margin="4">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -24,23 +28,17 @@
                 </Grid>
             </Border>
         </DataTemplate>
-        <Style TargetType="ListBox">
-            <Setter Property="Background" Value="#1E1E1E"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#444444"/>
-        </Style>
-        <Style TargetType="ListBoxItem">
-            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-        </Style>
-        <Style TargetType="Button">
-            <Setter Property="Background" Value="#333333"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#555555"/>
-            <Setter Property="Padding" Value="8,4"/>
-            <Setter Property="Margin" Value="3"/>
-        </Style>
+            <Style TargetType="ListBox">
+                <Setter Property="Background" Value="#1E1E1E"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="BorderBrush" Value="#444444"/>
+            </Style>
+            <Style TargetType="ListBoxItem">
+                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            </Style>
+        </ResourceDictionary>
     </UserControl.Resources>
-    <DockPanel Background="#1E1E1E">
+    <DockPanel Background="{StaticResource ColorRootBg}">
         <ToolBar DockPanel.Dock="Top" Background="#252525">
             <Button Content="新增块" Foreground="White"  Click="OnAddClick"/>
             <Button Content="删除块" Foreground="White" Click="OnRemoveClick"/>

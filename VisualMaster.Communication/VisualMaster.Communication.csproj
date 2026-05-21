@@ -94,6 +94,10 @@
     <Compile Include="UI\UartDriverConfigControl.xaml.cs">
       <DependentUpon>UartDriverConfigControl.xaml</DependentUpon>
     </Compile>
+    <Page Include="Themes\CommunicationDarkTheme.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Compile Include="LogRingBuffer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

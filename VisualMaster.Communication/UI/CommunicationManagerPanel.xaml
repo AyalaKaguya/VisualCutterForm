@@ -1,20 +1,25 @@
 <UserControl x:Class="VisualMaster.Communication.UI.CommunicationManagerPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             Background="#1E1E1E"
+             Background="{StaticResource ColorRootBg}"
              Foreground="White">
     <UserControl.Resources>
-        <Style x:Key="NavButton" TargetType="Button">
-            <Setter Property="Background" Value="#252525"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#303030"/>
-            <Setter Property="Height" Value="70"/>
-            <Setter Property="Padding" Value="8,5"/>
-            <Setter Property="Margin" Value="0"/>
-        </Style>
-        <Style TargetType="TextBlock">
-            <Setter Property="Foreground" Value="White"/>
-        </Style>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Themes/CommunicationDarkTheme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <Style x:Key="NavButton" TargetType="Button">
+                <Setter Property="Background" Value="#252525"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="BorderBrush" Value="#303030"/>
+                <Setter Property="Height" Value="70"/>
+                <Setter Property="Padding" Value="8,5"/>
+                <Setter Property="Margin" Value="0"/>
+            </Style>
+            <Style TargetType="TextBlock">
+                <Setter Property="Foreground" Value="White"/>
+            </Style>
+        </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>

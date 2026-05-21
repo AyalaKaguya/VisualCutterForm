@@ -5,6 +5,9 @@
         Title="通信管理器"
         Width="1100"
         Height="720"
-        Background="#1E1E1E">
+        Background="{StaticResource ColorRootBg}">
+    <Window.Resources>
+        <ResourceDictionary Source="../Themes/CommunicationDarkTheme.xaml"/>
+    </Window.Resources>
     <Grid x:Name="Root"/>
 </Window>

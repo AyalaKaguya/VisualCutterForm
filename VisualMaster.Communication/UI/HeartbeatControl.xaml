@@ -3,34 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Foreground="White">
     <UserControl.Resources>
-        <Style TargetType="Button">
-            <Setter Property="Background" Value="#333333"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#555555"/>
-            <Setter Property="Padding" Value="8,4"/>
-            <Setter Property="Margin" Value="3"/>
-        </Style>
-        <Style TargetType="TextBox">
-            <Setter Property="Background" Value="#2B2B2B"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#555555"/>
-            <Setter Property="Padding" Value="5,3"/>
-        </Style>
-        <Style TargetType="CheckBox">
-            <Setter Property="Foreground" Value="White"/>
-        </Style>
-        <Style TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#CCCCCC"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-        </Style>
-        <Style TargetType="ListBox">
-            <Setter Property="Background" Value="#151515"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#444444"/>
-        </Style>
+        <ResourceDictionary Source="../Themes/CommunicationDarkTheme.xaml"/>
     </UserControl.Resources>
-
-    <Grid Background="#1E1E1E">
+    <Grid Background="{StaticResource ColorRootBg}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="260"/>
             <ColumnDefinition Width="*"/>

@@ -4,7 +4,10 @@
         Title="通信监视"
         Width="560"
         Height="360"
-        Background="#1E1E1E">
+        Background="{StaticResource ColorRootBg}">
+    <Window.Resources>
+        <ResourceDictionary Source="../Themes/CommunicationDarkTheme.xaml"/>
+    </Window.Resources>
     <DockPanel>
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="8">
             <RadioButton x:Name="HexMode" Content="HEX" Foreground="White" IsChecked="True" Margin="0,0,12,0"/>
