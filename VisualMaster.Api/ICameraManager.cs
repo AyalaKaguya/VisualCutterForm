@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Threading.Tasks;
 
 namespace VisualMaster.Api
 {
@@ -9,6 +10,7 @@ namespace VisualMaster.Api
         bool IsInitialized { get; }
         RuntimeDiagnosticsHub Diagnostics { get; set; }
         void Initialize();
+        Task InitializeRuntimeAsync(CameraSystemConfig config);
 
         /// <summary>
         /// 将上层提供的相机系统配置注入管理器。
@@ -18,6 +20,7 @@ namespace VisualMaster.Api
 
         IReadOnlyList<CameraInfo> Cameras { get; }
         List<CameraInfo> EnumerateCameras();
+        void ApplyConfiguredDevices();
 
         // ── 设备配置 API ──────────────────────────────────────────────
         IReadOnlyList<CameraDeviceConfig> CameraDevices { get; }

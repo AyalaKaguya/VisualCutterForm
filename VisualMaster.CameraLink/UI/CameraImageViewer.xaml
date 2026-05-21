@@ -1,0 +1,73 @@
+<UserControl x:Class="VisualMaster.CameraLink.UI.CameraImageViewer"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#151515"
+             Focusable="True">
+    <Grid x:Name="Root" ClipToBounds="True"
+          MouseWheel="OnMouseWheel"
+          MouseRightButtonUp="OnMouseRightButtonUp">
+        <Border x:Name="ImageBounds"
+                Background="White"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Width="1"
+                Height="1">
+            <Image x:Name="ImageHost"
+                   Stretch="Fill"
+                   RenderOptions.BitmapScalingMode="NearestNeighbor"
+                   MouseLeftButtonDown="OnImageMouseLeftButtonDown"
+                   MouseLeftButtonUp="OnImageMouseLeftButtonUp"
+                   MouseMove="OnImageMouseMove">
+                <Image.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform x:Name="ScaleTransform"/>
+                        <TranslateTransform x:Name="TranslateTransform"/>
+                    </TransformGroup>
+                </Image.RenderTransform>
+            </Image>
+        </Border>
+
+        <Border x:Name="Toolbar"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Background="#CC242424"
+                BorderBrush="#555555"
+                BorderThickness="1"
+                CornerRadius="3"
+                Margin="8"
+                Padding="4">
+            <StackPanel Orientation="Horizontal">
+                <Button Content="适屏" MinWidth="54" Margin="2" Click="OnFitClick"/>
+                <Button Content="1:1" MinWidth="46" Margin="2" Click="OnActualSizeClick"/>
+                <Button Content="保存" MinWidth="54" Margin="2" Click="OnSaveClick"/>
+            </StackPanel>
+        </Border>
+
+        <Border HorizontalAlignment="Left"
+                VerticalAlignment="Bottom"
+                Background="#CC242424"
+                BorderBrush="#555555"
+                BorderThickness="1"
+                CornerRadius="3"
+                Margin="8"
+                Padding="6,3">
+            <TextBlock x:Name="InfoText" Foreground="#E6E6E6"/>
+        </Border>
+
+        <Canvas x:Name="Navigator"
+                Width="120"
+                Height="90"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                Margin="8"
+                Background="#AA202020">
+            <Rectangle x:Name="NavigatorImage"
+                       Stroke="White"
+                       StrokeThickness="1"
+                       Fill="#20FFFFFF"/>
+            <Rectangle x:Name="NavigatorViewport"
+                       Stroke="#FFD800"
+                       StrokeThickness="2"/>
+        </Canvas>
+    </Grid>
+</UserControl>

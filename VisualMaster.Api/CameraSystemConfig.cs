@@ -20,6 +20,7 @@ namespace VisualMaster.Api
         public event EventHandler<CameraDeviceConfig> DeviceAdded;
         public event EventHandler<string> DeviceRemoved;
         public event EventHandler<CameraDeviceConfig> DeviceUpdated;
+        public event EventHandler Reset;
 
         /// <summary>由上层模块赋值；调用 RequestSave() 时触发，上层负责真正持久化。</summary>
         public event EventHandler SaveRequested;
@@ -84,6 +85,7 @@ namespace VisualMaster.Api
             _devices.Clear();
             foreach (var d in _snapshot)
                 _devices.Add(d.Clone());
+            Reset?.Invoke(this, EventArgs.Empty);
             return true;
         }
 

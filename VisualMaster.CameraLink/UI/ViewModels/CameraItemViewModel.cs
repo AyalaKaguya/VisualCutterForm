@@ -10,6 +10,9 @@ namespace VisualMaster.CameraLink.UI.ViewModels
     {
         private readonly CameraDeviceConfig _config;
         private CameraDeviceStatus _status;
+        private bool _suppressChangeNotification;
+
+        public event EventHandler ConfigChanged;
 
         public string DeviceId => _config.DeviceId;
 
@@ -22,6 +25,7 @@ namespace VisualMaster.CameraLink.UI.ViewModels
                 {
                     _config.DisplayName = value;
                     OnPropertyChanged();
+                    NotifyConfigChanged();
                 }
             }
         }
@@ -68,8 +72,34 @@ namespace VisualMaster.CameraLink.UI.ViewModels
         {
             // 将 ViewModel 更改写回 Config.Settings（供 Manager 提取）
             _config.Settings = ConfigVm.ToSettings();
+            NotifyConfigChanged();
         }
 
-        public CameraDeviceConfig GetConfig() => _config;
+        public void LoadConfig(CameraDeviceConfig config)
+        {
+            if (config == null) return;
+            _suppressChangeNotification = true;
+            try
+            {
+                _config.DisplayName = config.DisplayName;
+                _config.AssignedSerial = config.AssignedSerial;
+                _config.Settings = config.Settings?.Clone() ?? new CameraSettings();
+                ConfigVm.LoadFrom(_config.Settings);
+                OnPropertyChanged(nameof(DisplayName));
+                OnPropertyChanged(nameof(AssignedSerial));
+            }
+            finally
+            {
+                _suppressChangeNotification = false;
+            }
+        }
+
+        public CameraDeviceConfig GetConfig() => _config.Clone();
+
+        private void NotifyConfigChanged()
+        {
+            if (!_suppressChangeNotification)
+                ConfigChanged?.Invoke(this, EventArgs.Empty);
+        }
     }
 }

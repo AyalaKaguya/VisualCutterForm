@@ -71,21 +71,35 @@
     <Compile Include="UI\ViewModels\CameraItemViewModel.cs" />
     <Compile Include="UI\ViewModels\CameraManagerViewModel.cs" />
     <!-- UI / XAML code-behind -->
+    <Compile Include="UI\CameraImageViewer.xaml.cs">
+      <DependentUpon>CameraImageViewer.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UI\CameraManagerPanel.xaml.cs">
       <DependentUpon>CameraManagerPanel.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\CameraManagerWindow.xaml.cs">
       <DependentUpon>CameraManagerWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UI\CameraPreviewControl.xaml.cs">
+      <DependentUpon>CameraPreviewControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <!-- WPF XAML 文件 -->
+    <Page Include="UI\CameraImageViewer.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="UI\CameraManagerPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
     <Page Include="UI\CameraManagerWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\CameraPreviewControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

@@ -99,15 +99,18 @@ namespace VisualMaster.CameraLink.UI.ViewModels
             _config.DeviceAdded   += OnConfigDeviceAdded;
             _config.DeviceRemoved += OnConfigDeviceRemoved;
             _config.DeviceUpdated += OnConfigDeviceUpdated;
+            _config.Reset += OnConfigReset;
         }
 
         // ── 初始化 ────────────────────────────────────────────────────
 
         private void LoadFromConfig()
         {
+            foreach (var cam in Cameras)
+                cam.ConfigChanged -= OnCameraConfigChanged;
             Cameras.Clear();
             foreach (var dev in _config.Devices)
-                Cameras.Add(new CameraItemViewModel(dev));
+                Cameras.Add(CreateCameraItem(dev));
         }
 
         public void RefreshStatuses()
@@ -157,6 +160,7 @@ namespace VisualMaster.CameraLink.UI.ViewModels
 
             var cfg = _config.AddDevice(name);
             cfg.AssignedSerial = info.SerialNumber;
+            _config.UpdateDevice(cfg);
         }
 
         private void ExecuteRemoveCamera()
@@ -268,7 +272,7 @@ namespace VisualMaster.CameraLink.UI.ViewModels
             InvokeOnUI(() =>
             {
                 if (Cameras.All(c => c.DeviceId != cfg.DeviceId))
-                    Cameras.Add(new CameraItemViewModel(cfg));
+                    Cameras.Add(CreateCameraItem(cfg));
             });
         }
 
@@ -277,7 +281,11 @@ namespace VisualMaster.CameraLink.UI.ViewModels
             InvokeOnUI(() =>
             {
                 var vm = Cameras.FirstOrDefault(c => c.DeviceId == deviceId);
-                if (vm != null) Cameras.Remove(vm);
+                if (vm != null)
+                {
+                    vm.ConfigChanged -= OnCameraConfigChanged;
+                    Cameras.Remove(vm);
+                }
             });
         }
 
@@ -286,8 +294,27 @@ namespace VisualMaster.CameraLink.UI.ViewModels
             InvokeOnUI(() =>
             {
                 var vm = Cameras.FirstOrDefault(c => c.DeviceId == cfg.DeviceId);
-                vm?.ConfigVm.LoadFrom(cfg.Settings ?? new Api.CameraSettings());
+                vm?.LoadConfig(cfg);
             });
+        }
+
+        private void OnConfigReset(object sender, EventArgs e)
+        {
+            InvokeOnUI(LoadFromConfig);
+        }
+
+        private CameraItemViewModel CreateCameraItem(CameraDeviceConfig cfg)
+        {
+            var vm = new CameraItemViewModel(cfg);
+            vm.ConfigChanged += OnCameraConfigChanged;
+            return vm;
+        }
+
+        private void OnCameraConfigChanged(object sender, EventArgs e)
+        {
+            var vm = sender as CameraItemViewModel;
+            if (vm == null || IsBusy) return;
+            _config.UpdateDevice(vm.GetConfig());
         }
 
         private void RefreshCommands()
@@ -316,6 +343,9 @@ namespace VisualMaster.CameraLink.UI.ViewModels
             _config.DeviceAdded   -= OnConfigDeviceAdded;
             _config.DeviceRemoved -= OnConfigDeviceRemoved;
             _config.DeviceUpdated -= OnConfigDeviceUpdated;
+            _config.Reset -= OnConfigReset;
+            foreach (var cam in Cameras)
+                cam.ConfigChanged -= OnCameraConfigChanged;
         }
     }
 

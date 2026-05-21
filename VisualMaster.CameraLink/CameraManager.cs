@@ -1,68 +1,36 @@
-using VisualMaster.Api;
-using VisualMaster.CameraLink.Adapter;
-using VisualMaster.CameraLink.API;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
-using MvCameraControl;
+using VisualMaster.Api;
+using VisualMaster.CameraLink.Adapter;
+using VisualMaster.CameraLink.API;
+using VisualMaster.CameraLink.Core;
 
 namespace VisualMaster.CameraLink
 {
     public class CameraManager : ICameraManager
     {
-        // ── 内部运行时状态类，替代混合了配置与状态的 CameraSlot ────────────
-        private sealed class DeviceEntry
-        {
-            public CameraDeviceConfig Config { get; set; }
-            public CameraFrameBuffer FrameBuffer { get; set; }
-            public ImageFifo Fifo { get; set; }
-            public ICamera Camera { get; set; }
-            public CameraInfo AssignedCamera { get; set; }
-            public string AssignedSerial { get; set; }
-            public bool IsConnected { get; set; }
-            public bool IsGrabbing { get; set; }
-
-            public CameraDeviceStatus ToStatus() => new CameraDeviceStatus
-            {
-                DeviceId = Config.DeviceId,
-                DisplayName = Config.DisplayName,
-                IsConnected = IsConnected,
-                IsGrabbing = IsGrabbing,
-                AssignedCamera = AssignedCamera,
-                AssignedSerial = AssignedSerial,
-            };
-        }
-
+        private readonly List<ICameraAdapter> _adapters = new List<ICameraAdapter>();
+        private readonly List<ManagedCamera> _devices = new List<ManagedCamera>();
         private readonly List<CameraInfo> _enumeratedCameras = new List<CameraInfo>();
-        private readonly List<DeviceEntry> _devices = new List<DeviceEntry>();
+        private readonly Dictionary<string, DiscoveredCamera> _discoveries =
+            new Dictionary<string, DiscoveredCamera>(StringComparer.OrdinalIgnoreCase);
+
+        private CameraSystemConfig _systemConfig;
         private volatile bool _disposed;
 
-        /// <summary>注册的相机适配器列表（多品牌扩展点）。</summary>
-        private readonly List<ICameraAdapter> _adapters = new List<ICameraAdapter>();
-
-        /// <summary>从 CameraSystemConfig 注入的配置容器。</summary>
-        private CameraSystemConfig _systemConfig;
-
         public IReadOnlyList<CameraInfo> Cameras => _enumeratedCameras.AsReadOnly();
-        public bool IsInitialized { get; private set; }
-        public RuntimeDiagnosticsHub Diagnostics { get; set; }
-
-        public CameraManager()
-        {
-            // 默认注册 Hikrobot MVS 适配器
-            _adapters.Add(new HikrobotAdapter());
-        }
-
         public IReadOnlyList<CameraDeviceConfig> CameraDevices =>
             _devices.Select(d => d.Config.Clone()).ToList().AsReadOnly();
 
-        // ── 新增事件 ──────────────────────────────────────────────────
+        public bool IsInitialized { get; private set; }
+        public RuntimeDiagnosticsHub Diagnostics { get; set; }
+
         public event EventHandler<CameraDeviceConfig> DeviceOpened;
         public event EventHandler<CameraDeviceConfig> DeviceClosed;
 
-        // ── 已废弃事件（兼容旧代码） ──────────────────────────────────
 #pragma warning disable CS0067
         [Obsolete("Use DeviceOpened instead.", false)]
         public event EventHandler<CameraSlot> SlotOpened;
@@ -71,155 +39,102 @@ namespace VisualMaster.CameraLink
         public event EventHandler<CameraSlot> SlotClosed;
 #pragma warning restore CS0067
 
+        public CameraManager()
+        {
+            _adapters.Add(new HikrobotAdapter());
+        }
+
         public void Initialize()
         {
             if (IsInitialized) return;
-            SDKSystem.Initialize();
+
+            foreach (var adapter in _adapters.Where(a => a.IsAvailable))
+                adapter.InitializeSdk();
+
             IsInitialized = true;
         }
 
-        /// <inheritdoc />
+        public async Task InitializeRuntimeAsync(CameraSystemConfig config)
+        {
+            LoadConfig(config);
+            await Task.Run(() => EnumerateCameras()).ConfigureAwait(false);
+            ApplyConfiguredDevices();
+        }
+
         public void LoadConfig(CameraSystemConfig config)
         {
-            // 取消旧配置事件订阅
             if (_systemConfig != null)
             {
-                _systemConfig.DeviceAdded   -= OnConfigDeviceAdded;
+                _systemConfig.DeviceAdded -= OnConfigDeviceAdded;
                 _systemConfig.DeviceRemoved -= OnConfigDeviceRemoved;
                 _systemConfig.DeviceUpdated -= OnConfigDeviceUpdated;
+                _systemConfig.Reset -= OnConfigReset;
             }
 
             _systemConfig = config;
 
             if (_systemConfig == null) return;
 
-            // 以配置为权威来源，同步 _devices 列表
             SyncDevicesFromConfig(_systemConfig);
-
-            // 订阅后续配置变更
-            _systemConfig.DeviceAdded   += OnConfigDeviceAdded;
+            _systemConfig.DeviceAdded += OnConfigDeviceAdded;
             _systemConfig.DeviceRemoved += OnConfigDeviceRemoved;
             _systemConfig.DeviceUpdated += OnConfigDeviceUpdated;
+            _systemConfig.Reset += OnConfigReset;
         }
-
-        private void SyncDevicesFromConfig(CameraSystemConfig config)
-        {
-            var configIds = new HashSet<string>(config.Devices.Select(d => d.DeviceId));
-
-            // 移除已不在配置中的设备
-            foreach (var entry in _devices.ToList())
-            {
-                if (!configIds.Contains(entry.Config.DeviceId))
-                {
-                    if (entry.Camera != null) CloseDevice(entry.Config.DeviceId);
-                    _devices.Remove(entry);
-                }
-            }
-
-            // 添加新设备
-            foreach (var devCfg in config.Devices)
-            {
-                if (FindEntry(devCfg.DeviceId) == null)
-                    AddDeviceEntry(devCfg.Clone());
-            }
-        }
-
-        // ── CameraSystemConfig 变更事件 ───────────────────────────────
-        private void OnConfigDeviceAdded(object sender, CameraDeviceConfig cfg)
-        {
-            if (FindEntry(cfg.DeviceId) == null)
-                AddDeviceEntry(cfg.Clone());
-        }
-
-        private void OnConfigDeviceRemoved(object sender, string deviceId)
-        {
-            RemoveDevice(deviceId);
-        }
-
-        private void OnConfigDeviceUpdated(object sender, CameraDeviceConfig cfg)
-        {
-            UpdateDeviceSettings(cfg.DeviceId, cfg.Settings);
-        }
-
 
         public List<CameraInfo> EnumerateCameras()
         {
-            _enumeratedCameras.Clear();
             if (!IsInitialized) Initialize();
 
-            // 并发扫描所有已注册的可用适配器
-            var availableAdapters = _adapters.Where(a => a.IsAvailable).ToList();
-            if (availableAdapters.Count > 0)
+            _enumeratedCameras.Clear();
+            _discoveries.Clear();
+
+            var adapters = _adapters.Where(a => a.IsAvailable).ToList();
+            var tasks = adapters.Select(adapter => Task.Run(() => ScanAdapter(adapter))).ToArray();
+            Task.WaitAll(tasks);
+
+            foreach (var task in tasks)
             {
-                var tasks = availableAdapters.Select(adapter => Task.Run(() =>
+                foreach (var discovered in task.Result)
                 {
-                    try
-                    {
-                        return (IList<CameraInfo>)adapter.Scan()
-                            .Select(d =>
-                            {
-                                // 仅转换信息，不实际 Open
-                                return new CameraInfo
-                                {
-                                    ModelName         = d.ModelName ?? "",
-                                    SerialNumber      = d.SerialNumber ?? "",
-                                    ManufacturerName  = d.ManufacturerName ?? "",
-                                    TransportTypeName = d.TransportType ?? "",
-                                    DeviceVersion     = d.DeviceVersion ?? "",
-                                    IpAddress         = IpStringToUint(d.IpAddress),
-                                    RawInfo           = d.RawInfo,
-                                };
-                            }).ToList();
-                    }
-                    catch { return (IList<CameraInfo>)new List<CameraInfo>(); }
-                })).ToArray();
-
-                Task.WaitAll(tasks);
-                foreach (var t in tasks)
-                    if (t.Result != null)
-                        _enumeratedCameras.AddRange(t.Result);
-
-                return _enumeratedCameras;
+                    _discoveries[MakeDiscoveryKey(discovered.AdapterName, discovered.SerialNumber)] = discovered;
+                    _enumeratedCameras.Add(ToCameraInfo(discovered));
+                }
             }
 
-            // 兜底：直接用 MVS SDK 枚举（向前兼容）
-            var tLayerTypes = DeviceTLayerType.MvGigEDevice | DeviceTLayerType.MvUsbDevice
-                | DeviceTLayerType.MvGenTLGigEDevice | DeviceTLayerType.MvGenTLCXPDevice
-                | DeviceTLayerType.MvGenTLCameraLinkDevice | DeviceTLayerType.MvGenTLXoFDevice;
-
-            int ret = DeviceEnumerator.EnumDevices(tLayerTypes, out List<IDeviceInfo> devInfoList);
-            if (ret != MvError.MV_OK) return _enumeratedCameras;
-
-            foreach (var devInfo in devInfoList)
-            {
-                var info = new CameraInfo
-                {
-                    ModelName = devInfo.ModelName ?? "",
-                    SerialNumber = devInfo.SerialNumber ?? "",
-                    UserDefinedName = devInfo.UserDefinedName ?? "",
-                    ManufacturerName = devInfo.ManufacturerName ?? "",
-                    TransportTypeRaw = (uint)devInfo.TLayerType,
-                    TransportTypeName = TransportTypeToString(devInfo.TLayerType),
-                    DeviceVersion = devInfo.DeviceVersion ?? "",
-                    RawInfo = devInfo,
-                };
-                if (devInfo is IGigEDeviceInfo gigeInfo)
-                    info.IpAddress = gigeInfo.CurrentIp;
-
-                _enumeratedCameras.Add(info);
-            }
-            return _enumeratedCameras;
+            return _enumeratedCameras.ToList();
         }
 
-        // ── 设备配置 API ──────────────────────────────────────────────
+        public void ApplyConfiguredDevices()
+        {
+            if (_enumeratedCameras.Count == 0)
+                EnumerateCameras();
+
+            foreach (var entry in _devices.ToList())
+            {
+                var serial = entry.Config.AssignedSerial;
+                if (string.IsNullOrWhiteSpace(serial) || entry.IsConnected)
+                    continue;
+
+                var info = _enumeratedCameras.FirstOrDefault(c =>
+                    string.Equals(c.SerialNumber, serial, StringComparison.OrdinalIgnoreCase));
+                if (info == null)
+                    continue;
+
+                OpenDevice(entry.DeviceId, info);
+            }
+        }
 
         public CameraDeviceConfig AddDevice(string displayName, CameraSettings settings = null)
         {
+            if (_systemConfig != null)
+                return _systemConfig.AddDevice(displayName, settings).Clone();
+
             var config = new CameraDeviceConfig
             {
                 DeviceId = Guid.NewGuid().ToString(),
                 DisplayName = displayName ?? $"相机{_devices.Count + 1}",
-                Settings = settings ?? new CameraSettings(),
+                Settings = settings?.Clone() ?? new CameraSettings(),
             };
             AddDeviceEntry(config);
             return config.Clone();
@@ -232,28 +147,34 @@ namespace VisualMaster.CameraLink
 
         public void RemoveDevice(string deviceId)
         {
-            var entry = FindEntry(deviceId);
-            if (entry == null) return;
-            CloseDevice(deviceId);
-            _devices.Remove(entry);
+            if (_systemConfig?.GetDevice(deviceId) != null)
+            {
+                _systemConfig.RemoveDevice(deviceId);
+                return;
+            }
+
+            RemoveDeviceEntry(deviceId);
         }
 
         public void UpdateDeviceSettings(string deviceId, CameraSettings settings)
         {
             if (settings == null) return;
-            var entry = FindEntry(deviceId);
-            if (entry == null) return;
 
-            entry.Config.Settings = settings.Clone();
-            if (entry.FrameBuffer != null)
-                entry.FrameBuffer.Capacity = settings.FifoCapacity;
-            if (entry.Fifo != null)
-                entry.Fifo.Capacity = settings.FifoCapacity;
-            if (entry.Camera != null)
-                entry.Camera.ApplySettings(settings);
+            if (_systemConfig?.GetDevice(deviceId) != null)
+            {
+                var config = _systemConfig.GetDevice(deviceId);
+                config.Settings = settings.Clone();
+                _systemConfig.UpdateDevice(config);
+                return;
+            }
+
+            ApplyDeviceConfig(new CameraDeviceConfig
+            {
+                DeviceId = deviceId,
+                DisplayName = FindEntry(deviceId)?.Config.DisplayName,
+                Settings = settings.Clone(),
+            });
         }
-
-        // ── 运行时状态 API ────────────────────────────────────────────
 
         public IReadOnlyList<CameraDeviceStatus> GetDeviceStatuses()
         {
@@ -271,26 +192,25 @@ namespace VisualMaster.CameraLink
             if (entry == null)
                 throw new InvalidOperationException($"Device {deviceId} not found.");
 
-            if (entry.Camera != null)
+            if (entry.IsConnected)
                 CloseDevice(deviceId);
 
-            var camera = new MvsCamera(info);
-            camera.Open();
-            camera.ApplySettings(entry.Config.Settings);
-            camera.ImageAcquired += (s, bmp) =>
-            {
-                entry.Fifo.Enqueue(bmp, entry.Config.DeviceId);
-            };
-            camera.Disconnected += (s, e) =>
-            {
-                entry.IsConnected = false;
-            };
+            var discovery = ResolveDiscovery(info);
+            var adapter = _adapters.FirstOrDefault(a => a.IsAvailable && a.CanHandle(discovery));
+            if (adapter == null)
+                throw new InvalidOperationException($"No camera adapter can open {info}.");
 
-            entry.Camera = camera;
-            entry.AssignedCamera = info;
-            entry.AssignedSerial = info.SerialNumber;
-            entry.Config.AssignedSerial = info.SerialNumber;
-            entry.IsConnected = true;
+            var driver = adapter.CreateDevice(discovery);
+            entry.Attach(driver, discovery);
+            entry.Diagnostics = Diagnostics;
+
+            if (_systemConfig?.GetDevice(deviceId) != null)
+            {
+                var cfg = _systemConfig.GetDevice(deviceId);
+                cfg.AssignedSerial = driver.UniqueHardwareId;
+                cfg.Settings = entry.Config.Settings.Clone();
+                _systemConfig.UpdateDevice(cfg);
+            }
 
             DeviceOpened?.Invoke(this, entry.Config.Clone());
         }
@@ -298,48 +218,36 @@ namespace VisualMaster.CameraLink
         public void CloseDevice(string deviceId)
         {
             var entry = FindEntry(deviceId);
-            if (entry?.Camera == null) return;
+            if (entry == null || !entry.IsConnected) return;
 
-            entry.Camera.StopGrabbing();
-            entry.Camera.Dispose();
-            entry.Camera = null;
-            entry.IsConnected = false;
-            entry.IsGrabbing = false;
-
+            entry.Detach();
             DeviceClosed?.Invoke(this, entry.Config.Clone());
         }
 
         public void StartGrabbing(string deviceId)
         {
             var entry = FindEntry(deviceId);
-            if (entry?.Camera == null) return;
-
-            entry.Camera.ApplySettings(entry.Config.Settings);
-            entry.Camera.StartGrabbing();
-            entry.IsGrabbing = true;
+            if (entry == null) return;
+            entry.StartGrabbing();
         }
 
         public void StopGrabbing(string deviceId)
         {
-            var entry = FindEntry(deviceId);
-            if (entry?.Camera == null) return;
-
-            entry.Camera.StopGrabbing();
-            entry.IsGrabbing = false;
+            FindEntry(deviceId)?.StopGrabbing();
         }
 
         public void TriggerSoftware(string deviceId)
         {
             var entry = FindEntry(deviceId);
-            if (entry?.Camera == null)
+            if (entry == null || !entry.IsConnected)
                 throw new InvalidOperationException($"Device {deviceId} is not connected.");
 
-            entry.Camera.TriggerSoftware();
+            entry.TriggerSoftware();
         }
 
         public bool IsDeviceOpen(string deviceId)
         {
-            return FindEntry(deviceId)?.Camera != null;
+            return FindEntry(deviceId)?.IsConnected == true;
         }
 
         public bool IsDeviceGrabbing(string deviceId)
@@ -349,7 +257,7 @@ namespace VisualMaster.CameraLink
 
         public CameraInfo GetAssignedCameraInfo(string deviceId)
         {
-            return FindEntry(deviceId)?.AssignedCamera;
+            return FindEntry(deviceId)?.LastKnownInfo;
         }
 
         public ImageFifo GetFifo(string deviceId)
@@ -361,34 +269,22 @@ namespace VisualMaster.CameraLink
         {
             bitmap = null;
             var entry = FindEntry(deviceId);
-            if (entry?.Camera == null || !entry.IsConnected) return false;
-            return entry.Camera.TryGrabImage(out bitmap, timeoutMs);
+            return entry != null && entry.TryGrabImage(out bitmap, timeoutMs);
         }
 
         public string[] GetAvailablePixelFormats(string deviceId)
         {
-            var entry = FindEntry(deviceId);
-            if (entry?.Camera == null) return new string[0];
-            try { return entry.Camera.GetAvailablePixelFormats() ?? new string[0]; }
-            catch { return new string[0]; }
+            return FindEntry(deviceId)?.GetAvailablePixelFormats() ?? new string[0];
         }
-
-        // ── 已废弃的槽位兼容 API ─────────────────────────────────────
 
         [Obsolete("Use CameraDevices instead.", false)]
         public IReadOnlyList<CameraSlot> Slots =>
-            _devices.Select(d => ToLegacySlot(d)).ToList().AsReadOnly();
+            _devices.Select(ToLegacySlot).ToList().AsReadOnly();
 
         [Obsolete("Use AddDevice instead.", false)]
         public CameraSlot AddSlot(string name, CameraSettings settings = null)
         {
-            var config = new CameraDeviceConfig
-            {
-                DeviceId = Guid.NewGuid().ToString(),
-                DisplayName = name ?? $"相机{_devices.Count + 1}",
-                Settings = settings ?? new CameraSettings(),
-            };
-            AddDeviceEntry(config);
+            var config = AddDevice(name, settings);
             return ToLegacySlot(FindEntry(config.DeviceId));
         }
 
@@ -404,72 +300,155 @@ namespace VisualMaster.CameraLink
         [Obsolete("Use IsDeviceOpen instead.", false)]
         public bool IsSlotOpen(string slotId) => IsDeviceOpen(slotId);
 
+        public void AddDeviceWithId(CameraDeviceConfig config)
+        {
+            if (config == null || string.IsNullOrEmpty(config.DeviceId)) return;
+            if (FindEntry(config.DeviceId) != null) return;
+            AddDeviceEntry(config.Clone());
+        }
+
         public void CloseAllDevices()
         {
             foreach (var entry in _devices.ToList())
-            {
-                if (entry.Camera != null)
-                    CloseDevice(entry.Config.DeviceId);
-            }
+                CloseDevice(entry.DeviceId);
         }
 
         public void Dispose()
         {
             if (_disposed) return;
             _disposed = true;
+
             CloseAllDevices();
+            foreach (var entry in _devices)
+                entry.Dispose();
+            _devices.Clear();
+
             if (IsInitialized)
             {
-                SDKSystem.Finalize();
+                foreach (var adapter in _adapters.Where(a => a.IsAvailable))
+                    adapter.FinalizeSdk();
                 IsInitialized = false;
             }
         }
 
-        // ── 私有帮助方法 ──────────────────────────────────────────────
+        private void SyncDevicesFromConfig(CameraSystemConfig config)
+        {
+            var configIds = new HashSet<string>(config.Devices.Select(d => d.DeviceId));
+            foreach (var entry in _devices.ToList())
+            {
+                if (!configIds.Contains(entry.DeviceId))
+                    RemoveDeviceEntry(entry.DeviceId);
+            }
 
-        private DeviceEntry FindEntry(string deviceId)
+            foreach (var device in config.Devices)
+            {
+                var entry = FindEntry(device.DeviceId);
+                if (entry == null)
+                    AddDeviceEntry(device.Clone());
+                else
+                    ApplyDeviceConfig(device);
+            }
+        }
+
+        private void OnConfigDeviceAdded(object sender, CameraDeviceConfig cfg)
+        {
+            if (FindEntry(cfg.DeviceId) == null)
+                AddDeviceEntry(cfg.Clone());
+        }
+
+        private void OnConfigDeviceRemoved(object sender, string deviceId)
+        {
+            RemoveDeviceEntry(deviceId);
+        }
+
+        private void OnConfigDeviceUpdated(object sender, CameraDeviceConfig cfg)
+        {
+            ApplyDeviceConfig(cfg);
+        }
+
+        private void OnConfigReset(object sender, EventArgs e)
+        {
+            if (_systemConfig != null)
+                SyncDevicesFromConfig(_systemConfig);
+        }
+
+        private ManagedCamera FindEntry(string deviceId)
         {
             if (string.IsNullOrEmpty(deviceId)) return null;
-            return _devices.Find(d => d.Config.DeviceId == deviceId);
+            return _devices.Find(d => d.DeviceId == deviceId);
         }
 
         private void AddDeviceEntry(CameraDeviceConfig config)
         {
-            var frameBuffer = new CameraFrameBuffer(config.Settings?.FifoCapacity ?? 10);
-            var capturedConfig = config;
-            frameBuffer.SnapshotPublished += (s, snapshot) =>
-            {
-                Diagnostics?.Record(new RuntimeDiagnosticEvent
-                {
-                    EventType = RuntimeDiagnosticEventType.SnapshotPublished,
-                    CorrelationId = snapshot.CorrelationId,
-                    DeviceId = capturedConfig.DeviceId,
-                    SnapshotId = snapshot.SnapshotId,
-                    SnapshotSequence = snapshot.SequenceNumber,
-                    Message = $"快照已发布: {capturedConfig.DisplayName}",
-                });
-            };
-
-            _devices.Add(new DeviceEntry
-            {
-                Config = config,
-                FrameBuffer = frameBuffer,
-                Fifo = new ImageFifo(frameBuffer),
-            });
+            var entry = new ManagedCamera(config) { Diagnostics = Diagnostics };
+            _devices.Add(entry);
         }
 
-        /// <summary>
-        /// 使用配置中的现有 DeviceId 添加设备（用于反序列化恢复）。
-        /// </summary>
-        public void AddDeviceWithId(CameraDeviceConfig config)
+        private void RemoveDeviceEntry(string deviceId)
         {
-            if (config == null || string.IsNullOrEmpty(config.DeviceId)) return;
-            // 如果已存在则跳过
-            if (FindEntry(config.DeviceId) != null) return;
-            AddDeviceEntry(config);
+            var entry = FindEntry(deviceId);
+            if (entry == null) return;
+            entry.Dispose();
+            _devices.Remove(entry);
         }
 
-        private static CameraSlot ToLegacySlot(DeviceEntry entry)
+        private void ApplyDeviceConfig(CameraDeviceConfig config)
+        {
+            if (config == null) return;
+            var entry = FindEntry(config.DeviceId);
+            if (entry == null) return;
+
+            entry.Config.DisplayName = config.DisplayName;
+            entry.Config.AssignedSerial = config.AssignedSerial;
+            entry.ApplySettings(config.Settings ?? new CameraSettings());
+        }
+
+        private IReadOnlyList<DiscoveredCamera> ScanAdapter(ICameraAdapter adapter)
+        {
+            try { return adapter.Scan() ?? new List<DiscoveredCamera>(); }
+            catch { return new List<DiscoveredCamera>(); }
+        }
+
+        private DiscoveredCamera ResolveDiscovery(CameraInfo info)
+        {
+            if (info == null) throw new ArgumentNullException(nameof(info));
+
+            var key = MakeDiscoveryKey(info.AdapterName, info.SerialNumber);
+            if (_discoveries.TryGetValue(key, out var discovered))
+                return discovered;
+
+            discovered = new DiscoveredCamera
+            {
+                UniqueId = info.SerialNumber ?? "",
+                ModelName = info.ModelName ?? "",
+                SerialNumber = info.SerialNumber ?? "",
+                ManufacturerName = info.ManufacturerName ?? "",
+                TransportType = info.TransportTypeName ?? "",
+                DeviceVersion = info.DeviceVersion ?? "",
+                AdapterName = string.IsNullOrEmpty(info.AdapterName) ? "Hikrobot MVS" : info.AdapterName,
+                IpAddress = UintToIpString(info.IpAddress),
+                RawInfo = info.RawInfo,
+            };
+            _discoveries[MakeDiscoveryKey(discovered.AdapterName, discovered.SerialNumber)] = discovered;
+            return discovered;
+        }
+
+        private static CameraInfo ToCameraInfo(DiscoveredCamera discovered)
+        {
+            return new CameraInfo
+            {
+                ModelName = discovered.ModelName ?? "",
+                SerialNumber = discovered.SerialNumber ?? "",
+                ManufacturerName = discovered.ManufacturerName ?? "",
+                TransportTypeName = discovered.TransportType ?? "",
+                AdapterName = discovered.AdapterName ?? "",
+                DeviceVersion = discovered.DeviceVersion ?? "",
+                IpAddress = IpStringToUint(discovered.IpAddress),
+                RawInfo = discovered.RawInfo,
+            };
+        }
+
+        private static CameraSlot ToLegacySlot(ManagedCamera entry)
         {
             if (entry == null) return null;
             return new CameraSlot
@@ -477,8 +456,13 @@ namespace VisualMaster.CameraLink
                 SlotId = entry.Config.DeviceId,
                 SlotName = entry.Config.DisplayName,
                 Settings = entry.Config.Settings?.Clone() ?? new CameraSettings(),
-                AssignedSerial = entry.AssignedSerial ?? entry.Config.AssignedSerial,
+                AssignedSerial = entry.Config.AssignedSerial,
             };
+        }
+
+        private static string MakeDiscoveryKey(string adapterName, string serial)
+        {
+            return $"{adapterName ?? ""}|{serial ?? ""}";
         }
 
         private static uint IpStringToUint(string ip)
@@ -488,24 +472,15 @@ namespace VisualMaster.CameraLink
             {
                 var bytes = System.Net.IPAddress.Parse(ip).GetAddressBytes();
                 return ((uint)bytes[0] << 24) | ((uint)bytes[1] << 16)
-                     | ((uint)bytes[2] << 8)  |  (uint)bytes[3];
+                     | ((uint)bytes[2] << 8) | bytes[3];
             }
             catch { return 0; }
         }
 
-        private static string TransportTypeToString(DeviceTLayerType type)
+        private static string UintToIpString(uint ip)
         {
-            switch (type)
-            {
-                case DeviceTLayerType.MvGigEDevice: return "GigE";
-                case DeviceTLayerType.MvUsbDevice: return "USB3";
-                case DeviceTLayerType.MvGenTLGigEDevice: return "GenTL/GigE";
-                case DeviceTLayerType.MvGenTLCameraLinkDevice: return "CameraLink";
-                case DeviceTLayerType.MvGenTLCXPDevice: return "CoaXPress";
-                case DeviceTLayerType.MvGenTLXoFDevice: return "XoF";
-                default: return "Unknown";
-            }
+            if (ip == 0) return "";
+            return $"{(ip >> 24) & 0xFF}.{(ip >> 16) & 0xFF}.{(ip >> 8) & 0xFF}.{ip & 0xFF}";
         }
     }
 }
-

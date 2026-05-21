@@ -151,7 +151,7 @@ namespace VisualMaster.CameraLink.Core
                 if (Config.Settings?.MonochromeOutput == true)
                     toPublish = ConvertToGrayscale(e.Frame);
 
-                FrameBuffer.Publish(toPublish, Config.DeviceId);
+                Fifo.Enqueue(toPublish, Config.DeviceId);
 
                 if (toPublish != e.Frame)
                     toPublish?.Dispose();
@@ -183,7 +183,7 @@ namespace VisualMaster.CameraLink.Core
         {
             if (source == null) return null;
             var gray = new Bitmap(source.Width, source.Height,
-                System.Drawing.Imaging.PixelFormat.Format8bppIndexed);
+                System.Drawing.Imaging.PixelFormat.Format24bppRgb);
             using (var g = System.Drawing.Graphics.FromImage(gray))
             {
                 var cm = new System.Drawing.Imaging.ColorMatrix(new float[][]
@@ -206,8 +206,9 @@ namespace VisualMaster.CameraLink.Core
 
         public void Dispose()
         {
+            var driver = Driver;
             Detach();
-            Driver?.Dispose();
+            driver?.Dispose();
             FrameBuffer.SnapshotPublished -= OnSnapshotPublished;
         }
     }

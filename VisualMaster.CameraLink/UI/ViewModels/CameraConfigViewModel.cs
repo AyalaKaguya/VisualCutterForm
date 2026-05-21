@@ -9,6 +9,11 @@ namespace VisualMaster.CameraLink.UI.ViewModels
     public sealed class CameraConfigViewModel : NotifyBase
     {
         public event EventHandler SettingsChanged;
+        public TriggerModeEnum[] TriggerModes { get; } =
+            new[] { TriggerModeEnum.Continuous, TriggerModeEnum.Software, TriggerModeEnum.Hardware };
+
+        public string[] TriggerActivations { get; } =
+            new[] { "RisingEdge", "FallingEdge", "AnyEdge", "LevelHigh", "LevelLow" };
 
         private double _exposureTimeUs;
         private double _gainRaw;

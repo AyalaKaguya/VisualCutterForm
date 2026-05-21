@@ -151,8 +151,7 @@
             <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto"
                           Background="#1E1E1E">
                 <StackPanel Margin="12,8"
-                            DataContext="{Binding SelectedCamera}"
-                            IsEnabled="{Binding IsConnected, FallbackValue=False}">
+                            DataContext="{Binding SelectedCamera}">
 
                     <!-- 设备信息 -->
                     <TextBlock Text="设备信息" Style="{StaticResource SectionLabel}"/>
@@ -194,10 +193,8 @@
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="触发模式" Style="{StaticResource FieldLabel}"/>
                         <ComboBox  Grid.Row="0" Grid.Column="1"
                                    SelectedItem="{Binding TriggerMode}"
+                                   ItemsSource="{Binding TriggerModes}"
                                    Style="{StaticResource DarkComboBox}">
-                            <ComboBox.Items>
-                                <sys:Int32 xmlns:sys="clr-namespace:System;assembly=mscorlib">0</sys:Int32>
-                            </ComboBox.Items>
                         </ComboBox>
                         <TextBlock Grid.Row="1" Grid.Column="0" Text="触发源" Style="{StaticResource FieldLabel}"/>
                         <TextBox  Grid.Row="1" Grid.Column="1"
@@ -207,14 +204,9 @@
                         <TextBlock Grid.Row="2" Grid.Column="0" Text="信号边沿" Style="{StaticResource FieldLabel}"/>
                         <ComboBox  Grid.Row="2" Grid.Column="1"
                                    SelectedItem="{Binding TriggerActivation}"
+                                   ItemsSource="{Binding TriggerActivations}"
                                    IsEnabled="{Binding IsTriggerSourceEnabled}"
-                                   Style="{StaticResource DarkComboBox}">
-                            <ComboBoxItem>RisingEdge</ComboBoxItem>
-                            <ComboBoxItem>FallingEdge</ComboBoxItem>
-                            <ComboBoxItem>AnyEdge</ComboBoxItem>
-                            <ComboBoxItem>LevelHigh</ComboBoxItem>
-                            <ComboBoxItem>LevelLow</ComboBoxItem>
-                        </ComboBox>
+                                   Style="{StaticResource DarkComboBox}" />
                     </Grid>
 
                     <!-- 图像参数 -->
