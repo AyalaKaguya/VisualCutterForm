@@ -2,17 +2,17 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- ===== Color Palette ===== -->
-    <Color x:Key="ColorRootBg">#1E1E1E</Color>
-    <Color x:Key="ColorSidePanel">#202020</Color>
-    <Color x:Key="ColorSurface">#242424</Color>
-    <Color x:Key="ColorButtonBg">#333333</Color>
-    <Color x:Key="ColorButtonBorder">#555555</Color>
-    <Color x:Key="ColorTextBoxBg">#2B2B2B</Color>
-    <Color x:Key="ColorListBoxBg">#151515</Color>
-    <Color x:Key="ColorGridLine">#333333</Color>
-    <Color x:Key="ColorHeaderRow">#303030</Color>
-    <Color x:Key="ColorTextPrimary">White</Color>
-    <Color x:Key="ColorTextDim">#CCCCCC</Color>
+    <SolidColorBrush x:Key="ColorRootBg" Color="#1E1E1E"/>
+    <SolidColorBrush x:Key="ColorSidePanel" Color="#202020"/>
+    <SolidColorBrush x:Key="ColorSurface" Color="#242424"/>
+    <SolidColorBrush x:Key="ColorButtonBg" Color="#333333"/>
+    <SolidColorBrush x:Key="ColorButtonBorder" Color="#555555"/>
+    <SolidColorBrush x:Key="ColorTextBoxBg" Color="#2B2B2B"/>
+    <SolidColorBrush x:Key="ColorListBoxBg" Color="#151515"/>
+    <SolidColorBrush x:Key="ColorGridLine" Color="#333333"/>
+    <SolidColorBrush x:Key="ColorHeaderRow" Color="#303030"/>
+    <SolidColorBrush x:Key="ColorTextPrimary" Color="White"/>
+    <SolidColorBrush x:Key="ColorTextDim" Color="#CCCCCC"/>
 
     <!-- ===== Implicit Button ===== -->
     <Style TargetType="Button">
