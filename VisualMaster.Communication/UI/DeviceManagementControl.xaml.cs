@@ -256,9 +256,19 @@ namespace VisualMaster.Communication.UI
             return null;
         }
 
-        private void OnRemoveDeviceClick(object sender, RoutedEventArgs e)
+        private async void OnRemoveDeviceClick(object sender, RoutedEventArgs e)
         {
-            if (_selectedDevice == null) return; ApplySelectedDeviceChanges(false);
+            if (_selectedDevice == null) return;
+
+            var deviceId = _selectedDevice.DeviceId;
+            var name = _selectedDevice.DisplayName;
+
+            try { await _manager.StopDeviceAsync(deviceId); } catch { }
+            _config.RemoveDevice(deviceId);
+            _manager.LoadConfig(_config);
+            _selectedDevice = null;
+            RefreshDevices();
+            LoadSelectedDevice();
         }
     }
 }
