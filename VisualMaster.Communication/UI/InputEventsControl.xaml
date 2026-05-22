@@ -39,7 +39,7 @@
             </ListBox>
         </DockPanel>
 
-        <Grid Grid.Column="1" Margin="12">
+        <Grid x:Name="EditorPanel" Grid.Column="1" Margin="12" Visibility="Collapsed">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="96"/>
                 <ColumnDefinition Width="*"/>

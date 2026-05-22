@@ -64,6 +64,13 @@ namespace VisualMaster.Communication.UI
 
         private void LoadEditor()
         {
+            if (_selected == null)
+            {
+                EditorPanel.Visibility = Visibility.Collapsed;
+                return;
+            }
+            EditorPanel.Visibility = Visibility.Visible;
+
             _suppress = true;
             try
             {
