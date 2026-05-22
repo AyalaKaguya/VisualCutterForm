@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Windows;
 using System.Windows.Input;
 using VisualMaster.Communication.Api;
@@ -12,17 +13,13 @@ namespace VisualMaster.Communication.UI
     {
         private const int MaxHistoryLines = 100;
 
-        private readonly CommunicationManager _manager;
-        private readonly string _deviceId;
-        private readonly string _blockId;
+        private readonly ICommunicationBlock _block;
 
-        public RawBytesMonitorWindow(CommunicationManager manager, string deviceId, string blockId)
+        public RawBytesMonitorWindow(ICommunicationBlock block)
         {
-            _manager = manager;
-            _deviceId = deviceId;
-            _blockId = blockId;
+            _block = block ?? throw new ArgumentNullException(nameof(block));
             InitializeComponent();
-            _manager.SubscribeToBlock(_deviceId, _blockId, OnBlockUpdated);
+            _block.Updated += OnBlockUpdated;
         }
 
         private void OnBlockUpdated(object sender, CommunicationBlockUpdatedEventArgs e)
@@ -67,7 +64,7 @@ namespace VisualMaster.Communication.UI
             else
                 data = CommunicationDataConverter.FromHex(text);
 
-            await _manager.WriteBlockAsync(_deviceId, _blockId, data);
+            await _block.WriteAsync(data, 1000, CancellationToken.None);
             _ = Dispatcher.BeginInvoke(new Action(() => AppendLog(text, "->")));
         }
 
@@ -84,7 +81,7 @@ namespace VisualMaster.Communication.UI
 
         protected override void OnClosed(EventArgs e)
         {
-            _manager.UnsubscribeFromBlock(_deviceId, _blockId, OnBlockUpdated);
+            _block.Updated -= OnBlockUpdated;
             base.OnClosed(e);
         }
     }

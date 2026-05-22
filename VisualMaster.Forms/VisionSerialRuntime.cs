@@ -283,7 +283,7 @@ namespace VisualMaster.Forms
         {
             private readonly CommunicationManager _manager;
             private readonly SerialDeviceConfig _device;
-            private readonly string _blockId;
+            private readonly ICommunicationBlock _block;
             private readonly Action<Exception> _errorHandler;
             private bool _disposed;
 
@@ -293,9 +293,9 @@ namespace VisualMaster.Forms
                 _device = device.Clone();
                 _errorHandler = errorHandler;
                 var driver = manager.Drivers.FirstOrDefault(d => d.DeviceId == device.DeviceId);
-                _blockId = driver?.Blocks.FirstOrDefault()?.Config.BlockId;
-                if (_blockId != null)
-                    manager.SubscribeToBlock(_device.DeviceId, _blockId, OnBlockUpdated);
+                _block = driver?.Blocks.FirstOrDefault();
+                if (_block != null)
+                    _block.Updated += OnBlockUpdated;
             }
 
             public string PortName => _device.PortName;
@@ -318,7 +318,8 @@ namespace VisualMaster.Forms
             {
                 try
                 {
-                    _manager.WriteBlockAsync(_device.DeviceId, _blockId, data ?? new byte[0]).GetAwaiter().GetResult();
+                    if (_block == null) return;
+                    _block.WriteAsync(data ?? new byte[0], 1000, System.Threading.CancellationToken.None).GetAwaiter().GetResult();
                 }
                 catch (Exception ex)
                 {
@@ -342,8 +343,8 @@ namespace VisualMaster.Forms
             {
                 if (_disposed) return;
                 _disposed = true;
-                if (_blockId != null)
-                    _manager.UnsubscribeFromBlock(_device.DeviceId, _blockId, OnBlockUpdated);
+                if (_block != null)
+                    _block.Updated -= OnBlockUpdated;
             }
         }
     }

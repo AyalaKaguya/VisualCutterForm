@@ -18,8 +18,6 @@ namespace VisualMaster.Communication.Core
             new Dictionary<string, CancellationTokenSource>();
         private readonly Dictionary<string, byte[]> _previousValues =
             new Dictionary<string, byte[]>();
-        private readonly Dictionary<(string deviceId, string blockId), List<EventHandler<CommunicationBlockUpdatedEventArgs>>> _blockSubscribers =
-            new Dictionary<(string, string), List<EventHandler<CommunicationBlockUpdatedEventArgs>>>();
         private readonly CommunicationInputEvaluator _inputEvaluator = new CommunicationInputEvaluator();
         private readonly CommunicationOutputBuilder _outputBuilder = new CommunicationOutputBuilder();
         private CommunicationSystemConfig _config;
@@ -34,30 +32,6 @@ namespace VisualMaster.Communication.Core
 
         public event EventHandler<CommunicationInputEventConfig> InputEventTriggered;
         public event EventHandler<string> StatusChanged;
-
-        public void SubscribeToBlock(string deviceId, string blockId, EventHandler<CommunicationBlockUpdatedEventArgs> handler)
-        {
-            var key = (deviceId, blockId);
-            if (!_blockSubscribers.TryGetValue(key, out var list))
-                _blockSubscribers[key] = list = new List<EventHandler<CommunicationBlockUpdatedEventArgs>>();
-            if (!list.Contains(handler))
-                list.Add(handler);
-
-            var block = FindBlock(deviceId, blockId);
-            if (block != null)
-                block.Updated += handler;
-        }
-
-        public void UnsubscribeFromBlock(string deviceId, string blockId, EventHandler<CommunicationBlockUpdatedEventArgs> handler)
-        {
-            var key = (deviceId, blockId);
-            if (_blockSubscribers.TryGetValue(key, out var list))
-                list.Remove(handler);
-
-            var block = FindBlock(deviceId, blockId);
-            if (block != null)
-                block.Updated -= handler;
-        }
 
         public void RegisterDriver(ICommunicationDriverFactory factory)
         {
@@ -212,8 +186,6 @@ namespace VisualMaster.Communication.Core
 
                 foreach (var newBlock in existing.Blocks)
                     newBlock.Updated += OnBlockForInputEvents;
-
-                RebindBlockSubscriptions(existing);
                 return;
             }
 
@@ -223,7 +195,6 @@ namespace VisualMaster.Communication.Core
             foreach (var block in driver.Blocks)
                 block.Updated += OnBlockForInputEvents;
 
-            RebindBlockSubscriptions(driver);
             _drivers[config.DeviceId] = driver;
         }
 
@@ -237,21 +208,6 @@ namespace VisualMaster.Communication.Core
 
             driver.Dispose();
             _drivers.Remove(deviceId);
-        }
-
-        private void RebindBlockSubscriptions(ICommunicationDriver driver)
-        {
-            foreach (var kv in _blockSubscribers)
-            {
-                if (kv.Key.deviceId != driver.DeviceId) continue;
-                var block = driver.Blocks.FirstOrDefault(b => b.Config.BlockId == kv.Key.blockId);
-                if (block == null) continue;
-                foreach (var handler in kv.Value)
-                {
-                    block.Updated -= handler;
-                    block.Updated += handler;
-                }
-            }
         }
 
         private void OnBlockForInputEvents(object sender, CommunicationBlockUpdatedEventArgs e)

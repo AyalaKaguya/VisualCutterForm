@@ -25,10 +25,15 @@ namespace VisualMaster.Communication.Driver
             DeviceId = config.DeviceId;
             IsEnabled = config.IsEnabled;
 
-            _blocks.Clear();
+            var configBlockIds = new HashSet<string>(config.Blocks.Select(b => b.BlockId));
+            foreach (var existing in _blocks.ToList())
+            {
+                if (!configBlockIds.Contains(existing.Config.BlockId))
+                    _blocks.Remove(existing);
+            }
 
             foreach (var blockConfig in config.Blocks)
-                CreateBlock(blockConfig);
+                UpdateBlock(blockConfig);
         }
 
         public abstract Task ConnectAsync(CancellationToken cancellationToken);

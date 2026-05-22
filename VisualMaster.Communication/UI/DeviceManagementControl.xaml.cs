@@ -212,7 +212,9 @@ namespace VisualMaster.Communication.UI
         private void OnMonitorRequested(object sender, CommunicationBlockConfig e)
         {
             if (_selectedDevice == null || e == null) return;
-            new RawBytesMonitorWindow(_manager, _selectedDevice.DeviceId, e.BlockId)
+            var block = _manager.FindBlock(_selectedDevice.DeviceId, e.BlockId);
+            if (block == null) return;
+            new RawBytesMonitorWindow(block)
             {
                 Owner = Window.GetWindow(this),
             }.Show();
@@ -222,7 +224,9 @@ namespace VisualMaster.Communication.UI
         {
             if (_selectedDevice == null || e == null) return;
             ApplySelectedDeviceChanges(false);
-            new RawBytesMonitorWindow(_manager, _selectedDevice.DeviceId, e.BlockId)
+            var block = _manager.FindBlock(_selectedDevice.DeviceId, e.BlockId);
+            if (block == null) return;
+            new RawBytesMonitorWindow(block)
             {
                 Owner = Window.GetWindow(this),
                 Title = $"实时监视 - {e.Name}",
