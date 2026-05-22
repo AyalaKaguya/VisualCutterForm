@@ -97,9 +97,7 @@ namespace VisualMaster.Communication.Driver
                 if (_port == null || !_port.IsOpen)
                     throw new InvalidOperationException("UART is not connected.");
 
-                var bytes = data ?? new byte[0];
-                _port.BaseStream.Write(bytes, 0, bytes.Length);
-                _port.BaseStream.Flush();
+                _port.Write(data ?? new byte[0], 0, data?.Length ?? 0);
                 return Task.CompletedTask;
             };
             return block;
