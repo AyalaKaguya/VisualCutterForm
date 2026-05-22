@@ -38,11 +38,16 @@ namespace VisualMaster.Communication.UI
                 else
                     formatted = CommunicationDataConverter.ToHex(e.Data);
 
-                string timestamp = DateTime.Now.ToString("HH:mm:ss");
-                ValueBox.AppendText($"[{timestamp}] -> {formatted}\n");
-                PruneHistory();
-                ValueBox.ScrollToEnd();
+                AppendLog(formatted, "<-");
             }));
+        }
+
+        private void AppendLog(string data, string arrow)
+        {
+            string timestamp = DateTime.Now.ToString("HH:mm:ss");
+            ValueBox.AppendText($"[{timestamp}] {arrow} {data}\n");
+            PruneHistory();
+            ValueBox.ScrollToEnd();
         }
 
         private void PruneHistory()
@@ -64,6 +69,7 @@ namespace VisualMaster.Communication.UI
                 data = CommunicationDataConverter.FromHex(text);
 
             await _manager.WriteBlockAsync(_deviceId, _blockId, data);
+            _ = Dispatcher.BeginInvoke(new Action(() => AppendLog(text, "->")));
         }
 
         private void SendBox_KeyDown(object sender, KeyEventArgs e)
