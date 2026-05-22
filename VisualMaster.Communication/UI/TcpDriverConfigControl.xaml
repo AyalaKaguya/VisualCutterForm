@@ -50,6 +50,7 @@
                 <TextBlock Text="绑定块名称"/>
                 <TextBox x:Name="BlockNameBox" Grid.Column="1"
                          Text="{Binding BlockName, UpdateSourceTrigger=PropertyChanged}"/>
+                <Button Grid.Column="2" Content="实时" MinWidth="78" Height="34" FontSize="15" Margin="12,0,0,0" Click="OnRealtimeClick"/>
             </Grid>
         </Border>
     </Grid>

@@ -55,7 +55,7 @@ namespace VisualMaster.Communication.UI
             {
                 deviceVm.DriverConfig.LoadFrom(_viewModel.GetDeviceConfig(deviceVm.DeviceId));
                 var control = new UartDriverConfigControl(deviceVm.DriverConfig);
-                control.RealtimeRequested += OnUartRealtimeRequested;
+                control.RealtimeRequested += OnRealtimeRequested;
                 control.ConfigChanged += OnDriverConfigChanged;
                 DriverConfigHost.Content = control;
                 BlockList.Visibility = Visibility.Collapsed;
@@ -64,6 +64,7 @@ namespace VisualMaster.Communication.UI
             {
                 deviceVm.TcpDriverConfig.LoadFrom(_viewModel.GetDeviceConfig(deviceVm.DeviceId));
                 var control = new TcpDriverConfigControl(deviceVm.TcpDriverConfig);
+                control.RealtimeRequested += OnRealtimeRequested;
                 control.ConfigChanged += OnTcpDriverConfigChanged;
                 DriverConfigHost.Content = control;
                 BlockList.Visibility = Visibility.Visible;
@@ -190,7 +191,7 @@ namespace VisualMaster.Communication.UI
             }.Show();
         }
 
-        private void OnUartRealtimeRequested(object sender, EventArgs e)
+        private void OnRealtimeRequested(object sender, EventArgs e)
         {
             if (_viewModel.SelectedDevice == null) return;
             ApplySelectedDeviceChanges();
