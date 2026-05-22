@@ -48,18 +48,23 @@ namespace VisualMaster.Communication.UI.ViewModels
         public string StatusText => IsConnected ? "已连接" : "未连接";
 
         public UartDriverConfigViewModel DriverConfig { get; private set; }
+        public TcpDriverConfigViewModel TcpDriverConfig { get; private set; }
 
         public CommunicationDeviceItemViewModel(CommunicationDeviceConfig config)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             if (_config.DriverName == "UART")
                 DriverConfig = new UartDriverConfigViewModel(_config);
+            else if (_config.DriverName == "TCP")
+                TcpDriverConfig = new TcpDriverConfigViewModel(_config);
         }
 
         public void EnsureDriverConfig()
         {
-            if (DriverConfig == null && _config.DriverName == "UART")
+            if (_config.DriverName == "UART" && DriverConfig == null)
                 DriverConfig = new UartDriverConfigViewModel(_config);
+            else if (_config.DriverName == "TCP" && TcpDriverConfig == null)
+                TcpDriverConfig = new TcpDriverConfigViewModel(_config);
         }
 
         public void RefreshStatus(bool isConnected)
@@ -83,6 +88,7 @@ namespace VisualMaster.Communication.UI.ViewModels
                 if (config.Blocks != null && config.Blocks.Count > 0)
                     _config.Blocks = config.Blocks.Select(b => b.Clone()).ToList();
                 DriverConfig?.LoadFrom(_config);
+                TcpDriverConfig?.LoadFrom(_config);
                 OnPropertyChanged(nameof(DisplayName));
                 OnPropertyChanged(nameof(DriverName));
                 OnPropertyChanged(nameof(IsEnabled));

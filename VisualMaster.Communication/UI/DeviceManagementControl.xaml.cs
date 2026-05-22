@@ -51,7 +51,7 @@ namespace VisualMaster.Communication.UI
 
             deviceVm.EnsureDriverConfig();
 
-            if (deviceVm.DriverName == "UART")
+            if (deviceVm.DriverName == "UART" && deviceVm.DriverConfig != null)
             {
                 deviceVm.DriverConfig.LoadFrom(_viewModel.GetDeviceConfig(deviceVm.DeviceId));
                 var control = new UartDriverConfigControl(deviceVm.DriverConfig);
@@ -59,6 +59,15 @@ namespace VisualMaster.Communication.UI
                 control.ConfigChanged += OnDriverConfigChanged;
                 DriverConfigHost.Content = control;
                 BlockList.Visibility = Visibility.Collapsed;
+            }
+            else if (deviceVm.DriverName == "TCP" && deviceVm.TcpDriverConfig != null)
+            {
+                deviceVm.TcpDriverConfig.LoadFrom(_viewModel.GetDeviceConfig(deviceVm.DeviceId));
+                var control = new TcpDriverConfigControl(deviceVm.TcpDriverConfig);
+                control.ConfigChanged += OnTcpDriverConfigChanged;
+                DriverConfigHost.Content = control;
+                BlockList.Visibility = Visibility.Visible;
+                BlockList.LoadDevice(_viewModel.GetDeviceConfig(deviceVm.DeviceId));
             }
             else
             {
@@ -152,6 +161,19 @@ namespace VisualMaster.Communication.UI
             deviceVm.DisplayName = string.IsNullOrWhiteSpace(dialog.Value) ? deviceVm.DisplayName : dialog.Value.Trim();
         }
 
+        private void ApplySelectedTcpDeviceChanges()
+        {
+            if (_viewModel.SelectedDevice?.TcpDriverConfig != null)
+            {
+                var config = _viewModel.GetDeviceConfig(_viewModel.SelectedDevice.DeviceId);
+                if (config != null)
+                {
+                    _viewModel.SelectedDevice.TcpDriverConfig.ToDeviceConfig(config);
+                    _viewModel.UpdateDeviceConfig(config);
+                }
+            }
+        }
+
         private void OnBlocksChanged(object sender, EventArgs e)
         {
             ApplySelectedDeviceChanges();
@@ -185,6 +207,11 @@ namespace VisualMaster.Communication.UI
         private void OnDriverConfigChanged(object sender, EventArgs e)
         {
             ApplySelectedDeviceChanges();
+        }
+
+        private void OnTcpDriverConfigChanged(object sender, EventArgs e)
+        {
+            ApplySelectedTcpDeviceChanges();
         }
 
         private void ApplySelectedDeviceChanges()

@@ -64,6 +64,8 @@
     <Compile Include="Driver\CommunicationDriverBase.cs" />
     <Compile Include="Driver\UartDriver.cs" />
     <Compile Include="Driver\UartDriverFactory.cs" />
+    <Compile Include="Driver\TcpDriver.cs" />
+    <Compile Include="Driver\TcpDriverFactory.cs" />
     <Compile Include="UI\CommunicationBlockListControl.xaml.cs">
       <DependentUpon>CommunicationBlockListControl.xaml</DependentUpon>
     </Compile>
@@ -94,6 +96,9 @@
     <Compile Include="UI\UartDriverConfigControl.xaml.cs">
       <DependentUpon>UartDriverConfigControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UI\TcpDriverConfigControl.xaml.cs">
+      <DependentUpon>TcpDriverConfigControl.xaml</DependentUpon>
+    </Compile>
     <Page Include="Themes\CommunicationDarkTheme.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -103,6 +108,7 @@
     <Compile Include="UI\ViewModels\RelayCommand.cs" />
     <Compile Include="UI\ViewModels\CommunicationDeviceItemViewModel.cs" />
     <Compile Include="UI\ViewModels\UartDriverConfigViewModel.cs" />
+    <Compile Include="UI\ViewModels\TcpDriverConfigViewModel.cs" />
     <Compile Include="UI\ViewModels\CommunicationManagerViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -144,6 +150,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="UI\UartDriverConfigControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\TcpDriverConfigControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

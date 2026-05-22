@@ -25,6 +25,7 @@ namespace VisualMaster.Communication.Core
         public CommunicationManager()
         {
             RegisterDriver(new UartDriverFactory());
+            RegisterDriver(new TcpDriverFactory());
         }
 
         public IReadOnlyList<ICommunicationDriverFactory> DriverFactories => _factories.Values.ToList();
