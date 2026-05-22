@@ -32,7 +32,7 @@ namespace VisualMaster.Communication.UI
             {
                 string formatted;
                 if (ShortMode.IsChecked == true)
-                    formatted = BitConverter.ToString(e.Data).Replace("-", " ");
+                    formatted = string.Join(" ", e.Data.Select(b => b.ToString()));
                 else if (StringMode.IsChecked == true)
                     formatted = Encoding.ASCII.GetString(e.Data);
                 else
