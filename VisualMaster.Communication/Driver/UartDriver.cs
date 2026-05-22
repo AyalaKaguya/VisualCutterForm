@@ -108,6 +108,8 @@ namespace VisualMaster.Communication.Driver
             try
             {
                 if (_port == null || _port.BytesToRead <= 0 || _singleBlock == null) return;
+                System.Threading.Thread.Sleep(30);
+                if (_port == null || _port.BytesToRead <= 0 || _singleBlock == null) return;
                 var buffer = new byte[_port.BytesToRead];
                 _port.Read(buffer, 0, buffer.Length);
                 _singleBlock.Publish(buffer);
