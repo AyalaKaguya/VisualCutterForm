@@ -54,7 +54,7 @@
         <Setter Property="Padding" Value="5,3"/>
     </Style>
 
-    <!-- ===== Implicit CheckBox ===== -->
+    <!-- ===== Implicit CheckBox / RadioButton ===== -->
     <Style TargetType="CheckBox">
         <Setter Property="Foreground" Value="{StaticResource ColorTextPrimary}"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
@@ -62,13 +62,6 @@
     <Style TargetType="RadioButton">
         <Setter Property="Foreground" Value="{StaticResource ColorTextPrimary}"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
-    </Style>
-
-    <!-- ===== Implicit RadioButton ===== -->
-    <Style TargetType="RadioButton">
-        <Setter Property="Foreground" Value="{StaticResource ColorTextPrimary}"/>
-        <Setter Property="VerticalAlignment" Value="Center"/>
-        <Setter Property="MinHeight" Value="28"/>
     </Style>
 
     <!-- ===== DataGrid ===== -->
