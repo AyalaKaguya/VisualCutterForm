@@ -115,12 +115,14 @@ namespace VisualMaster.Communication.UI.ViewModels
         {
             if (SelectedDevice == null) return;
             IsBusy = true;
+            string deviceId = SelectedDevice.DeviceId;
+            string displayName = SelectedDevice.DisplayName;
             try
             {
-                try { await _manager.StopDeviceAsync(SelectedDevice.DeviceId); } catch { }
-                _config.RemoveDevice(SelectedDevice.DeviceId);
+                try { await _manager.StopDeviceAsync(deviceId); } catch { }
+                _config.RemoveDevice(deviceId);
                 _manager.LoadConfig(_config);
-                StatusMessage = $"已移除：{SelectedDevice.DisplayName}";
+                StatusMessage = $"已移除：{displayName}";
             }
             catch (Exception ex)
             {

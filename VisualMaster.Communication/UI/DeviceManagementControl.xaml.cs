@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -22,7 +23,14 @@ namespace VisualMaster.Communication.UI
             InitializeComponent();
             BlockList.BlocksChanged += OnBlocksChanged;
             BlockList.MonitorRequested += OnMonitorRequested;
+            _viewModel.PropertyChanged += OnViewModelPropertyChanged;
             LoadSelectedDevice();
+        }
+
+        private void OnViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(CommunicationManagerViewModel.SelectedDevice))
+                LoadSelectedDevice();
         }
 
         private void LoadSelectedDevice()
