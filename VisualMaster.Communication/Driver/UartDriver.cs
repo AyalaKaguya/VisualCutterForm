@@ -75,11 +75,15 @@ namespace VisualMaster.Communication.Driver
             try
             {
                 _port.DataReceived -= OnDataReceived;
-                if (_port.IsOpen) _port.Close();
+                _port.DiscardInBuffer();
+                _port.DiscardOutBuffer();
+                if (_port.IsOpen)
+                    _port.Close();
             }
+            catch { }
             finally
             {
-                _port.Dispose();
+                try { _port.Dispose(); } catch { }
                 _port = null;
                 IsConnected = false;
             }
