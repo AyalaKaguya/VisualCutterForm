@@ -128,7 +128,16 @@ namespace VisualMaster.Communication.UI
             var rename = new MenuItem { Header = "重命名" };
             rename.Click += OnRenameDeviceClick;
             menu.Items.Add(rename);
+            var delete = new MenuItem { Header = "删除" };
+            delete.Click += OnDeleteDeviceClick;
+            menu.Items.Add(delete);
             item.ContextMenu = menu;
+        }
+
+        private void OnDeleteDeviceClick(object sender, RoutedEventArgs e)
+        {
+            if (_viewModel.RemoveDeviceCommand.CanExecute(null))
+                _viewModel.RemoveDeviceCommand.Execute(null);
         }
 
         private void OnRenameDeviceClick(object sender, RoutedEventArgs e)
