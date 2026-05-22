@@ -3,7 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Foreground="White">
     <UserControl.Resources>
-        <ResourceDictionary Source="../Themes/CommunicationDarkTheme.xaml"/>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Themes/CommunicationDarkTheme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </UserControl.Resources>
     <Grid Background="{DynamicResource ColorRootBg}">
         <Grid.ColumnDefinitions>

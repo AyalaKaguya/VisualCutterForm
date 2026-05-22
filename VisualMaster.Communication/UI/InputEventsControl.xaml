@@ -102,29 +102,31 @@
                         <TextBlock Text="最少字符数" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
                         <ToggleButton x:Name="MinLengthToggle" Style="{StaticResource DeviceToggle}"
                                       Checked="OnMinLengthToggleChanged" Unchecked="OnMinLengthToggleChanged"/>
-                        <ComboBox x:Name="MinLengthCombo" SelectionChanged="OnMinLengthChanged"
-                                  Width="70" Margin="12,0,0,0" IsEditable="True">
-                            <ComboBoxItem>1</ComboBoxItem><ComboBoxItem>2</ComboBoxItem><ComboBoxItem>3</ComboBoxItem>
-                            <ComboBoxItem>4</ComboBoxItem><ComboBoxItem>5</ComboBoxItem><ComboBoxItem>6</ComboBoxItem>
-                            <ComboBoxItem>7</ComboBoxItem><ComboBoxItem>8</ComboBoxItem><ComboBoxItem>9</ComboBoxItem>
-                            <ComboBoxItem>10</ComboBoxItem><ComboBoxItem>12</ComboBoxItem><ComboBoxItem>14</ComboBoxItem>
-                            <ComboBoxItem>16</ComboBoxItem><ComboBoxItem>20</ComboBoxItem><ComboBoxItem>24</ComboBoxItem>
-                            <ComboBoxItem>32</ComboBoxItem><ComboBoxItem>48</ComboBoxItem><ComboBoxItem>64</ComboBoxItem>
-                        </ComboBox>
+                        <DockPanel Width="90" Margin="12,0,0,0">
+                            <StackPanel DockPanel.Dock="Right" Width="20">
+                                <RepeatButton Content="▲" FontSize="8" Padding="0" Height="15"
+                                              Click="OnMinLengthUp"/>
+                                <RepeatButton Content="▼" FontSize="8" Padding="0" Height="15"
+                                              Click="OnMinLengthDown"/>
+                            </StackPanel>
+                            <TextBox x:Name="MinLengthBox" TextChanged="OnMinLengthChanged"
+                                     PreviewTextInput="OnNumericPreviewTextInput" VerticalContentAlignment="Center"/>
+                        </DockPanel>
                     </DockPanel>
                     <DockPanel Margin="0,0,0,6">
                         <TextBlock Text="等于字符数" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
                         <ToggleButton x:Name="ExactLengthToggle" Style="{StaticResource DeviceToggle}"
                                       Checked="OnExactLengthToggleChanged" Unchecked="OnExactLengthToggleChanged"/>
-                        <ComboBox x:Name="ExactLengthCombo" SelectionChanged="OnExactLengthChanged"
-                                  Width="70" Margin="12,0,0,0" IsEditable="True">
-                            <ComboBoxItem>1</ComboBoxItem><ComboBoxItem>2</ComboBoxItem><ComboBoxItem>3</ComboBoxItem>
-                            <ComboBoxItem>4</ComboBoxItem><ComboBoxItem>5</ComboBoxItem><ComboBoxItem>6</ComboBoxItem>
-                            <ComboBoxItem>7</ComboBoxItem><ComboBoxItem>8</ComboBoxItem><ComboBoxItem>9</ComboBoxItem>
-                            <ComboBoxItem>10</ComboBoxItem><ComboBoxItem>12</ComboBoxItem><ComboBoxItem>14</ComboBoxItem>
-                            <ComboBoxItem>16</ComboBoxItem><ComboBoxItem>20</ComboBoxItem><ComboBoxItem>24</ComboBoxItem>
-                            <ComboBoxItem>32</ComboBoxItem><ComboBoxItem>48</ComboBoxItem><ComboBoxItem>64</ComboBoxItem>
-                        </ComboBox>
+                        <DockPanel Width="90" Margin="12,0,0,0">
+                            <StackPanel DockPanel.Dock="Right" Width="20">
+                                <RepeatButton Content="▲" FontSize="8" Padding="0" Height="15"
+                                              Click="OnExactLengthUp"/>
+                                <RepeatButton Content="▼" FontSize="8" Padding="0" Height="15"
+                                              Click="OnExactLengthDown"/>
+                            </StackPanel>
+                            <TextBox x:Name="ExactLengthBox" TextChanged="OnExactLengthChanged"
+                                     PreviewTextInput="OnNumericPreviewTextInput" VerticalContentAlignment="Center"/>
+                        </DockPanel>
                     </DockPanel>
                     <DockPanel>
                         <TextBlock Text="ASCII 16位" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>

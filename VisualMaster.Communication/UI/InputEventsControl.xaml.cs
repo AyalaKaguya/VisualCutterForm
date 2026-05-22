@@ -143,15 +143,9 @@ namespace VisualMaster.Communication.UI
                 LengthCheckToggle.IsChecked = _selected?.LengthCheckEnabled == true;
                 LengthCheckPanel.Visibility = _selected?.LengthCheckEnabled == true ? Visibility.Visible : Visibility.Collapsed;
                 MinLengthToggle.IsChecked = _selected?.MinLengthEnabled == true;
-                if (_selected?.MinimumLength > 0)
-                    SelectText(MinLengthCombo, _selected.MinimumLength.ToString());
-                else
-                    MinLengthCombo.Text = "";
+                MinLengthBox.Text = (_selected?.MinimumLength ?? 0).ToString();
                 ExactLengthToggle.IsChecked = _selected?.ExactLengthEnabled == true;
-                if (_selected?.ExactLength > 0)
-                    SelectText(ExactLengthCombo, _selected.ExactLength.ToString());
-                else
-                    ExactLengthCombo.Text = "";
+                ExactLengthBox.Text = (_selected?.ExactLength ?? 0).ToString();
                 AsciiToggle.IsChecked = _selected?.TreatAsAscii == true;
                 RuleGrid.DataContext = _selected;
             }
@@ -217,20 +211,73 @@ namespace VisualMaster.Communication.UI
             Sync();
         }
 
-        private void OnMinLengthChanged(object sender, SelectionChangedEventArgs e)
+        private void OnMinLengthChanged(object sender, TextChangedEventArgs e)
         {
             if (_suppress || _selected == null) return;
-            if (int.TryParse(MinLengthCombo.Text, out var len))
+            if (int.TryParse(MinLengthBox.Text, out var len))
                 _selected.MinimumLength = len;
             Sync();
         }
 
-        private void OnExactLengthChanged(object sender, SelectionChangedEventArgs e)
+        private void OnMinLengthUp(object sender, RoutedEventArgs e)
         {
             if (_suppress || _selected == null) return;
-            if (int.TryParse(ExactLengthCombo.Text, out var len))
+            if (int.TryParse(MinLengthBox.Text, out var v))
+            {
+                v++;
+                MinLengthBox.Text = v.ToString();
+                _selected.MinimumLength = v;
+                Sync();
+            }
+        }
+
+        private void OnMinLengthDown(object sender, RoutedEventArgs e)
+        {
+            if (_suppress || _selected == null) return;
+            if (int.TryParse(MinLengthBox.Text, out var v) && v > 0)
+            {
+                v--;
+                MinLengthBox.Text = v.ToString();
+                _selected.MinimumLength = v;
+                Sync();
+            }
+        }
+
+        private void OnExactLengthChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_suppress || _selected == null) return;
+            if (int.TryParse(ExactLengthBox.Text, out var len))
                 _selected.ExactLength = len;
             Sync();
+        }
+
+        private void OnExactLengthUp(object sender, RoutedEventArgs e)
+        {
+            if (_suppress || _selected == null) return;
+            if (int.TryParse(ExactLengthBox.Text, out var v))
+            {
+                v++;
+                ExactLengthBox.Text = v.ToString();
+                _selected.ExactLength = v;
+                Sync();
+            }
+        }
+
+        private void OnExactLengthDown(object sender, RoutedEventArgs e)
+        {
+            if (_suppress || _selected == null) return;
+            if (int.TryParse(ExactLengthBox.Text, out var v) && v > 0)
+            {
+                v--;
+                ExactLengthBox.Text = v.ToString();
+                _selected.ExactLength = v;
+                Sync();
+            }
+        }
+
+        private void OnNumericPreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
+        {
+            e.Handled = !int.TryParse(e.Text, out _);
         }
 
         private void OnExactLengthToggleChanged(object sender, RoutedEventArgs e)
