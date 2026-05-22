@@ -29,6 +29,7 @@
         <Setter Property="Foreground" Value="{StaticResource ColorTextPrimary}"/>
         <Setter Property="BorderBrush" Value="{StaticResource ColorButtonBorder}"/>
         <Setter Property="Padding" Value="5,3"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
 
     <!-- ===== Implicit TextBlock ===== -->

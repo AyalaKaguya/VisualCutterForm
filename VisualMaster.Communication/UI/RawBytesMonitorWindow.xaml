@@ -20,6 +20,7 @@
                  FontFamily="Consolas"
                  TextWrapping="Wrap"
                  AcceptsReturn="True"
-                 IsReadOnly="True"/>
+                 IsReadOnly="True"
+                 VerticalContentAlignment="Top"/>
     </DockPanel>
 </Window>
