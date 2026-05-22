@@ -22,6 +22,7 @@ namespace VisualMaster.Communication.Driver
 
         public Func<int, CancellationToken, Task<byte[]>> ReadHandler { get; set; }
         public Func<byte[], int, CancellationToken, Task> WriteHandler { get; set; }
+        public bool PublishOnWrite { get; set; } = true;
 
         public async Task<byte[]> ReadAsync(int timeoutMs, CancellationToken cancellationToken)
         {
@@ -37,12 +38,19 @@ namespace VisualMaster.Communication.Driver
         {
             if (WriteHandler == null)
             {
-                _currentValue = data != null ? (byte[])data.Clone() : new byte[0];
+                SetValue(data);
                 return;
             }
 
             await WriteHandler(data ?? new byte[0], timeoutMs, cancellationToken).ConfigureAwait(false);
+            SetValue(data);
+        }
+
+        private void SetValue(byte[] data)
+        {
             _currentValue = data != null ? (byte[])data.Clone() : new byte[0];
+            if (PublishOnWrite)
+                Updated?.Invoke(this, new CommunicationBlockUpdatedEventArgs(null, Config.BlockId, Config.Address, _currentValue));
         }
 
         public void UpdateConfig(CommunicationBlockConfig config)

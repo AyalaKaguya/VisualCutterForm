@@ -87,7 +87,7 @@ namespace VisualMaster.Communication.Driver
 
         protected override ICommunicationBlock CreateDriverBlock(CommunicationBlockConfig config)
         {
-            var block = new CommunicationBlock(config);
+            var block = new CommunicationBlock(config) { PublishOnWrite = false };
             block.ReadHandler = (timeout, token) => Task.FromResult(block.CurrentValue);
             block.WriteHandler = (data, timeout, token) =>
             {
