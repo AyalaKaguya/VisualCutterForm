@@ -15,6 +15,7 @@ namespace VisualMaster.Communication.UI
         private readonly CommunicationManager _manager;
         private readonly string _deviceId;
         private readonly string _blockId;
+        private byte[] _lastData;
 
         public RawBytesMonitorWindow(CommunicationManager manager, string deviceId, string blockId)
         {
@@ -28,6 +29,8 @@ namespace VisualMaster.Communication.UI
         private void OnBlockUpdated(object sender, CommunicationBlockUpdatedEventArgs e)
         {
             if (e.DeviceId != _deviceId || e.BlockId != _blockId) return;
+            if (_lastData != null && DataEqual(e.Data, _lastData)) return;
+            _lastData = (byte[])e.Data.Clone();
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 string formatted;
@@ -43,6 +46,14 @@ namespace VisualMaster.Communication.UI
                 PruneHistory();
                 ValueBox.ScrollToEnd();
             }));
+        }
+
+        private static bool DataEqual(byte[] a, byte[] b)
+        {
+            if (a.Length != b.Length) return false;
+            for (int i = 0; i < a.Length; i++)
+                if (a[i] != b[i]) return false;
+            return true;
         }
 
         private void PruneHistory()
