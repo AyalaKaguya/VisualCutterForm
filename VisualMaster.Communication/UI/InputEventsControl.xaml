@@ -28,10 +28,8 @@
                     <DataTemplate>
                         <StackPanel Margin="4,6">
                             <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
-                            <TextBlock FontSize="10" Foreground="#999999" Margin="0,2,0,0" TextTrimming="CharacterEllipsis">
-                                <Run Text="设备:"/><Run Text="{Binding DeviceId}"/>
-                                <Run Text="  块:"/><Run Text="{Binding BlockId}"/>
-                            </TextBlock>
+                            <TextBlock FontSize="10" Foreground="#999999" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"
+                                       Text="{Binding BindingInfo}"/>
                             <TextBlock FontSize="10" Foreground="#777777" Margin="0,1,0,0"
                                        Text="{Binding Rules.Count, StringFormat='规则: {0} 条'}"/>
                         </StackPanel>
@@ -49,31 +47,35 @@
                        Text="请选择输入事件"/>
             <TextBlock x:Name="EditorPlaceholder" Grid.Row="1"
                        Text="请从左侧选择或添加一个输入事件。"
-                       Foreground="Gray" FontSize="14"  TextAlignment="Center" Margin="0,12,0,0"/>
+                       Foreground="Gray" FontSize="14" Margin="0,12,0,0"/>
             <Grid x:Name="EditorPanel" Grid.Row="1" Margin="0,8,0,0" Visibility="Collapsed">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="96"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="96"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="34"/>
-                    <RowDefinition Height="34"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Text="设备ID"/>
-                <TextBox x:Name="DeviceBox" Grid.Column="1" TextChanged="OnEditorChanged"/>
-                <TextBlock Grid.Column="2" Text="块ID" Margin="16,0,0,0"/>
-                <TextBox x:Name="BlockBox" Grid.Column="3" TextChanged="OnEditorChanged"/>
+                <GroupBox Grid.Row="0" Header="绑定" Foreground="White" Margin="0,0,0,10">
+                    <StackPanel Margin="6">
+                        <DockPanel Margin="0,0,0,6">
+                            <TextBlock Text="通信设备" Width="80" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="DeviceCombo" SelectionChanged="OnDeviceComboChanged"/>
+                        </DockPanel>
+                        <DockPanel>
+                            <TextBlock Text="数据块" Width="80" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="BlockCombo" SelectionChanged="OnBlockComboChanged"/>
+                        </DockPanel>
+                    </StackPanel>
+                </GroupBox>
 
-                <TextBlock Grid.Row="1" Text="ASCII"/>
-                <CheckBox x:Name="AsciiBox" Grid.Row="1" Grid.Column="1" Checked="OnEditorChanged" Unchecked="OnEditorChanged"/>
-                <TextBlock Grid.Row="1" Grid.Column="2" Text="最小长度" Margin="16,0,0,0"/>
-                <TextBox x:Name="MinLengthBox" Grid.Row="1" Grid.Column="3" TextChanged="OnEditorChanged"/>
+                <GroupBox Grid.Row="1" Header="基本配置" Foreground="White" Margin="0,0,0,10">
+                    <DockPanel Margin="6">
+                        <TextBlock Text="最小匹配长度" Width="100" VerticalAlignment="Center"/>
+                        <TextBox x:Name="MinLengthBox" TextChanged="OnMinLengthChanged" Width="80" HorizontalAlignment="Left"/>
+                    </DockPanel>
+                </GroupBox>
 
-                <GroupBox Grid.Row="2" Grid.ColumnSpan="4" Header="匹配规则" Foreground="White" Margin="0,10,0,0">
+                <GroupBox Grid.Row="2" Header="规则配置" Foreground="White">
                     <DataGrid x:Name="RuleGrid"
                               AutoGenerateColumns="False"
                               CanUserAddRows="True"
