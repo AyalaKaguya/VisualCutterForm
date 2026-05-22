@@ -11,7 +11,9 @@ namespace VisualMaster.Communication.Api
         public string DeviceId { get; set; }
         public string BlockId { get; set; }
         public bool LengthCheckEnabled { get; set; }
+        public bool MinLengthEnabled { get; set; }
         public int MinimumLength { get; set; }
+        public bool ExactLengthEnabled { get; set; }
         public int ExactLength { get; set; }
         public bool TreatAsAscii { get; set; }
         public List<CommunicationInputMatchRule> Rules { get; set; } = new List<CommunicationInputMatchRule>();
@@ -25,7 +27,9 @@ namespace VisualMaster.Communication.Api
                 DeviceId = DeviceId,
                 BlockId = BlockId,
                 LengthCheckEnabled = LengthCheckEnabled,
+                MinLengthEnabled = MinLengthEnabled,
                 MinimumLength = MinimumLength,
+                ExactLengthEnabled = ExactLengthEnabled,
                 ExactLength = ExactLength,
                 TreatAsAscii = TreatAsAscii,
                 Rules = Rules?.Select(r => r.Clone()).ToList() ?? new List<CommunicationInputMatchRule>(),

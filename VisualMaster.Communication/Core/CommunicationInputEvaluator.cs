@@ -14,9 +14,11 @@ namespace VisualMaster.Communication.Core
             if (config.LengthCheckEnabled)
             {
                 int charSize = config.TreatAsAscii ? 2 : 1;
-                if (config.MinimumLength > 0 && current.Length < config.MinimumLength * charSize)
+                if (config.MinLengthEnabled && config.MinimumLength > 0
+                    && current.Length < config.MinimumLength * charSize)
                     return false;
-                if (config.ExactLength > 0 && current.Length != config.ExactLength * charSize)
+                if (config.ExactLengthEnabled && config.ExactLength > 0
+                    && current.Length != config.ExactLength * charSize)
                     return false;
             }
 

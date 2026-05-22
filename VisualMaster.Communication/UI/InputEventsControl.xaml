@@ -15,6 +15,24 @@
                 <Setter Property="VerticalContentAlignment" Value="Center"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
+            <Style x:Key="DeviceToggle" TargetType="ToggleButton">
+                <Setter Property="Background" Value="#4A4A4A"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ToggleButton">
+                            <Border x:Name="Track" Width="42" Height="24" Background="{TemplateBinding Background}" CornerRadius="12">
+                                <Ellipse x:Name="Thumb" Width="20" Height="20" Fill="White" HorizontalAlignment="Left" Margin="2"/>
+                            </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Track" Property="Background" Value="#2EAA5F"/>
+                                <Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Right"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid Background="{DynamicResource ColorRootBg}">
@@ -70,27 +88,40 @@
                     <ComboBox x:Name="BlockCombo" MaxWidth="360" SelectionChanged="OnBlockComboChanged"/>
                 </DockPanel>
 
-                <TextBlock Text="基本配置" FontWeight="SemiBold" Margin="0,14,0,6"/>
-                <DockPanel Margin="0,0,0,6">
+                <Border Height="1" Background="#303030" Margin="0,14,0,12"/>
+
+                <TextBlock Text="基本配置" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                <DockPanel Margin="0,0,0,8">
                     <TextBlock Text="字节长度比较" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                    <CheckBox x:Name="LengthCheckBox" Checked="OnLengthCheckChanged" Unchecked="OnLengthCheckChanged"/>
+                    <ToggleButton x:Name="LengthCheckToggle" Style="{StaticResource DeviceToggle}"
+                                  Checked="OnLengthCheckChanged" Unchecked="OnLengthCheckChanged"/>
                 </DockPanel>
-                <StackPanel x:Name="LengthCheckPanel" Visibility="Collapsed" Margin="0,0,0,6">
+
+                <StackPanel x:Name="LengthCheckPanel" Visibility="Collapsed" Margin="48,0,0,0">
                     <DockPanel Margin="0,0,0,6">
                         <TextBlock Text="最少字符数" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                        <TextBox x:Name="MinLengthBox" TextChanged="OnMinLengthChanged" Width="80" HorizontalAlignment="Left"/>
+                        <ToggleButton x:Name="MinLengthToggle" Style="{StaticResource DeviceToggle}"
+                                      Checked="OnMinLengthToggleChanged" Unchecked="OnMinLengthToggleChanged"/>
+                        <TextBox x:Name="MinLengthBox" TextChanged="OnMinLengthChanged" Width="60"
+                                 HorizontalAlignment="Left" Margin="12,0,0,0"/>
                     </DockPanel>
                     <DockPanel Margin="0,0,0,6">
                         <TextBlock Text="等于字符数" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                        <TextBox x:Name="ExactLengthBox" TextChanged="OnExactLengthChanged" Width="80" HorizontalAlignment="Left"/>
+                        <ToggleButton x:Name="ExactLengthToggle" Style="{StaticResource DeviceToggle}"
+                                      Checked="OnExactLengthToggleChanged" Unchecked="OnExactLengthToggleChanged"/>
+                        <TextBox x:Name="ExactLengthBox" TextChanged="OnExactLengthChanged" Width="60"
+                                 HorizontalAlignment="Left" Margin="12,0,0,0"/>
                     </DockPanel>
                     <DockPanel>
                         <TextBlock Text="ASCII 16位" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                        <CheckBox x:Name="AsciiCheckBox" Checked="OnAsciiCheckChanged" Unchecked="OnAsciiCheckChanged"/>
+                        <ToggleButton x:Name="AsciiToggle" Style="{StaticResource DeviceToggle}"
+                                      Checked="OnAsciiToggleChanged" Unchecked="OnAsciiToggleChanged"/>
                     </DockPanel>
                 </StackPanel>
 
-                <TextBlock Text="规则配置" FontWeight="SemiBold" Margin="0,14,0,6"/>
+                <Border Height="1" Background="#303030" Margin="0,14,0,12"/>
+
+                <TextBlock Text="规则配置" FontWeight="SemiBold" Margin="0,0,0,6"/>
                 <DataGrid x:Name="RuleGrid"
                           AutoGenerateColumns="False"
                           CanUserAddRows="True"

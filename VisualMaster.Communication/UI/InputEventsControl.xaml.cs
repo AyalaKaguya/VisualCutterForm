@@ -140,11 +140,13 @@ namespace VisualMaster.Communication.UI
             {
                 PopulateDeviceCombo();
                 PopulateBlockCombo();
-                LengthCheckBox.IsChecked = _selected?.LengthCheckEnabled == true;
+                LengthCheckToggle.IsChecked = _selected?.LengthCheckEnabled == true;
                 LengthCheckPanel.Visibility = _selected?.LengthCheckEnabled == true ? Visibility.Visible : Visibility.Collapsed;
+                MinLengthToggle.IsChecked = _selected?.MinLengthEnabled == true;
                 MinLengthBox.Text = (_selected?.MinimumLength ?? 0).ToString();
+                ExactLengthToggle.IsChecked = _selected?.ExactLengthEnabled == true;
                 ExactLengthBox.Text = (_selected?.ExactLength ?? 0).ToString();
-                AsciiCheckBox.IsChecked = _selected?.TreatAsAscii == true;
+                AsciiToggle.IsChecked = _selected?.TreatAsAscii == true;
                 RuleGrid.DataContext = _selected;
             }
             finally { _suppress = false; }
@@ -197,8 +199,15 @@ namespace VisualMaster.Communication.UI
         private void OnLengthCheckChanged(object sender, RoutedEventArgs e)
         {
             if (_suppress || _selected == null) return;
-            _selected.LengthCheckEnabled = LengthCheckBox.IsChecked == true;
+            _selected.LengthCheckEnabled = LengthCheckToggle.IsChecked == true;
             LengthCheckPanel.Visibility = _selected.LengthCheckEnabled ? Visibility.Visible : Visibility.Collapsed;
+            Sync();
+        }
+
+        private void OnMinLengthToggleChanged(object sender, RoutedEventArgs e)
+        {
+            if (_suppress || _selected == null) return;
+            _selected.MinLengthEnabled = MinLengthToggle.IsChecked == true;
             Sync();
         }
 
@@ -210,6 +219,13 @@ namespace VisualMaster.Communication.UI
             Sync();
         }
 
+        private void OnExactLengthToggleChanged(object sender, RoutedEventArgs e)
+        {
+            if (_suppress || _selected == null) return;
+            _selected.ExactLengthEnabled = ExactLengthToggle.IsChecked == true;
+            Sync();
+        }
+
         private void OnExactLengthChanged(object sender, TextChangedEventArgs e)
         {
             if (_suppress || _selected == null) return;
@@ -218,10 +234,10 @@ namespace VisualMaster.Communication.UI
             Sync();
         }
 
-        private void OnAsciiCheckChanged(object sender, RoutedEventArgs e)
+        private void OnAsciiToggleChanged(object sender, RoutedEventArgs e)
         {
             if (_suppress || _selected == null) return;
-            _selected.TreatAsAscii = AsciiCheckBox.IsChecked == true;
+            _selected.TreatAsAscii = AsciiToggle.IsChecked == true;
             Sync();
         }
 
