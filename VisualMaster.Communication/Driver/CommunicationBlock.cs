@@ -37,12 +37,12 @@ namespace VisualMaster.Communication.Driver
         {
             if (WriteHandler == null)
             {
-                Publish(data);
+                _currentValue = data != null ? (byte[])data.Clone() : new byte[0];
                 return;
             }
 
             await WriteHandler(data ?? new byte[0], timeoutMs, cancellationToken).ConfigureAwait(false);
-            Publish(data);
+            _currentValue = data != null ? (byte[])data.Clone() : new byte[0];
         }
 
         public void UpdateConfig(CommunicationBlockConfig config)
