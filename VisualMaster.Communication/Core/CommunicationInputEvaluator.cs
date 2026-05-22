@@ -10,7 +10,16 @@ namespace VisualMaster.Communication.Core
         public bool Matches(CommunicationInputEventConfig config, byte[] current, byte[] previous)
         {
             if (config == null || current == null) return false;
-            if (config.MinimumLength > 0 && current.Length < config.MinimumLength) return false;
+
+            if (config.LengthCheckEnabled)
+            {
+                int charSize = config.TreatAsAscii ? 2 : 1;
+                if (config.MinimumLength > 0 && current.Length < config.MinimumLength * charSize)
+                    return false;
+                if (config.ExactLength > 0 && current.Length != config.ExactLength * charSize)
+                    return false;
+            }
+
             if (config.Rules == null || config.Rules.Count == 0) return true;
 
             foreach (var rule in config.Rules.OrderBy(r => r.Order))

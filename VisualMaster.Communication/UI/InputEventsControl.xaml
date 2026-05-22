@@ -72,9 +72,23 @@
 
                 <TextBlock Text="基本配置" FontWeight="SemiBold" Margin="0,14,0,6"/>
                 <DockPanel Margin="0,0,0,6">
-                    <TextBlock Text="最小匹配长度" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                    <TextBox x:Name="MinLengthBox" TextChanged="OnMinLengthChanged" Width="80" HorizontalAlignment="Left"/>
+                    <TextBlock Text="字节长度比较" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <CheckBox x:Name="LengthCheckBox" Checked="OnLengthCheckChanged" Unchecked="OnLengthCheckChanged"/>
                 </DockPanel>
+                <StackPanel x:Name="LengthCheckPanel" Visibility="Collapsed" Margin="0,0,0,6">
+                    <DockPanel Margin="0,0,0,6">
+                        <TextBlock Text="最少字符数" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <TextBox x:Name="MinLengthBox" TextChanged="OnMinLengthChanged" Width="80" HorizontalAlignment="Left"/>
+                    </DockPanel>
+                    <DockPanel Margin="0,0,0,6">
+                        <TextBlock Text="等于字符数" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <TextBox x:Name="ExactLengthBox" TextChanged="OnExactLengthChanged" Width="80" HorizontalAlignment="Left"/>
+                    </DockPanel>
+                    <DockPanel>
+                        <TextBlock Text="ASCII 16位" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <CheckBox x:Name="AsciiCheckBox" Checked="OnAsciiCheckChanged" Unchecked="OnAsciiCheckChanged"/>
+                    </DockPanel>
+                </StackPanel>
 
                 <TextBlock Text="规则配置" FontWeight="SemiBold" Margin="0,14,0,6"/>
                 <DataGrid x:Name="RuleGrid"

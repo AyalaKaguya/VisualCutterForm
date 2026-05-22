@@ -140,7 +140,11 @@ namespace VisualMaster.Communication.UI
             {
                 PopulateDeviceCombo();
                 PopulateBlockCombo();
+                LengthCheckBox.IsChecked = _selected?.LengthCheckEnabled == true;
+                LengthCheckPanel.Visibility = _selected?.LengthCheckEnabled == true ? Visibility.Visible : Visibility.Collapsed;
                 MinLengthBox.Text = (_selected?.MinimumLength ?? 0).ToString();
+                ExactLengthBox.Text = (_selected?.ExactLength ?? 0).ToString();
+                AsciiCheckBox.IsChecked = _selected?.TreatAsAscii == true;
                 RuleGrid.DataContext = _selected;
             }
             finally { _suppress = false; }
@@ -190,11 +194,34 @@ namespace VisualMaster.Communication.UI
             Sync();
         }
 
+        private void OnLengthCheckChanged(object sender, RoutedEventArgs e)
+        {
+            if (_suppress || _selected == null) return;
+            _selected.LengthCheckEnabled = LengthCheckBox.IsChecked == true;
+            LengthCheckPanel.Visibility = _selected.LengthCheckEnabled ? Visibility.Visible : Visibility.Collapsed;
+            Sync();
+        }
+
         private void OnMinLengthChanged(object sender, TextChangedEventArgs e)
         {
             if (_suppress || _selected == null) return;
             if (int.TryParse(MinLengthBox.Text, out var len))
                 _selected.MinimumLength = len;
+            Sync();
+        }
+
+        private void OnExactLengthChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_suppress || _selected == null) return;
+            if (int.TryParse(ExactLengthBox.Text, out var len))
+                _selected.ExactLength = len;
+            Sync();
+        }
+
+        private void OnAsciiCheckChanged(object sender, RoutedEventArgs e)
+        {
+            if (_suppress || _selected == null) return;
+            _selected.TreatAsAscii = AsciiCheckBox.IsChecked == true;
             Sync();
         }
 
