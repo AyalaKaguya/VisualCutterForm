@@ -27,25 +27,25 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <StackPanel Background="#252525">
-            <Button Style="{StaticResource NavButton}" Click="OnDevicesPage" ToolTip="设备管理">
+            <Button x:Name="BtnDevices" Style="{StaticResource NavButton}" Click="OnDevicesPage" ToolTip="设备管理">
                 <StackPanel>
                     <TextBlock Text="&#xE8B7;" FontFamily="Segoe MDL2 Assets" FontSize="18" HorizontalAlignment="Center"/>
                     <TextBlock Text="设备管理" FontSize="12" HorizontalAlignment="Center" Margin="0,4,0,0"/>
                 </StackPanel>
             </Button>
-            <Button Style="{StaticResource NavButton}" Click="OnInputPage" ToolTip="输入事件">
+            <Button x:Name="BtnInput" Style="{StaticResource NavButton}" Click="OnInputPage" ToolTip="输入事件">
                 <StackPanel>
                     <TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="18" HorizontalAlignment="Center"/>
                     <TextBlock Text="输入事件" FontSize="12" HorizontalAlignment="Center" Margin="0,4,0,0"/>
                 </StackPanel>
             </Button>
-            <Button Style="{StaticResource NavButton}" Click="OnOutputPage" ToolTip="输出事件">
+            <Button x:Name="BtnOutput" Style="{StaticResource NavButton}" Click="OnOutputPage" ToolTip="输出事件">
                 <StackPanel>
                     <TextBlock Text="&#xE8A7;" FontFamily="Segoe MDL2 Assets" FontSize="18" HorizontalAlignment="Center"/>
                     <TextBlock Text="输出事件" FontSize="12" HorizontalAlignment="Center" Margin="0,4,0,0"/>
                 </StackPanel>
             </Button>
-            <Button Style="{StaticResource NavButton}" Click="OnHeartbeatPage" ToolTip="心跳">
+            <Button x:Name="BtnHeartbeat" Style="{StaticResource NavButton}" Click="OnHeartbeatPage" ToolTip="心跳">
                 <StackPanel>
                     <TextBlock Text="&#xE95E;" FontFamily="Segoe MDL2 Assets" FontSize="18" HorizontalAlignment="Center"/>
                     <TextBlock Text="心跳" FontSize="12" HorizontalAlignment="Center" Margin="0,4,0,0"/>
