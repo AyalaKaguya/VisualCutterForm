@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
@@ -48,6 +49,8 @@ namespace VisualMaster.Communication.UI.ViewModels
 
         public CommunicationSystemConfig Config => _config;
 
+        public IReadOnlyList<ICommunicationDriverFactory> DriverFactories => _manager.DriverFactories;
+
         public ICommand AddUartDeviceCommand   { get; }
         public ICommand RemoveDeviceCommand    { get; }
         public ICommand ToggleDeviceCommand    { get; }
@@ -91,13 +94,13 @@ namespace VisualMaster.Communication.UI.ViewModels
             }
         }
 
-        private async void ExecuteAddUartDevice()
+        public async void AddDevice(string driverName)
         {
             IsBusy = true;
             StatusMessage = "正在添加通信设备...";
             try
             {
-                var device = _manager.AddDevice("UART");
+                var device = _manager.AddDevice(driverName);
                 StatusMessage = $"已添加：{device.DisplayName}";
             }
             catch (Exception ex)
@@ -109,6 +112,11 @@ namespace VisualMaster.Communication.UI.ViewModels
             {
                 IsBusy = false;
             }
+        }
+
+        private async void ExecuteAddUartDevice()
+        {
+            AddDevice("UART");
         }
 
         private async void ExecuteRemoveDevice()

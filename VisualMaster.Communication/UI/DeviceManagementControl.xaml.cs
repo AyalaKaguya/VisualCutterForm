@@ -70,8 +70,25 @@ namespace VisualMaster.Communication.UI
 
         private void OnAddDeviceClick(object sender, RoutedEventArgs e)
         {
-            if (_viewModel.AddUartDeviceCommand.CanExecute(null))
-                _viewModel.AddUartDeviceCommand.Execute(null);
+            var button = sender as Button;
+            var menu = new ContextMenu();
+            foreach (var factory in _viewModel.DriverFactories)
+            {
+                var item = new MenuItem { Header = factory.DisplayName, Tag = factory.DriverName };
+                item.Click += OnAddDriverMenuItemClick;
+                menu.Items.Add(item);
+            }
+            button.ContextMenu = menu;
+            menu.PlacementTarget = button;
+            menu.IsOpen = true;
+        }
+
+        private void OnAddDriverMenuItemClick(object sender, RoutedEventArgs e)
+        {
+            var item = sender as MenuItem;
+            var driverName = item?.Tag as string;
+            if (string.IsNullOrEmpty(driverName)) return;
+            _viewModel.AddDevice(driverName);
         }
 
         private void OnRemoveDeviceClick(object sender, RoutedEventArgs e)
