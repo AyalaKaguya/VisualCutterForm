@@ -13,6 +13,7 @@ namespace VisualMaster.Communication.Driver
         private readonly List<ICommunicationBlock> _blocks = new List<ICommunicationBlock>();
 
         public string DeviceId { get; private set; }
+        public abstract string DriverName { get; }
         public bool IsEnabled { get; set; }
         public bool IsConnected { get; protected set; }
         public IReadOnlyList<ICommunicationBlock> Blocks => _blocks.AsReadOnly();

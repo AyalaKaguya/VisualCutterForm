@@ -19,6 +19,7 @@ namespace VisualMaster.Communication.Api
     public interface ICommunicationDriver : IDisposable
     {
         string DeviceId { get; }
+        string DriverName { get; }
         bool IsEnabled { get; set; }
         bool IsConnected { get; }
         IReadOnlyList<ICommunicationBlock> Blocks { get; }

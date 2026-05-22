@@ -157,7 +157,7 @@ namespace VisualMaster.Communication.Core
         {
             await driver.ConnectAsync(cancellationToken).ConfigureAwait(false);
             StartPolling(driver);
-            StatusChanged?.Invoke(this, $"Device connected.");
+            StatusChanged?.Invoke(this, $"{driver.DriverName} connected.");
         }
 
         private void SyncFromConfig()
