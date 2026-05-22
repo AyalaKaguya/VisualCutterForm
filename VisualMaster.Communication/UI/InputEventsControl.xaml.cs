@@ -39,10 +39,7 @@ namespace VisualMaster.Communication.UI
             if (_config != null)
             {
                 _config.DeviceAdded -= OnConfigDeviceChanged;
-                _config.DeviceUpdated -= OnConfigDeviceChanged;
                 _config.DeviceRemoved -= OnConfigDeviceChanged;
-                _config.Reset -= OnConfigDeviceChanged;
-                _config.EventsUpdated -= OnConfigDeviceChanged;
             }
 
             _config = config;
@@ -53,10 +50,7 @@ namespace VisualMaster.Communication.UI
                     Events.Add(CreateDisplayItem(item));
 
                 _config.DeviceAdded += OnConfigDeviceChanged;
-                _config.DeviceUpdated += OnConfigDeviceChanged;
                 _config.DeviceRemoved += OnConfigDeviceChanged;
-                _config.Reset += OnConfigDeviceChanged;
-                _config.EventsUpdated += OnConfigDeviceChanged;
             }
             EventList.SelectedIndex = Events.Count > 0 ? 0 : -1;
         }
