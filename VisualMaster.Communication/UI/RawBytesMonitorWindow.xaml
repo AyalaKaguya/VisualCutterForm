@@ -3,24 +3,38 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="通信监视"
         Width="560"
-        Height="360"
+        Height="500"
         Background="{DynamicResource ColorRootBg}">
     <Window.Resources>
         <ResourceDictionary Source="../Themes/CommunicationDarkTheme.xaml"/>
     </Window.Resources>
     <DockPanel>
-        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="8">
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="8,8,8,4">
+            <TextBlock Text="接收:" Foreground="Gray" VerticalAlignment="Center" Margin="0,0,8,0"/>
             <RadioButton x:Name="HexMode" Content="HEX" Foreground="White" IsChecked="True" Margin="0,0,12,0"/>
-            <RadioButton x:Name="ShortMode" Content="short" Foreground="White"/>
+            <RadioButton x:Name="ShortMode" Content="short" Foreground="White" Margin="0,0,12,0"/>
+            <RadioButton x:Name="StringMode" Content="字符串" Foreground="White"/>
+        </StackPanel>
+        <StackPanel DockPanel.Dock="Bottom" Margin="8,4,8,8">
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                <TextBlock Text="发送:" Foreground="Gray" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <RadioButton x:Name="SendHexMode" Content="HEX" Foreground="White" IsChecked="True" Margin="0,0,12,0"/>
+                <RadioButton x:Name="SendStringMode" Content="字符串" Foreground="White"/>
+            </StackPanel>
+            <DockPanel>
+                <Button x:Name="SendButton" Content="发送" DockPanel.Dock="Right" Width="64" Click="SendButton_Click"/>
+                <TextBox x:Name="SendBox" Margin="0,0,8,0" KeyDown="SendBox_KeyDown"/>
+            </DockPanel>
         </StackPanel>
         <TextBox x:Name="ValueBox"
-                 Margin="8"
+                 Margin="8,4,8,4"
                  Background="#101010"
                  Foreground="#E6E6E6"
                  FontFamily="Consolas"
                  TextWrapping="Wrap"
                  AcceptsReturn="True"
                  IsReadOnly="True"
-                 VerticalContentAlignment="Top"/>
+                 VerticalContentAlignment="Top"
+                 VerticalScrollBarVisibility="Auto"/>
     </DockPanel>
 </Window>
