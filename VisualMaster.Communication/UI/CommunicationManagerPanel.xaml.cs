@@ -12,6 +12,9 @@ namespace VisualMaster.Communication.UI
         private readonly CommunicationSystemConfig _config;
         private readonly CommunicationManagerViewModel _viewModel;
         private DeviceManagementControl _devicePage;
+        private InputEventsControl _inputPage;
+        private OutputEventsControl _outputPage;
+        private HeartbeatControl _heartbeatPage;
         private Button _activeNavButton;
 
         private static readonly SolidColorBrush ActiveBg = new SolidColorBrush(Color.FromRgb(0x33, 0x33, 0x33));
@@ -72,25 +75,34 @@ namespace VisualMaster.Communication.UI
         private void OnInputPage(object sender, RoutedEventArgs e)
         {
             SetActivePage(BtnInput);
-            var control = new InputEventsControl();
-            control.LoadConfig(_config);
-            ShowContentPage(control);
+            if (_inputPage == null)
+            {
+                _inputPage = new InputEventsControl();
+                _inputPage.LoadConfig(_config);
+            }
+            ShowContentPage(_inputPage);
         }
 
         private void OnOutputPage(object sender, RoutedEventArgs e)
         {
             SetActivePage(BtnOutput);
-            var control = new OutputEventsControl();
-            control.LoadConfig(_config);
-            ShowContentPage(control);
+            if (_outputPage == null)
+            {
+                _outputPage = new OutputEventsControl();
+                _outputPage.LoadConfig(_config);
+            }
+            ShowContentPage(_outputPage);
         }
 
         private void OnHeartbeatPage(object sender, RoutedEventArgs e)
         {
             SetActivePage(BtnHeartbeat);
-            var control = new HeartbeatControl();
-            control.LoadConfig(_config);
-            ShowContentPage(control);
+            if (_heartbeatPage == null)
+            {
+                _heartbeatPage = new HeartbeatControl();
+                _heartbeatPage.LoadConfig(_config);
+            }
+            ShowContentPage(_heartbeatPage);
         }
     }
 }
