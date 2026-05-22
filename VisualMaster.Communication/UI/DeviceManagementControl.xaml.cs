@@ -27,6 +27,21 @@ namespace VisualMaster.Communication.UI
             LoadSelectedDevice();
         }
 
+        private void DetachConfigControl()
+        {
+            if (DriverConfigHost.Content is UartDriverConfigControl oldUart)
+            {
+                oldUart.RealtimeRequested -= OnRealtimeRequested;
+                oldUart.ConfigChanged -= OnDriverConfigChanged;
+            }
+            else if (DriverConfigHost.Content is TcpDriverConfigControl oldTcp)
+            {
+                oldTcp.RealtimeRequested -= OnRealtimeRequested;
+                oldTcp.ConfigChanged -= OnTcpDriverConfigChanged;
+            }
+            DriverConfigHost.Content = null;
+        }
+
         private void OnViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(CommunicationManagerViewModel.SelectedDevice))
@@ -35,6 +50,8 @@ namespace VisualMaster.Communication.UI
 
         private void LoadSelectedDevice()
         {
+            DetachConfigControl();
+
             var deviceVm = _viewModel.SelectedDevice;
             if (deviceVm == null)
             {
