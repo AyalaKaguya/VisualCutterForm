@@ -41,9 +41,6 @@ namespace VisualMaster.Communication.Api
 
         public CommunicationDeviceConfig AddDevice(string driverName, string displayName = null)
         {
-            if (_snapshot != null)
-                throw new InvalidOperationException("Cannot add device while snapshot is active.");
-
             var device = new CommunicationDeviceConfig
             {
                 DriverName = driverName,
