@@ -30,6 +30,7 @@
         <Setter Property="BorderBrush" Value="{StaticResource ColorButtonBorder}"/>
         <Setter Property="Padding" Value="5,3"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="MinHeight" Value="28"/>
     </Style>
 
     <!-- ===== Implicit TextBlock ===== -->
@@ -56,6 +57,15 @@
     <!-- ===== Implicit CheckBox ===== -->
     <Style TargetType="CheckBox">
         <Setter Property="Foreground" Value="{StaticResource ColorTextPrimary}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="MinHeight" Value="28"/>
+    </Style>
+
+    <!-- ===== Implicit RadioButton ===== -->
+    <Style TargetType="RadioButton">
+        <Setter Property="Foreground" Value="{StaticResource ColorTextPrimary}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="MinHeight" Value="28"/>
     </Style>
 
     <!-- ===== DataGrid ===== -->
