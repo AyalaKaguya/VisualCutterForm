@@ -9,7 +9,7 @@
 
     <Grid Background="#1E1E1E">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="260"/>
+            <ColumnDefinition Width="280"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
@@ -21,7 +21,21 @@
                     <Button Content="-" Width="30" Click="OnRemoveClick"/>
                 </StackPanel>
             </DockPanel>
-            <ListBox x:Name="EventList" Margin="8" DisplayMemberPath="Name" SelectionChanged="OnEventSelected"/>
+            <ListBox x:Name="EventList" Margin="8" SelectionChanged="OnEventSelected">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="4,6">
+                            <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock FontSize="10" Foreground="#999999" Margin="0,2,0,0" TextTrimming="CharacterEllipsis">
+                                <Run Text="设备:"/><Run Text="{Binding DeviceId}"/>
+                                <Run Text="  块:"/><Run Text="{Binding BlockId}"/>
+                            </TextBlock>
+                            <TextBlock FontSize="10" Foreground="#777777" Margin="0,1,0,0"
+                                       Text="{Binding Segments.Count, StringFormat='输出段: {0} 组'}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
         </DockPanel>
 
         <Grid Grid.Column="1" Margin="12">

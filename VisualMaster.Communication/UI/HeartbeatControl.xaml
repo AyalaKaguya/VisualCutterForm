@@ -7,7 +7,7 @@
     </UserControl.Resources>
     <Grid Background="{DynamicResource ColorRootBg}">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="260"/>
+            <ColumnDefinition Width="280"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
@@ -19,7 +19,35 @@
                     <Button Content="-" Width="30" Click="OnRemoveClick"/>
                 </StackPanel>
             </DockPanel>
-            <ListBox x:Name="HeartbeatList" Margin="8" DisplayMemberPath="Name" SelectionChanged="OnHeartbeatSelected"/>
+            <ListBox x:Name="HeartbeatList" Margin="8" SelectionChanged="OnHeartbeatSelected">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="4,6">
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Left" Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                <Ellipse Width="8" Height="8" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="0,0,4,0">
+                                    <Ellipse.Style>
+                                        <Style TargetType="Ellipse">
+                                            <Setter Property="Fill" Value="#555555"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsEnabled}" Value="True">
+                                                    <Setter Property="Fill" Value="#2EAA5F"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+                            </DockPanel>
+                            <TextBlock FontSize="10" Foreground="#999999" Margin="0,2,0,0" TextTrimming="CharacterEllipsis">
+                                <Run Text="输入:"/><Run Text="{Binding InputEventId}"/>
+                            </TextBlock>
+                            <TextBlock FontSize="10" Foreground="#737373" Margin="0,1,0,0" TextTrimming="CharacterEllipsis">
+                                <Run Text="输出:"/><Run Text="{Binding OutputEventId}"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
         </DockPanel>
 
         <Grid Grid.Column="1" Margin="12">
