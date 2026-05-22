@@ -36,14 +36,79 @@ namespace VisualMaster.Communication.UI
 
         public void LoadConfig(CommunicationSystemConfig config)
         {
+            if (_config != null)
+            {
+                _config.DeviceAdded -= OnConfigDeviceChanged;
+                _config.DeviceUpdated -= OnConfigDeviceChanged;
+                _config.DeviceRemoved -= OnConfigDeviceChanged;
+                _config.Reset -= OnConfigDeviceChanged;
+                _config.EventsUpdated -= OnConfigDeviceChanged;
+            }
+
             _config = config;
             Events.Clear();
             if (config != null)
             {
                 foreach (var item in config.InputEvents)
                     Events.Add(CreateDisplayItem(item));
+
+                _config.DeviceAdded += OnConfigDeviceChanged;
+                _config.DeviceUpdated += OnConfigDeviceChanged;
+                _config.DeviceRemoved += OnConfigDeviceChanged;
+                _config.Reset += OnConfigDeviceChanged;
+                _config.EventsUpdated += OnConfigDeviceChanged;
             }
             EventList.SelectedIndex = Events.Count > 0 ? 0 : -1;
+        }
+
+        private void OnConfigDeviceChanged(object sender, object e)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                RefreshDisplayItems();
+                if (_selected != null)
+                {
+                    RefreshDeviceCombo();
+                    RefreshBlockCombo();
+                }
+            }));
+        }
+
+        private void RefreshDisplayItems()
+        {
+            foreach (var item in Events)
+            {
+                var info = CreateDisplayItem(item.Config);
+                item.BindingInfo = info.BindingInfo;
+            }
+            EventList.Items.Refresh();
+        }
+
+        private void RefreshDeviceCombo()
+        {
+            var selectedId = _selected?.DeviceId;
+            DeviceCombo.Items.Clear();
+            if (_config == null) return;
+            foreach (var dev in _config.Devices)
+            {
+                DeviceCombo.Items.Add(new ComboBoxItem { Content = dev.DisplayName, Tag = dev.DeviceId });
+                if (dev.DeviceId == selectedId)
+                    DeviceCombo.SelectedIndex = DeviceCombo.Items.Count - 1;
+            }
+        }
+
+        private void RefreshBlockCombo()
+        {
+            var selectedId = _selected?.BlockId;
+            BlockCombo.Items.Clear();
+            var dev = _config?.Devices.FirstOrDefault(d => d.DeviceId == _selected?.DeviceId);
+            if (dev == null) return;
+            foreach (var blk in dev.Blocks)
+            {
+                BlockCombo.Items.Add(new ComboBoxItem { Content = blk.Name, Tag = blk.BlockId });
+                if (blk.BlockId == selectedId)
+                    BlockCombo.SelectedIndex = BlockCombo.Items.Count - 1;
+            }
         }
 
         private InputEventDisplayItem CreateDisplayItem(CommunicationInputEventConfig cfg)
@@ -138,8 +203,8 @@ namespace VisualMaster.Communication.UI
             _suppress = true;
             try
             {
-                PopulateDeviceCombo();
-                PopulateBlockCombo();
+                RefreshDeviceCombo();
+                RefreshBlockCombo();
                 LengthCheckToggle.IsChecked = _selected?.LengthCheckEnabled == true;
                 LengthCheckPanel.Visibility = _selected?.LengthCheckEnabled == true ? Visibility.Visible : Visibility.Collapsed;
                 MinLengthToggle.IsChecked = _selected?.MinLengthEnabled == true;
@@ -152,37 +217,12 @@ namespace VisualMaster.Communication.UI
             finally { _suppress = false; }
         }
 
-        private void PopulateDeviceCombo()
-        {
-            DeviceCombo.Items.Clear();
-            if (_config == null) return;
-            foreach (var dev in _config.Devices)
-            {
-                DeviceCombo.Items.Add(new ComboBoxItem { Content = dev.DisplayName, Tag = dev.DeviceId });
-                if (dev.DeviceId == _selected.DeviceId)
-                    DeviceCombo.SelectedIndex = DeviceCombo.Items.Count - 1;
-            }
-        }
-
-        private void PopulateBlockCombo()
-        {
-            BlockCombo.Items.Clear();
-            var dev = _config?.Devices.FirstOrDefault(d => d.DeviceId == _selected.DeviceId);
-            if (dev == null) return;
-            foreach (var blk in dev.Blocks)
-            {
-                BlockCombo.Items.Add(new ComboBoxItem { Content = blk.Name, Tag = blk.BlockId });
-                if (blk.BlockId == _selected.BlockId)
-                    BlockCombo.SelectedIndex = BlockCombo.Items.Count - 1;
-            }
-        }
-
         private void OnDeviceComboChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_suppress || _selected == null) return;
             var item = DeviceCombo.SelectedItem as ComboBoxItem;
             _selected.DeviceId = item?.Tag as string;
-            PopulateBlockCombo();
+            RefreshBlockCombo();
             RefreshDisplayItem();
             Sync();
         }
