@@ -19,7 +19,7 @@ namespace VisualMaster.Communication.Driver
                 DeviceId = Guid.NewGuid().ToString("N"),
                 DriverName = DriverName,
                 DisplayName = $"UART{existingDevices.Count + 1}",
-                IsEnabled = true,
+                IsEnabled = false,
                 DriverSettings = new Dictionary<string, string>
                 {
                     ["PortName"] = "COM1",
