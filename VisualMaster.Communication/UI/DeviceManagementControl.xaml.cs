@@ -168,16 +168,17 @@ namespace VisualMaster.Communication.UI
             }.Show();
         }
 
-        private void OnUartRealtimeRequested(object sender, CommunicationBlockConfig e)
+        private void OnUartRealtimeRequested(object sender, EventArgs e)
         {
-            if (_viewModel.SelectedDevice == null || e == null) return;
+            if (_viewModel.SelectedDevice == null) return;
             ApplySelectedDeviceChanges();
-            var block = _viewModel.FindBlock(_viewModel.SelectedDevice.DeviceId, e.BlockId);
+            var driver = _viewModel.GetDriver(_viewModel.SelectedDevice.DeviceId);
+            var block = driver?.Blocks.FirstOrDefault();
             if (block == null) return;
             new RawBytesMonitorWindow(block)
             {
                 Owner = Window.GetWindow(this),
-                Title = $"实时监视 - {e.Name}",
+                Title = $"实时监视 - {_viewModel.SelectedDevice.DisplayName}",
             }.Show();
         }
 

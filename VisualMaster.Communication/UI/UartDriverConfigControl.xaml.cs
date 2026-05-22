@@ -9,7 +9,7 @@ namespace VisualMaster.Communication.UI
     {
         private readonly UartDriverConfigViewModel _viewModel;
 
-        public event EventHandler<CommunicationBlockConfig> RealtimeRequested;
+        public event EventHandler RealtimeRequested;
         public event EventHandler ConfigChanged;
 
         public UartDriverConfigControl(UartDriverConfigViewModel viewModel)
@@ -22,7 +22,7 @@ namespace VisualMaster.Communication.UI
 
         private void OnRealtimeClick(object sender, System.Windows.RoutedEventArgs e)
         {
-            RealtimeRequested?.Invoke(this, null);
+            RealtimeRequested?.Invoke(this, EventArgs.Empty);
         }
     }
 }
