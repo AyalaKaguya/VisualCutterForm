@@ -36,6 +36,7 @@ namespace VisualMaster.Communication.UI
             _config = viewModel.Config;
             InitializeComponent();
             ShowDevicePage();
+            SetActivePage(BtnDevices);
         }
 
         private void SetActivePage(Button button)
