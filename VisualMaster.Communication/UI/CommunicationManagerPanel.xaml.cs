@@ -9,7 +9,6 @@ namespace VisualMaster.Communication.UI
 {
     public partial class CommunicationManagerPanel : UserControl
     {
-        private readonly CommunicationManager _manager;
         private readonly CommunicationSystemConfig _config;
         private readonly CommunicationManagerViewModel _viewModel;
         private DeviceManagementControl _devicePage;
@@ -22,13 +21,13 @@ namespace VisualMaster.Communication.UI
         public CommunicationManagerPanel(CommunicationManager manager, CommunicationSystemConfig config)
             : this(new CommunicationManagerViewModel(manager, config))
         {
-            _manager = manager;
             _config = config;
         }
 
         public CommunicationManagerPanel(CommunicationManagerViewModel viewModel)
         {
             _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
+            _config = viewModel.Config;
             InitializeComponent();
             ShowDevicePage();
         }

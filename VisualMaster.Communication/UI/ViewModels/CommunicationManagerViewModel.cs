@@ -46,6 +46,8 @@ namespace VisualMaster.Communication.UI.ViewModels
             private set => SetField(ref _statusMessage, value);
         }
 
+        public CommunicationSystemConfig Config => _config;
+
         public ICommand AddUartDeviceCommand   { get; }
         public ICommand RemoveDeviceCommand    { get; }
         public ICommand ToggleDeviceCommand    { get; }
@@ -56,6 +58,8 @@ namespace VisualMaster.Communication.UI.ViewModels
         {
             _manager = manager ?? throw new ArgumentNullException(nameof(manager));
             _config  = config  ?? throw new ArgumentNullException(nameof(config));
+
+            _manager.LoadConfig(_config);
 
             AddUartDeviceCommand = new RelayCommand(ExecuteAddUartDevice, () => !IsBusy);
             RemoveDeviceCommand  = new RelayCommand(ExecuteRemoveDevice,  () => !IsBusy && SelectedDevice != null);
