@@ -20,7 +20,6 @@ namespace VisualMaster.Communication.Api
     {
         string DeviceId { get; }
         string DriverName { get; }
-        string InterfaceName { get; }
         bool IsEnabled { get; set; }
         bool IsConnected { get; }
         IReadOnlyList<ICommunicationBlock> Blocks { get; }
@@ -41,7 +40,7 @@ namespace VisualMaster.Communication.Api
     {
         string DriverName { get; }
         string DisplayName { get; }
-        CommunicationDeviceConfig CreateDefaultConfig(string interfaceName);
+        CommunicationDeviceConfig CreateDefaultConfig(IReadOnlyList<ICommunicationDriver> existingDevices);
         ICommunicationDriver CreateDriver();
         UserControl CreateConfigurationView(CommunicationDeviceConfig config);
     }

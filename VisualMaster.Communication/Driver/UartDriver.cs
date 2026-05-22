@@ -31,7 +31,7 @@ namespace VisualMaster.Communication.Driver
             if (IsConnected) return Task.CompletedTask;
 
             var settings = _config.DriverSettings ?? new Dictionary<string, string>();
-            string portName = GetSetting(settings, "PortName", InterfaceName);
+            string portName = GetSetting(settings, "PortName", "COM1");
             int baudRate = ParseInt(GetSetting(settings, "BaudRate", "9600"), 9600);
             int dataBits = ParseInt(GetSetting(settings, "DataBits", "8"), 8);
             Parity parity = ParseEnum(GetSetting(settings, "Parity", "None"), Parity.None);
@@ -118,7 +118,7 @@ namespace VisualMaster.Communication.Driver
                 config.Blocks = new List<CommunicationBlockConfig>();
             if (config.Blocks.Count > 0) return;
 
-            string address = $"{config.DriverName}-{config.InterfaceName}";
+            string address = config.DriverSettings != null && config.DriverSettings.TryGetValue("PortName", out var port) ? port : "COM1";
             config.Blocks.Add(new CommunicationBlockConfig
             {
                 Name = "UART Stream",

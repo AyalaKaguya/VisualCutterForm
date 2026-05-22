@@ -35,7 +35,7 @@ namespace VisualMaster.Communication.UI
         private void OnAddClick(object sender, RoutedEventArgs e)
         {
             if (_device == null) return;
-            var address = $"{_device.DriverName}-{_device.InterfaceName}-Block{Blocks.Count + 1}";
+            var address = $"{_device.DriverName}-Block{Blocks.Count + 1}";
             var block = new CommunicationBlockConfig
             {
                 Name = $"Block{Blocks.Count + 1}",

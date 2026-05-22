@@ -260,7 +260,6 @@ namespace VisualMaster.Forms
                 DeviceId = serial.DeviceId,
                 DisplayName = serial.DisplayName,
                 DriverName = "UART",
-                InterfaceName = interfaceName,
                 IsEnabled = true,
                 DriverSettings = new Dictionary<string, string>
                 {

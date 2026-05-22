@@ -18,11 +18,6 @@ namespace VisualMaster.Communication.UI
             _config = config;
             InitializeComponent();
             LoadConfig();
-            InterfaceBox.TextChanged += (s, e) =>
-            {
-                _config.InterfaceName = InterfaceBox.Text;
-                UpdateSettings();
-            };
             PortBox.SelectionChanged += (s, e) => UpdateSettings();
             PortBox.LostFocus += (s, e) => UpdateSettings();
             BaudBox.SelectionChanged += (s, e) => UpdateSettings();
@@ -45,8 +40,7 @@ namespace VisualMaster.Communication.UI
                 foreach (var port in SerialPort.GetPortNames())
                     PortBox.Items.Add(port);
 
-                InterfaceBox.Text = _config.InterfaceName ?? "";
-                PortBox.Text = Get("PortName", _config.InterfaceName ?? "COM1");
+                PortBox.Text = Get("PortName", "COM1");
                 BaudBox.Text = Get("BaudRate", "9600");
                 SelectText(DataBitsBox, Get("DataBits", "8"));
                 SelectText(ParityBox, Get("Parity", "None"));
@@ -55,7 +49,6 @@ namespace VisualMaster.Communication.UI
 
                 var block = _config.Blocks[0];
                 BlockNameBox.Text = string.IsNullOrWhiteSpace(block.Name) ? "串口数据" : block.Name;
-                BlockAddressBox.Text = block.Address ?? "";
             }
             finally { _loading = false; }
         }
@@ -82,8 +75,10 @@ namespace VisualMaster.Communication.UI
             _config.DriverSettings["Parity"] = SelectedText(ParityBox);
             _config.DriverSettings["StopBits"] = SelectedText(StopBitsBox);
             _config.DriverSettings["Handshake"] = SelectedText(HandshakeBox);
-            _config.InterfaceName = string.IsNullOrWhiteSpace(InterfaceBox.Text) ? PortBox.Text : InterfaceBox.Text;
-            UpdateBlockAddress();
+
+            EnsureSingleBlock();
+            _config.Blocks[0].Address = PortBox.Text;
+
             ConfigChanged?.Invoke(this, EventArgs.Empty);
         }
 
@@ -94,13 +89,6 @@ namespace VisualMaster.Communication.UI
             _config.Blocks[0].Name = string.IsNullOrWhiteSpace(BlockNameBox.Text) ? "串口数据" : BlockNameBox.Text.Trim();
             _config.Blocks[0].BlockName = _config.Blocks[0].Name;
             ConfigChanged?.Invoke(this, EventArgs.Empty);
-        }
-
-        private void UpdateBlockAddress()
-        {
-            EnsureSingleBlock();
-            _config.Blocks[0].Address = $"{_config.DriverName}-{_config.InterfaceName}";
-            BlockAddressBox.Text = _config.Blocks[0].Address;
         }
 
         private void OnRealtimeClick(object sender, System.Windows.RoutedEventArgs e)
@@ -125,7 +113,7 @@ namespace VisualMaster.Communication.UI
                 {
                     Name = "串口数据",
                     BlockName = "串口数据",
-                    Address = $"{_config.DriverName}-{_config.InterfaceName}",
+                    Address = "COM1",
                     DataType = CommunicationBlockDataType.Bytes,
                 });
             }

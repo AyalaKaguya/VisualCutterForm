@@ -14,7 +14,6 @@ namespace VisualMaster.Communication.Driver
 
         public string DeviceId { get; private set; }
         public abstract string DriverName { get; }
-        public string InterfaceName { get; private set; }
         public bool IsEnabled { get; set; }
         public bool IsConnected { get; protected set; }
         public IReadOnlyList<ICommunicationBlock> Blocks => _blocks.AsReadOnly();
@@ -26,7 +25,6 @@ namespace VisualMaster.Communication.Driver
             if (config == null) throw new ArgumentNullException(nameof(config));
 
             DeviceId = config.DeviceId;
-            InterfaceName = config.InterfaceName;
             IsEnabled = config.IsEnabled;
 
             foreach (var block in _blocks.ToList())

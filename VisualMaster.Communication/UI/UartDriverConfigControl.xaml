@@ -31,14 +31,11 @@
             <RowDefinition Height="48"/>
             <RowDefinition Height="48"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="48"/>
         </Grid.RowDefinitions>
         <TextBlock Grid.ColumnSpan="4" Text="UART 串口驱动" Foreground="White" FontWeight="SemiBold" Margin="0,0,0,12"/>
 
-        <TextBlock Grid.Row="1" Text="接口名"/>
-        <TextBox x:Name="InterfaceBox" Grid.Row="1" Grid.Column="1"/>
-        <TextBlock Grid.Row="1" Grid.Column="2" Text="COM 设备" Margin="16,0,0,0"/>
-        <ComboBox x:Name="PortBox" Grid.Row="1" Grid.Column="3" IsEditable="True"/>
+        <TextBlock Grid.Row="1" Text="COM 端口"/>
+        <ComboBox x:Name="PortBox" Grid.Row="1" Grid.Column="1" IsEditable="True"/>
 
         <TextBlock Grid.Row="2" Text="波特率"/>
         <ComboBox x:Name="BaudBox" Grid.Row="2" Grid.Column="1" IsEditable="True">
@@ -86,15 +83,9 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="46"/>
-                    <RowDefinition Height="46"/>
-                </Grid.RowDefinitions>
                 <TextBlock Text="绑定块名称"/>
                 <TextBox x:Name="BlockNameBox" Grid.Column="1"/>
-                <Button Grid.Column="2" Grid.RowSpan="2" Content="实时" MinWidth="78" Height="34" FontSize="15" Margin="12,0,0,0" Click="OnRealtimeClick"/>
-                <TextBlock Grid.Row="1" Text="块地址"/>
-                <TextBox x:Name="BlockAddressBox" Grid.Row="1" Grid.Column="1" IsReadOnly="True"/>
+                <Button Grid.Column="2" Content="实时" MinWidth="78" Height="34" FontSize="15" Margin="12,0,0,0" Click="OnRealtimeClick"/>
             </Grid>
         </Border>
     </Grid>

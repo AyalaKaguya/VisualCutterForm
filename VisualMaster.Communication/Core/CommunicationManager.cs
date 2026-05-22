@@ -60,15 +60,16 @@ namespace VisualMaster.Communication.Core
             _config.Reset += OnConfigReset;
         }
 
-        public CommunicationDeviceConfig AddDevice(string driverName, string interfaceName)
+        public CommunicationDeviceConfig AddDevice(string driverName)
         {
             if (!_factories.TryGetValue(driverName, out var factory))
                 throw new InvalidOperationException($"Driver is not registered: {driverName}");
 
-            var config = factory.CreateDefaultConfig(interfaceName);
+            var existing = _drivers.Values.ToList();
+            var config = factory.CreateDefaultConfig(existing as IReadOnlyList<ICommunicationDriver>);
             if (_config != null)
             {
-                var added = _config.AddDevice(config.DriverName, config.InterfaceName, config.DisplayName);
+                var added = _config.AddDevice(config.DriverName, config.DisplayName);
                 config.DeviceId = added.DeviceId;
                 _config.UpdateDevice(config);
             }
@@ -156,7 +157,7 @@ namespace VisualMaster.Communication.Core
         {
             await driver.ConnectAsync(cancellationToken).ConfigureAwait(false);
             StartPolling(driver);
-            StatusChanged?.Invoke(this, $"{driver.DriverName}-{driver.InterfaceName} connected.");
+            StatusChanged?.Invoke(this, $"{driver.DriverName} connected.");
         }
 
         private void SyncFromConfig()

@@ -39,15 +39,15 @@ namespace VisualMaster.Communication.Api
             Reset?.Invoke(this, EventArgs.Empty);
         }
 
-        public CommunicationDeviceConfig AddDevice(string driverName, string interfaceName, string displayName = null)
+        public CommunicationDeviceConfig AddDevice(string driverName, string displayName = null)
         {
+            if (_snapshot != null)
+                throw new InvalidOperationException("Cannot add device while snapshot is active.");
+
             var device = new CommunicationDeviceConfig
             {
                 DriverName = driverName,
-                InterfaceName = interfaceName,
-                DisplayName = string.IsNullOrWhiteSpace(displayName)
-                    ? $"{driverName}-{interfaceName}"
-                    : displayName,
+                DisplayName = string.IsNullOrWhiteSpace(displayName) ? driverName : displayName,
             };
             _devices.Add(device);
             DeviceAdded?.Invoke(this, device.Clone());

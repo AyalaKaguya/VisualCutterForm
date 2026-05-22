@@ -75,7 +75,7 @@ namespace VisualMaster.Communication.UI
             var item = sender as MenuItem;
             var driverName = item?.Tag as string;
             if (string.IsNullOrEmpty(driverName)) return;
-            var device = _manager.AddDevice(driverName, driverName == "UART" ? "COM1" : "Main");
+            var device = _manager.AddDevice(driverName);
             RefreshDevices();
             DeviceList.SelectedItem = DeviceList.Items.OfType<CommunicationDeviceConfig>()
                 .FirstOrDefault(d => d.DeviceId == device.DeviceId);
@@ -118,7 +118,7 @@ namespace VisualMaster.Communication.UI
                 return;
             }
 
-            DeviceTitleText.Text = $"{_selectedDevice.DisplayName}  ({_selectedDevice.DriverName}-{_selectedDevice.InterfaceName})";
+            DeviceTitleText.Text = $"{_selectedDevice.DisplayName}  ({_selectedDevice.DriverName})";
             var factory = _manager.DriverFactories.FirstOrDefault(f => f.DriverName == _selectedDevice.DriverName);
             if (_selectedDevice.DriverName == "UART")
             {
@@ -239,7 +239,7 @@ namespace VisualMaster.Communication.UI
             if (_selectedDevice == null) return;
             _config.UpdateDevice(_selectedDevice);
             _manager.LoadConfig(_config);
-            DeviceTitleText.Text = $"{_selectedDevice.DisplayName}  ({_selectedDevice.DriverName}-{_selectedDevice.InterfaceName})";
+            DeviceTitleText.Text = $"{_selectedDevice.DisplayName}  ({_selectedDevice.DriverName})";
             if (refreshList)
                 RefreshDevices();
             else
