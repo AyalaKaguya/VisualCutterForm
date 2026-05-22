@@ -37,9 +37,7 @@ namespace VisualMaster.Communication.Driver
                         BlockName = "串口数据",
                         Address = "COM1",
                         DataType = CommunicationBlockDataType.Bytes,
-                        PollingEnabled = true,
-                        PollingIntervalMs = 500,
-                        PollingTimeoutMs = 1000,
+                        PollingEnabled = false,
                     },
                 },
             };

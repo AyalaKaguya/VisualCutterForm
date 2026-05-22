@@ -22,6 +22,8 @@ namespace VisualMaster.Communication.Driver
         {
             _config = config?.Clone() ?? throw new ArgumentNullException(nameof(config));
             EnsureSingleBlock(_config);
+            foreach (var block in _config.Blocks)
+                block.PollingEnabled = false;
             base.Initialize(_config);
             _singleBlock = Blocks.OfType<CommunicationBlock>().FirstOrDefault();
         }
