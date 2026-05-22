@@ -49,7 +49,7 @@
             <ComboBoxItem>115200</ComboBoxItem>
         </ComboBox>
         <TextBlock Grid.Row="2" Grid.Column="2" Text="数据位" Margin="16,0,0,0"/>
-        <ComboBox x:Name="DataBitsBox" Grid.Row="2" Grid.Column="3"
+        <ComboBox x:Name="DataBitsBox" Grid.Row="2" Grid.Column="3" IsEditable="True"
                   Text="{Binding DataBits, UpdateSourceTrigger=LostFocus}">
             <ComboBoxItem>5</ComboBoxItem>
             <ComboBoxItem>6</ComboBoxItem>
@@ -58,7 +58,7 @@
         </ComboBox>
 
         <TextBlock Grid.Row="3" Text="Parity"/>
-        <ComboBox x:Name="ParityBox" Grid.Row="3" Grid.Column="1"
+        <ComboBox x:Name="ParityBox" Grid.Row="3" Grid.Column="1" IsEditable="True"
                   Text="{Binding Parity, UpdateSourceTrigger=LostFocus}">
                 <ComboBoxItem>None</ComboBoxItem>
                 <ComboBoxItem>Odd</ComboBoxItem>
@@ -67,7 +67,7 @@
                 <ComboBoxItem>Space</ComboBoxItem>
         </ComboBox>
         <TextBlock Grid.Row="3" Grid.Column="2" Text="StopBits" Margin="16,0,0,0"/>
-        <ComboBox x:Name="StopBitsBox" Grid.Row="3" Grid.Column="3"
+        <ComboBox x:Name="StopBitsBox" Grid.Row="3" Grid.Column="3" IsEditable="True"
                   Text="{Binding StopBits, UpdateSourceTrigger=LostFocus}">
                 <ComboBoxItem>One</ComboBoxItem>
                 <ComboBoxItem>Two</ComboBoxItem>
@@ -75,7 +75,7 @@
         </ComboBox>
 
         <TextBlock Grid.Row="4" Text="Handshake"/>
-        <ComboBox x:Name="HandshakeBox" Grid.Row="4" Grid.Column="1"
+        <ComboBox x:Name="HandshakeBox" Grid.Row="4" Grid.Column="1" IsEditable="True"
                   Text="{Binding Handshake, UpdateSourceTrigger=LostFocus}">
             <ComboBoxItem>None</ComboBoxItem>
             <ComboBoxItem>XOnXOff</ComboBoxItem>
