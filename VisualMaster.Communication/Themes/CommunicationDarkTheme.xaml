@@ -43,6 +43,9 @@
         <Setter Property="Foreground" Value="{StaticResource ColorTextPrimary}"/>
         <Setter Property="BorderBrush" Value="#444444"/>
     </Style>
+    <Style TargetType="ListBoxItem">
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+    </Style>
 
     <!-- ===== Implicit ComboBox ===== -->
     <Style TargetType="ComboBox">

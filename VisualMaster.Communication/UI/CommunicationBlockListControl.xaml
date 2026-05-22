@@ -33,9 +33,6 @@
                 <Setter Property="Foreground" Value="White"/>
                 <Setter Property="BorderBrush" Value="#444444"/>
             </Style>
-            <Style TargetType="ListBoxItem">
-                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-            </Style>
         </ResourceDictionary>
     </UserControl.Resources>
     <DockPanel Background="{DynamicResource ColorRootBg}">
