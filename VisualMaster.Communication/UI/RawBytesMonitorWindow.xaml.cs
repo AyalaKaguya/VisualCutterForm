@@ -59,10 +59,19 @@ namespace VisualMaster.Communication.UI
             if (string.IsNullOrEmpty(text)) return;
 
             byte[] data;
-            if (SendStringMode.IsChecked == true)
-                data = Encoding.ASCII.GetBytes(text);
-            else
-                data = CommunicationDataConverter.FromHex(text);
+            try
+            {
+                if (SendStringMode.IsChecked == true)
+                    data = Encoding.ASCII.GetBytes(text);
+                else
+                    data = CommunicationDataConverter.FromHex(text);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, $"发送数据格式错误：{ex.Message}", "发送失败",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
             await _block.WriteAsync(data, 1000, CancellationToken.None);
             _ = Dispatcher.BeginInvoke(new Action(() => AppendLog(text, "->")));
