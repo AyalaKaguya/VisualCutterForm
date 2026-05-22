@@ -65,9 +65,13 @@ namespace VisualMaster.Communication.UI
         {
             if (_selected == null)
             {
+                EditorTitle.Text = "请选择心跳";
+                EditorPlaceholder.Visibility = Visibility.Visible;
                 EditorPanel.Visibility = Visibility.Collapsed;
                 return;
             }
+            EditorTitle.Text = _selected.Name ?? "";
+            EditorPlaceholder.Visibility = Visibility.Collapsed;
             EditorPanel.Visibility = Visibility.Visible;
 
             _suppress = true;
@@ -86,6 +90,7 @@ namespace VisualMaster.Communication.UI
             if (_suppress || _selected == null) return;
             _selected.IsEnabled = EnabledBox.IsChecked == true;
             _selected.Name = NameBox.Text;
+            EditorTitle.Text = _selected.Name ?? "";
             _selected.InputEventId = InputEventBox.Text;
             _selected.OutputEventId = OutputEventBox.Text;
             HeartbeatList.Items.Refresh();

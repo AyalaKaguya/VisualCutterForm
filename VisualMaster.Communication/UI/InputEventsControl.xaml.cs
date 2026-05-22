@@ -67,9 +67,13 @@ namespace VisualMaster.Communication.UI
         {
             if (_selected == null)
             {
+                EditorTitle.Text = "请选择输入事件";
+                EditorPlaceholder.Visibility = Visibility.Visible;
                 EditorPanel.Visibility = Visibility.Collapsed;
                 return;
             }
+            EditorTitle.Text = _selected.Name ?? "";
+            EditorPlaceholder.Visibility = Visibility.Collapsed;
             EditorPanel.Visibility = Visibility.Visible;
 
             _suppress = true;
@@ -89,6 +93,7 @@ namespace VisualMaster.Communication.UI
         {
             if (_suppress || _selected == null) return;
             _selected.Name = NameBox.Text;
+            EditorTitle.Text = _selected.Name ?? "";
             _selected.DeviceId = DeviceBox.Text;
             _selected.BlockId = BlockBox.Text;
             _selected.TreatAsAscii = AsciiBox.IsChecked == true;
