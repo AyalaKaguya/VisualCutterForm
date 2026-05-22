@@ -81,11 +81,11 @@
                 <TextBlock Text="绑定" FontWeight="SemiBold" Margin="0,10,0,6"/>
                 <DockPanel Margin="0,0,0,6">
                     <TextBlock Text="通信设备" Width="96" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                    <ComboBox x:Name="DeviceCombo" MaxWidth="360" SelectionChanged="OnDeviceComboChanged"/>
+                    <ComboBox x:Name="DeviceCombo" MinWidth="240" SelectionChanged="OnDeviceComboChanged" HorizontalAlignment="Left"/>
                 </DockPanel>
                 <DockPanel Margin="0,0,0,6">
                     <TextBlock Text="数据块" Width="96" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                    <ComboBox x:Name="BlockCombo" MaxWidth="360" SelectionChanged="OnBlockComboChanged"/>
+                    <ComboBox x:Name="BlockCombo" MinWidth="240" SelectionChanged="OnBlockComboChanged" HorizontalAlignment="Left"/>
                 </DockPanel>
 
                 <Border Height="1" Background="#303030" Margin="0,14,0,12"/>
@@ -94,7 +94,7 @@
                 <DockPanel Margin="0,0,0,8">
                     <TextBlock Text="字节长度比较" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
                     <ToggleButton x:Name="LengthCheckToggle" Style="{StaticResource DeviceToggle}"
-                                  Checked="OnLengthCheckChanged" Unchecked="OnLengthCheckChanged"/>
+                                  Checked="OnLengthCheckChanged" Unchecked="OnLengthCheckChanged" HorizontalAlignment="Left"/>
                 </DockPanel>
 
                 <StackPanel x:Name="LengthCheckPanel" Visibility="Collapsed" Margin="48,0,0,0">
@@ -102,20 +102,34 @@
                         <TextBlock Text="最少字符数" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
                         <ToggleButton x:Name="MinLengthToggle" Style="{StaticResource DeviceToggle}"
                                       Checked="OnMinLengthToggleChanged" Unchecked="OnMinLengthToggleChanged"/>
-                        <TextBox x:Name="MinLengthBox" TextChanged="OnMinLengthChanged" Width="60"
-                                 HorizontalAlignment="Left" Margin="12,0,0,0"/>
+                        <ComboBox x:Name="MinLengthCombo" SelectionChanged="OnMinLengthChanged"
+                                  Width="70" Margin="12,0,0,0" IsEditable="True">
+                            <ComboBoxItem>1</ComboBoxItem><ComboBoxItem>2</ComboBoxItem><ComboBoxItem>3</ComboBoxItem>
+                            <ComboBoxItem>4</ComboBoxItem><ComboBoxItem>5</ComboBoxItem><ComboBoxItem>6</ComboBoxItem>
+                            <ComboBoxItem>7</ComboBoxItem><ComboBoxItem>8</ComboBoxItem><ComboBoxItem>9</ComboBoxItem>
+                            <ComboBoxItem>10</ComboBoxItem><ComboBoxItem>12</ComboBoxItem><ComboBoxItem>14</ComboBoxItem>
+                            <ComboBoxItem>16</ComboBoxItem><ComboBoxItem>20</ComboBoxItem><ComboBoxItem>24</ComboBoxItem>
+                            <ComboBoxItem>32</ComboBoxItem><ComboBoxItem>48</ComboBoxItem><ComboBoxItem>64</ComboBoxItem>
+                        </ComboBox>
                     </DockPanel>
                     <DockPanel Margin="0,0,0,6">
                         <TextBlock Text="等于字符数" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
                         <ToggleButton x:Name="ExactLengthToggle" Style="{StaticResource DeviceToggle}"
                                       Checked="OnExactLengthToggleChanged" Unchecked="OnExactLengthToggleChanged"/>
-                        <TextBox x:Name="ExactLengthBox" TextChanged="OnExactLengthChanged" Width="60"
-                                 HorizontalAlignment="Left" Margin="12,0,0,0"/>
+                        <ComboBox x:Name="ExactLengthCombo" SelectionChanged="OnExactLengthChanged"
+                                  Width="70" Margin="12,0,0,0" IsEditable="True">
+                            <ComboBoxItem>1</ComboBoxItem><ComboBoxItem>2</ComboBoxItem><ComboBoxItem>3</ComboBoxItem>
+                            <ComboBoxItem>4</ComboBoxItem><ComboBoxItem>5</ComboBoxItem><ComboBoxItem>6</ComboBoxItem>
+                            <ComboBoxItem>7</ComboBoxItem><ComboBoxItem>8</ComboBoxItem><ComboBoxItem>9</ComboBoxItem>
+                            <ComboBoxItem>10</ComboBoxItem><ComboBoxItem>12</ComboBoxItem><ComboBoxItem>14</ComboBoxItem>
+                            <ComboBoxItem>16</ComboBoxItem><ComboBoxItem>20</ComboBoxItem><ComboBoxItem>24</ComboBoxItem>
+                            <ComboBoxItem>32</ComboBoxItem><ComboBoxItem>48</ComboBoxItem><ComboBoxItem>64</ComboBoxItem>
+                        </ComboBox>
                     </DockPanel>
                     <DockPanel>
                         <TextBlock Text="ASCII 16位" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
                         <ToggleButton x:Name="AsciiToggle" Style="{StaticResource DeviceToggle}"
-                                      Checked="OnAsciiToggleChanged" Unchecked="OnAsciiToggleChanged"/>
+                                      Checked="OnAsciiToggleChanged" Unchecked="OnAsciiToggleChanged" HorizontalAlignment="Left"/>
                     </DockPanel>
                 </StackPanel>
 

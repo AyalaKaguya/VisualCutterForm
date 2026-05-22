@@ -143,9 +143,15 @@ namespace VisualMaster.Communication.UI
                 LengthCheckToggle.IsChecked = _selected?.LengthCheckEnabled == true;
                 LengthCheckPanel.Visibility = _selected?.LengthCheckEnabled == true ? Visibility.Visible : Visibility.Collapsed;
                 MinLengthToggle.IsChecked = _selected?.MinLengthEnabled == true;
-                MinLengthBox.Text = (_selected?.MinimumLength ?? 0).ToString();
+                if (_selected?.MinimumLength > 0)
+                    SelectText(MinLengthCombo, _selected.MinimumLength.ToString());
+                else
+                    MinLengthCombo.Text = "";
                 ExactLengthToggle.IsChecked = _selected?.ExactLengthEnabled == true;
-                ExactLengthBox.Text = (_selected?.ExactLength ?? 0).ToString();
+                if (_selected?.ExactLength > 0)
+                    SelectText(ExactLengthCombo, _selected.ExactLength.ToString());
+                else
+                    ExactLengthCombo.Text = "";
                 AsciiToggle.IsChecked = _selected?.TreatAsAscii == true;
                 RuleGrid.DataContext = _selected;
             }
@@ -211,11 +217,19 @@ namespace VisualMaster.Communication.UI
             Sync();
         }
 
-        private void OnMinLengthChanged(object sender, TextChangedEventArgs e)
+        private void OnMinLengthChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_suppress || _selected == null) return;
-            if (int.TryParse(MinLengthBox.Text, out var len))
+            if (int.TryParse(MinLengthCombo.Text, out var len))
                 _selected.MinimumLength = len;
+            Sync();
+        }
+
+        private void OnExactLengthChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_suppress || _selected == null) return;
+            if (int.TryParse(ExactLengthCombo.Text, out var len))
+                _selected.ExactLength = len;
             Sync();
         }
 
@@ -223,14 +237,6 @@ namespace VisualMaster.Communication.UI
         {
             if (_suppress || _selected == null) return;
             _selected.ExactLengthEnabled = ExactLengthToggle.IsChecked == true;
-            Sync();
-        }
-
-        private void OnExactLengthChanged(object sender, TextChangedEventArgs e)
-        {
-            if (_suppress || _selected == null) return;
-            if (int.TryParse(ExactLengthBox.Text, out var len))
-                _selected.ExactLength = len;
             Sync();
         }
 
@@ -264,6 +270,19 @@ namespace VisualMaster.Communication.UI
                 current = VisualTreeHelper.GetParent(current);
             }
             return null;
+        }
+
+        private static void SelectText(ComboBox combo, string text)
+        {
+            foreach (var item in combo.Items)
+            {
+                if ((item as ComboBoxItem)?.Content?.ToString() == text)
+                {
+                    combo.SelectedItem = item;
+                    return;
+                }
+            }
+            combo.Text = text;
         }
     }
 }
