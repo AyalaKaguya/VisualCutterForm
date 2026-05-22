@@ -147,6 +147,18 @@ namespace VisualMaster.Communication.Core
                 : null;
         }
 
+        public IReadOnlyDictionary<(string deviceId, string blockId), ICommunicationBlock> BlockLookup
+        {
+            get
+            {
+                var dict = new Dictionary<(string, string), ICommunicationBlock>();
+                foreach (var driver in _drivers.Values)
+                foreach (var block in driver.Blocks)
+                    dict[(driver.DeviceId, block.Config.BlockId)] = block;
+                return dict;
+            }
+        }
+
         public CommunicationDeviceConfig GetDeviceConfig(string deviceId)
         {
             return _config?.GetDevice(deviceId);
