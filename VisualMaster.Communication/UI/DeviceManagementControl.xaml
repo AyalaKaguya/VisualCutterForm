@@ -2,6 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="clr-namespace:VisualMaster.Communication.UI"
+             xmlns:vm="clr-namespace:VisualMaster.Communication.UI.ViewModels"
              Background="{DynamicResource ColorRootBg}"
              Foreground="White">
     <UserControl.Resources>
@@ -66,8 +67,9 @@
             </DockPanel>
             <ListBox x:Name="DeviceList"
                      Margin="8"
+                     ItemsSource="{Binding Devices}"
                      ItemTemplate="{StaticResource DeviceItemTemplate}"
-                     SelectionChanged="OnDeviceSelected"
+                     SelectedItem="{Binding SelectedDevice, Mode=TwoWay}"
                      PreviewMouseRightButtonDown="OnDeviceListRightButtonDown"/>
         </DockPanel>
 
@@ -78,7 +80,9 @@
                 <RowDefinition Height="0"/>
             </Grid.RowDefinitions>
             <DockPanel x:Name="DeviceCommandBar">
-                <TextBlock x:Name="DeviceTitleText" Foreground="#E6E6E6" FontSize="17" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                <TextBlock x:Name="DeviceTitleText"
+                           Text="{Binding SelectedDevice.DisplayName, FallbackValue=请选择或添加一个通信设备}"
+                           Foreground="#E6E6E6" FontSize="17" FontWeight="SemiBold" VerticalAlignment="Center"/>
             </DockPanel>
             <ContentControl x:Name="DriverConfigHost" Grid.Row="1" Margin="0,8,0,8"/>
             <ui:CommunicationBlockListControl x:Name="BlockList" Grid.Row="2"/>

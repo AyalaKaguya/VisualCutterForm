@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using VisualMaster.Communication.Api;
 using VisualMaster.Communication.Core;
+using VisualMaster.Communication.UI.ViewModels;
 
 namespace VisualMaster.Communication.UI
 {
@@ -10,6 +11,7 @@ namespace VisualMaster.Communication.UI
     {
         private readonly CommunicationManager _manager;
         private readonly CommunicationSystemConfig _config;
+        private readonly CommunicationManagerViewModel _viewModel;
         private DeviceManagementControl _devicePage;
 
         public CommunicationManagerPanel()
@@ -18,18 +20,23 @@ namespace VisualMaster.Communication.UI
         }
 
         public CommunicationManagerPanel(CommunicationManager manager, CommunicationSystemConfig config)
+            : this(new CommunicationManagerViewModel(manager, config))
         {
-            _manager = manager ?? throw new ArgumentNullException(nameof(manager));
-            _config = config ?? throw new ArgumentNullException(nameof(config));
+            _manager = manager;
+            _config = config;
+        }
+
+        public CommunicationManagerPanel(CommunicationManagerViewModel viewModel)
+        {
+            _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
             InitializeComponent();
-            _manager.LoadConfig(_config);
             ShowDevicePage();
         }
 
         private void ShowDevicePage()
         {
             if (_devicePage == null)
-                _devicePage = new DeviceManagementControl(_manager, _config);
+                _devicePage = new DeviceManagementControl(_viewModel);
             PageHost.Content = _devicePage;
         }
 

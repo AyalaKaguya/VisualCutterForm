@@ -35,10 +35,13 @@
         <TextBlock Grid.ColumnSpan="4" Text="UART 串口驱动" Foreground="White" FontWeight="SemiBold" Margin="0,0,0,12"/>
 
         <TextBlock Grid.Row="1" Text="COM 端口"/>
-        <ComboBox x:Name="PortBox" Grid.Row="1" Grid.Column="1" IsEditable="True"/>
+        <ComboBox x:Name="PortBox" Grid.Row="1" Grid.Column="1" IsEditable="True"
+                  ItemsSource="{Binding AvailablePorts}"
+                  Text="{Binding PortName, UpdateSourceTrigger=LostFocus}"/>
 
         <TextBlock Grid.Row="2" Text="波特率"/>
-        <ComboBox x:Name="BaudBox" Grid.Row="2" Grid.Column="1" IsEditable="True">
+        <ComboBox x:Name="BaudBox" Grid.Row="2" Grid.Column="1" IsEditable="True"
+                  Text="{Binding BaudRate, UpdateSourceTrigger=LostFocus}">
             <ComboBoxItem>9600</ComboBoxItem>
             <ComboBoxItem>19200</ComboBoxItem>
             <ComboBoxItem>38400</ComboBoxItem>
@@ -46,7 +49,8 @@
             <ComboBoxItem>115200</ComboBoxItem>
         </ComboBox>
         <TextBlock Grid.Row="2" Grid.Column="2" Text="数据位" Margin="16,0,0,0"/>
-        <ComboBox x:Name="DataBitsBox" Grid.Row="2" Grid.Column="3">
+        <ComboBox x:Name="DataBitsBox" Grid.Row="2" Grid.Column="3"
+                  Text="{Binding DataBits, UpdateSourceTrigger=LostFocus}">
             <ComboBoxItem>5</ComboBoxItem>
             <ComboBoxItem>6</ComboBoxItem>
             <ComboBoxItem>7</ComboBoxItem>
@@ -54,7 +58,8 @@
         </ComboBox>
 
         <TextBlock Grid.Row="3" Text="Parity"/>
-        <ComboBox x:Name="ParityBox" Grid.Row="3" Grid.Column="1">
+        <ComboBox x:Name="ParityBox" Grid.Row="3" Grid.Column="1"
+                  Text="{Binding Parity, UpdateSourceTrigger=LostFocus}">
                 <ComboBoxItem>None</ComboBoxItem>
                 <ComboBoxItem>Odd</ComboBoxItem>
                 <ComboBoxItem>Even</ComboBoxItem>
@@ -62,14 +67,16 @@
                 <ComboBoxItem>Space</ComboBoxItem>
         </ComboBox>
         <TextBlock Grid.Row="3" Grid.Column="2" Text="StopBits" Margin="16,0,0,0"/>
-        <ComboBox x:Name="StopBitsBox" Grid.Row="3" Grid.Column="3">
+        <ComboBox x:Name="StopBitsBox" Grid.Row="3" Grid.Column="3"
+                  Text="{Binding StopBits, UpdateSourceTrigger=LostFocus}">
                 <ComboBoxItem>One</ComboBoxItem>
                 <ComboBoxItem>Two</ComboBoxItem>
                 <ComboBoxItem>OnePointFive</ComboBoxItem>
         </ComboBox>
 
         <TextBlock Grid.Row="4" Text="Handshake"/>
-        <ComboBox x:Name="HandshakeBox" Grid.Row="4" Grid.Column="1">
+        <ComboBox x:Name="HandshakeBox" Grid.Row="4" Grid.Column="1"
+                  Text="{Binding Handshake, UpdateSourceTrigger=LostFocus}">
             <ComboBoxItem>None</ComboBoxItem>
             <ComboBoxItem>XOnXOff</ComboBoxItem>
             <ComboBoxItem>RequestToSend</ComboBoxItem>
@@ -84,7 +91,8 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="绑定块名称"/>
-                <TextBox x:Name="BlockNameBox" Grid.Column="1"/>
+                <TextBox x:Name="BlockNameBox" Grid.Column="1"
+                         Text="{Binding BlockName, UpdateSourceTrigger=PropertyChanged}"/>
                 <Button Grid.Column="2" Content="实时" MinWidth="78" Height="34" FontSize="15" Margin="12,0,0,0" Click="OnRealtimeClick"/>
             </Grid>
         </Border>

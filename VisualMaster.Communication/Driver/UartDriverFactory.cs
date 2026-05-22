@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Windows.Controls;
 using VisualMaster.Communication.Api;
 using VisualMaster.Communication.UI;
+using VisualMaster.Communication.UI.ViewModels;
 
 namespace VisualMaster.Communication.Driver
 {
@@ -50,7 +51,7 @@ namespace VisualMaster.Communication.Driver
 
         public UserControl CreateConfigurationView(CommunicationDeviceConfig config)
         {
-            return new UartDriverConfigControl(config);
+            return new UartDriverConfigControl(new UartDriverConfigViewModel(config));
         }
     }
 }

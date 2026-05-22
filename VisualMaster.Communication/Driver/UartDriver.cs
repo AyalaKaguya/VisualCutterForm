@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using VisualMaster.Communication.Api;
 using VisualMaster.Communication.UI;
+using VisualMaster.Communication.UI.ViewModels;
 
 namespace VisualMaster.Communication.Driver
 {
@@ -84,7 +85,7 @@ namespace VisualMaster.Communication.Driver
 
         public override UserControl CreateConfigurationView()
         {
-            return new UartDriverConfigControl(_config);
+            return new UartDriverConfigControl(new UartDriverConfigViewModel(_config));
         }
 
         protected override ICommunicationBlock CreateDriverBlock(CommunicationBlockConfig config)

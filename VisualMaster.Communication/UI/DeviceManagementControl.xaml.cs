@@ -6,107 +6,30 @@ using System.Windows.Input;
 using System.Windows.Media;
 using VisualMaster.Communication.Api;
 using VisualMaster.Communication.Core;
+using VisualMaster.Communication.UI.ViewModels;
 
 namespace VisualMaster.Communication.UI
 {
     public partial class DeviceManagementControl : UserControl
     {
-        private readonly CommunicationManager _manager;
-        private readonly CommunicationSystemConfig _config;
-        private CommunicationDeviceConfig _selectedDevice;
+        private readonly CommunicationManagerViewModel _viewModel;
         private bool _suppressDeviceToggle;
 
-        public DeviceManagementControl(CommunicationManager manager, CommunicationSystemConfig config)
+        public DeviceManagementControl(CommunicationManagerViewModel viewModel)
         {
-            _manager = manager ?? throw new ArgumentNullException(nameof(manager));
-            _config = config ?? throw new ArgumentNullException(nameof(config));
+            _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
+            DataContext = _viewModel;
             InitializeComponent();
             BlockList.BlocksChanged += OnBlocksChanged;
             BlockList.MonitorRequested += OnMonitorRequested;
-            RefreshDevices();
-            if (DeviceList.Items.Count > 0)
-                DeviceList.SelectedIndex = 0;
-            else
-                LoadSelectedDevice();
-        }
-
-        private void RefreshDevices()
-        {
-            var selectedId = _selectedDevice?.DeviceId;
-            _suppressDeviceToggle = true;
-            DeviceList.ItemsSource = null;
-            DeviceList.ItemsSource = _config.Devices.Select(d => d.Clone()).ToList();
-            try
-            {
-                if (string.IsNullOrEmpty(selectedId)) return;
-
-                foreach (var item in DeviceList.Items.OfType<CommunicationDeviceConfig>())
-                {
-                    if (item.DeviceId == selectedId)
-                    {
-                        DeviceList.SelectedItem = item;
-                        break;
-                    }
-                }
-            }
-            finally
-            {
-                _suppressDeviceToggle = false;
-            }
-        }
-
-        private void OnAddDeviceClick(object sender, RoutedEventArgs e)
-        {
-            var button = sender as Button;
-            var menu = new ContextMenu();
-            foreach (var factory in _manager.DriverFactories)
-            {
-                var item = new MenuItem { Header = factory.DisplayName, Tag = factory.DriverName };
-                item.Click += OnAddDriverMenuItemClick;
-                menu.Items.Add(item);
-            }
-            button.ContextMenu = menu;
-            menu.PlacementTarget = button;
-            menu.IsOpen = true;
-        }
-
-        private async void OnAddDriverMenuItemClick(object sender, RoutedEventArgs e)
-        {
-            var item = sender as MenuItem;
-            var driverName = item?.Tag as string;
-            if (string.IsNullOrEmpty(driverName)) return;
-            var device = _manager.AddDevice(driverName);
-            RefreshDevices();
-            DeviceList.SelectedItem = DeviceList.Items.OfType<CommunicationDeviceConfig>()
-                .FirstOrDefault(d => d.DeviceId == device.DeviceId);
-
-            try
-            {
-                await _manager.StartDeviceAsync(device.DeviceId);
-            }
-            catch (Exception ex)
-            {
-                try { await _manager.StopDeviceAsync(device.DeviceId); } catch { }
-                device.IsEnabled = false;
-                _config.UpdateDevice(device);
-                _manager.LoadConfig(_config);
-                RefreshDevices();
-                MessageBox.Show(Window.GetWindow(this), $"设备已创建，但连接失败：{ex.Message}\n\n请检查配置后重新启用。",
-                    "连接失败", MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
-        }
-
-        private void OnDeviceSelected(object sender, SelectionChangedEventArgs e)
-        {
-            _selectedDevice = DeviceList.SelectedItem as CommunicationDeviceConfig;
             LoadSelectedDevice();
         }
 
         private void LoadSelectedDevice()
         {
-            if (_selectedDevice == null)
+            var deviceVm = _viewModel.SelectedDevice;
+            if (deviceVm == null)
             {
-                DeviceTitleText.Text = "请选择或添加一个通信设备";
                 DriverConfigHost.Content = new TextBlock
                 {
                     Text = "点击设备列表右上角 + 选择驱动后开始配置。",
@@ -118,11 +41,12 @@ namespace VisualMaster.Communication.UI
                 return;
             }
 
-            DeviceTitleText.Text = $"{_selectedDevice.DisplayName}  ({_selectedDevice.DriverName})";
-            var factory = _manager.DriverFactories.FirstOrDefault(f => f.DriverName == _selectedDevice.DriverName);
-            if (_selectedDevice.DriverName == "UART")
+            deviceVm.EnsureDriverConfig();
+
+            if (deviceVm.DriverName == "UART")
             {
-                var control = new UartDriverConfigControl(_selectedDevice);
+                deviceVm.DriverConfig.LoadFrom(_viewModel.GetDeviceConfig(deviceVm.DeviceId));
+                var control = new UartDriverConfigControl(deviceVm.DriverConfig);
                 control.RealtimeRequested += OnUartRealtimeRequested;
                 control.ConfigChanged += OnDriverConfigChanged;
                 DriverConfigHost.Content = control;
@@ -130,48 +54,42 @@ namespace VisualMaster.Communication.UI
             }
             else
             {
-                DriverConfigHost.Content = factory?.CreateConfigurationView(_selectedDevice);
+                var driver = _viewModel.GetDriver(deviceVm.DeviceId);
+                DriverConfigHost.Content = driver?.CreateConfigurationView();
                 BlockList.Visibility = Visibility.Visible;
-                BlockList.LoadDevice(_selectedDevice);
             }
+        }
+
+        private void OnAddDeviceClick(object sender, RoutedEventArgs e)
+        {
+            if (_viewModel.AddUartDeviceCommand.CanExecute(null))
+                _viewModel.AddUartDeviceCommand.Execute(null);
+        }
+
+        private void OnRemoveDeviceClick(object sender, RoutedEventArgs e)
+        {
+            if (_viewModel.RemoveDeviceCommand.CanExecute(null))
+                _viewModel.RemoveDeviceCommand.Execute(null);
         }
 
         private async void OnDeviceEnabledToggled(object sender, RoutedEventArgs e)
         {
             if (_suppressDeviceToggle) return;
             if (!(sender is System.Windows.Controls.Primitives.ToggleButton toggle)) return;
-            var deviceId = toggle.Tag as string;
-            var device = _config.GetDevice(deviceId);
-            if (device == null) return;
-            device.IsEnabled = toggle.IsChecked == true;
-            _config.UpdateDevice(device);
-            _manager.LoadConfig(_config);
+            var deviceVm = toggle.DataContext as CommunicationDeviceItemViewModel;
+            if (deviceVm == null) return;
+
+            _suppressDeviceToggle = true;
             try
             {
-                if (device.IsEnabled)
-                {
-                    await _manager.StartDeviceAsync(device.DeviceId);
-                }
-                else
-                {
-                    await _manager.StopDeviceAsync(device.DeviceId);
-                }
-
-                if (_selectedDevice?.DeviceId == device.DeviceId)
-                    _selectedDevice = device;
-                DeviceList.Items.Refresh();
+                _viewModel.SelectedDevice = deviceVm;
+                if (_viewModel.ToggleDeviceCommand.CanExecute(null))
+                    _viewModel.ToggleDeviceCommand.Execute(null);
             }
-            catch (Exception ex)
+            finally
             {
-                try { await _manager.StopDeviceAsync(device.DeviceId); } catch { }
-                device.IsEnabled = false;
-                _config.UpdateDevice(device);
-                _manager.LoadConfig(_config);
-                if (_selectedDevice?.DeviceId == device.DeviceId)
-                    _selectedDevice = device;
-                RefreshDevices();
-                MessageBox.Show(Window.GetWindow(this), $"设备无法启用，已切换为关闭：{ex.Message}", "通信设备不可用",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                _suppressDeviceToggle = false;
+                LoadSelectedDevice();
             }
         }
 
@@ -190,29 +108,25 @@ namespace VisualMaster.Communication.UI
 
         private void OnRenameDeviceClick(object sender, RoutedEventArgs e)
         {
-            var device = DeviceList.SelectedItem as CommunicationDeviceConfig;
-            if (device == null) return;
-            var dialog = new TextInputDialog("重命名设备", "设备标题", device.DisplayName)
+            var deviceVm = DeviceList.SelectedItem as CommunicationDeviceItemViewModel;
+            if (deviceVm == null) return;
+            var dialog = new TextInputDialog("重命名设备", "设备标题", deviceVm.DisplayName)
             {
                 Owner = Window.GetWindow(this),
             };
             if (dialog.ShowDialog() != true) return;
-            device.DisplayName = string.IsNullOrWhiteSpace(dialog.Value) ? device.DisplayName : dialog.Value.Trim();
-            _config.UpdateDevice(device);
-            _manager.LoadConfig(_config);
-            _selectedDevice = device;
-            RefreshDevices();
+            deviceVm.DisplayName = string.IsNullOrWhiteSpace(dialog.Value) ? deviceVm.DisplayName : dialog.Value.Trim();
         }
 
         private void OnBlocksChanged(object sender, EventArgs e)
         {
-            ApplySelectedDeviceChanges(true);
+            ApplySelectedDeviceChanges();
         }
 
         private void OnMonitorRequested(object sender, CommunicationBlockConfig e)
         {
-            if (_selectedDevice == null || e == null) return;
-            var block = _manager.FindBlock(_selectedDevice.DeviceId, e.BlockId);
+            if (_viewModel.SelectedDevice == null || e == null) return;
+            var block = _viewModel.FindBlock(_viewModel.SelectedDevice.DeviceId, e.BlockId);
             if (block == null) return;
             new RawBytesMonitorWindow(block)
             {
@@ -222,9 +136,9 @@ namespace VisualMaster.Communication.UI
 
         private void OnUartRealtimeRequested(object sender, CommunicationBlockConfig e)
         {
-            if (_selectedDevice == null || e == null) return;
-            ApplySelectedDeviceChanges(false);
-            var block = _manager.FindBlock(_selectedDevice.DeviceId, e.BlockId);
+            if (_viewModel.SelectedDevice == null || e == null) return;
+            ApplySelectedDeviceChanges();
+            var block = _viewModel.FindBlock(_viewModel.SelectedDevice.DeviceId, e.BlockId);
             if (block == null) return;
             new RawBytesMonitorWindow(block)
             {
@@ -235,19 +149,20 @@ namespace VisualMaster.Communication.UI
 
         private void OnDriverConfigChanged(object sender, EventArgs e)
         {
-            ApplySelectedDeviceChanges(false);
+            ApplySelectedDeviceChanges();
         }
 
-        private void ApplySelectedDeviceChanges(bool refreshList)
+        private void ApplySelectedDeviceChanges()
         {
-            if (_selectedDevice == null) return;
-            _config.UpdateDevice(_selectedDevice);
-            _manager.LoadConfig(_config);
-            DeviceTitleText.Text = $"{_selectedDevice.DisplayName}  ({_selectedDevice.DriverName})";
-            if (refreshList)
-                RefreshDevices();
-            else
-                DeviceList.Items.Refresh();
+            if (_viewModel.SelectedDevice?.DriverConfig != null)
+            {
+                var config = _viewModel.GetDeviceConfig(_viewModel.SelectedDevice.DeviceId);
+                if (config != null)
+                {
+                    _viewModel.SelectedDevice.DriverConfig.ToDeviceConfig(config);
+                    _viewModel.UpdateDeviceConfig(config);
+                }
+            }
         }
 
         private static T FindAncestor<T>(DependencyObject current) where T : DependencyObject
@@ -258,21 +173,6 @@ namespace VisualMaster.Communication.UI
                 current = VisualTreeHelper.GetParent(current);
             }
             return null;
-        }
-
-        private async void OnRemoveDeviceClick(object sender, RoutedEventArgs e)
-        {
-            if (_selectedDevice == null) return;
-
-            var deviceId = _selectedDevice.DeviceId;
-            var name = _selectedDevice.DisplayName;
-
-            try { await _manager.StopDeviceAsync(deviceId); } catch { }
-            _config.RemoveDevice(deviceId);
-            _manager.LoadConfig(_config);
-            _selectedDevice = null;
-            RefreshDevices();
-            LoadSelectedDevice();
         }
     }
 }
