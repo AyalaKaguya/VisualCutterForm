@@ -76,6 +76,31 @@ namespace VisualMaster.Communication.UI.ViewModels
             _config.DeviceRemoved += OnConfigDeviceRemoved;
             _config.DeviceUpdated += OnConfigDeviceUpdated;
             _config.Reset         += OnConfigReset;
+
+            AutoConnectEnabledDevices();
+        }
+
+        private async void AutoConnectEnabledDevices()
+        {
+            foreach (var devVm in Devices)
+            {
+                if (!devVm.IsEnabled) continue;
+                try
+                {
+                    await _manager.StartDeviceAsync(devVm.DeviceId);
+                }
+                catch
+                {
+                    devVm.IsEnabled = false;
+                    var device = _config.GetDevice(devVm.DeviceId);
+                    if (device != null)
+                    {
+                        device.IsEnabled = false;
+                        _config.UpdateDevice(device);
+                    }
+                }
+            }
+            RefreshStatuses();
         }
 
         private void LoadFromConfig()
