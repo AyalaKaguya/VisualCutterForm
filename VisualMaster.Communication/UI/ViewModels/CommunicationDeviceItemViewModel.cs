@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using VisualMaster.Communication.Api;
 
 namespace VisualMaster.Communication.UI.ViewModels
@@ -75,7 +77,14 @@ namespace VisualMaster.Communication.UI.ViewModels
             {
                 _config.DisplayName = config.DisplayName;
                 _config.IsEnabled = config.IsEnabled;
+                _config.DriverName = config.DriverName;
+                if (config.DriverSettings != null)
+                    _config.DriverSettings = new Dictionary<string, string>(config.DriverSettings);
+                if (config.Blocks != null && config.Blocks.Count > 0)
+                    _config.Blocks = config.Blocks.Select(b => b.Clone()).ToList();
+                DriverConfig?.LoadFrom(_config);
                 OnPropertyChanged(nameof(DisplayName));
+                OnPropertyChanged(nameof(DriverName));
                 OnPropertyChanged(nameof(IsEnabled));
             }
             finally
