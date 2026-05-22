@@ -17,6 +17,7 @@ namespace VisualMaster.Communication.Driver
 
         public CommunicationBlockConfig Config { get; private set; }
         public byte[] CurrentValue => _currentValue != null ? (byte[])_currentValue.Clone() : new byte[0];
+        public string DeviceId { get; set; }
 
         public event EventHandler<CommunicationBlockUpdatedEventArgs> Updated;
 
@@ -50,7 +51,7 @@ namespace VisualMaster.Communication.Driver
         {
             _currentValue = data != null ? (byte[])data.Clone() : new byte[0];
             if (PublishOnWrite)
-                Updated?.Invoke(this, new CommunicationBlockUpdatedEventArgs(null, Config.BlockId, Config.Address, _currentValue));
+                Updated?.Invoke(this, new CommunicationBlockUpdatedEventArgs(DeviceId, Config.BlockId, Config.Address, _currentValue));
         }
 
         public void UpdateConfig(CommunicationBlockConfig config)
@@ -62,7 +63,7 @@ namespace VisualMaster.Communication.Driver
         public void Publish(byte[] data)
         {
             _currentValue = data != null ? (byte[])data.Clone() : new byte[0];
-            Updated?.Invoke(this, new CommunicationBlockUpdatedEventArgs(null, Config.BlockId, Config.Address, _currentValue));
+            Updated?.Invoke(this, new CommunicationBlockUpdatedEventArgs(DeviceId, Config.BlockId, Config.Address, _currentValue));
         }
     }
 }

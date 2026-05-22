@@ -22,12 +22,11 @@ namespace VisualMaster.Communication.UI
             _deviceId = deviceId;
             _blockId = blockId;
             InitializeComponent();
-            _manager.BlockUpdated += OnBlockUpdated;
+            _manager.SubscribeToBlock(_deviceId, _blockId, OnBlockUpdated);
         }
 
         private void OnBlockUpdated(object sender, CommunicationBlockUpdatedEventArgs e)
         {
-            if (e.DeviceId != _deviceId || e.BlockId != _blockId) return;
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 string formatted;
@@ -85,7 +84,7 @@ namespace VisualMaster.Communication.UI
 
         protected override void OnClosed(EventArgs e)
         {
-            _manager.BlockUpdated -= OnBlockUpdated;
+            _manager.UnsubscribeFromBlock(_deviceId, _blockId, OnBlockUpdated);
             base.OnClosed(e);
         }
     }

@@ -23,7 +23,6 @@ namespace VisualMaster.Communication.Api
         bool IsEnabled { get; set; }
         bool IsConnected { get; }
         IReadOnlyList<ICommunicationBlock> Blocks { get; }
-        event EventHandler<CommunicationBlockUpdatedEventArgs> BlockUpdated;
 
         void Initialize(CommunicationDeviceConfig config);
         Task ConnectAsync(CancellationToken cancellationToken);

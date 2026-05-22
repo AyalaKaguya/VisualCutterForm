@@ -294,7 +294,8 @@ namespace VisualMaster.Forms
                 _errorHandler = errorHandler;
                 var driver = manager.Drivers.FirstOrDefault(d => d.DeviceId == device.DeviceId);
                 _blockId = driver?.Blocks.FirstOrDefault()?.Config.BlockId;
-                _manager.BlockUpdated += OnBlockUpdated;
+                if (_blockId != null)
+                    manager.SubscribeToBlock(_device.DeviceId, _blockId, OnBlockUpdated);
             }
 
             public string PortName => _device.PortName;
@@ -333,7 +334,6 @@ namespace VisualMaster.Forms
 
             private void OnBlockUpdated(object sender, CommunicationBlockUpdatedEventArgs e)
             {
-                if (e.DeviceId != _device.DeviceId || e.BlockId != _blockId) return;
                 RawDataReceived?.Invoke(this, e.Data);
                 DataReceived?.Invoke(this, System.Text.Encoding.ASCII.GetString(e.Data ?? new byte[0]));
             }
@@ -342,7 +342,8 @@ namespace VisualMaster.Forms
             {
                 if (_disposed) return;
                 _disposed = true;
-                _manager.BlockUpdated -= OnBlockUpdated;
+                if (_blockId != null)
+                    _manager.UnsubscribeFromBlock(_device.DeviceId, _blockId, OnBlockUpdated);
             }
         }
     }

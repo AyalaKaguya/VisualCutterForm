@@ -18,8 +18,6 @@ namespace VisualMaster.Communication.Driver
         public bool IsConnected { get; protected set; }
         public IReadOnlyList<ICommunicationBlock> Blocks => _blocks.AsReadOnly();
 
-        public event EventHandler<CommunicationBlockUpdatedEventArgs> BlockUpdated;
-
         public virtual void Initialize(CommunicationDeviceConfig config)
         {
             if (config == null) throw new ArgumentNullException(nameof(config));
@@ -27,8 +25,6 @@ namespace VisualMaster.Communication.Driver
             DeviceId = config.DeviceId;
             IsEnabled = config.IsEnabled;
 
-            foreach (var block in _blocks.ToList())
-                DetachBlock(block);
             _blocks.Clear();
 
             foreach (var blockConfig in config.Blocks)
@@ -54,7 +50,8 @@ namespace VisualMaster.Communication.Driver
         public virtual ICommunicationBlock CreateBlock(CommunicationBlockConfig config)
         {
             var block = CreateDriverBlock(config);
-            AttachBlock(block);
+            if (block is CommunicationBlock cb)
+                cb.DeviceId = DeviceId;
             _blocks.Add(block);
             return block;
         }
@@ -72,7 +69,6 @@ namespace VisualMaster.Communication.Driver
         {
             var block = _blocks.FirstOrDefault(b => b.Config.BlockId == blockId);
             if (block == null) return;
-            DetachBlock(block);
             _blocks.Remove(block);
         }
 
@@ -82,29 +78,6 @@ namespace VisualMaster.Communication.Driver
         }
 
         protected abstract ICommunicationBlock CreateDriverBlock(CommunicationBlockConfig config);
-
-        protected void RaiseBlockUpdated(ICommunicationBlock block, byte[] data)
-        {
-            BlockUpdated?.Invoke(this,
-                new CommunicationBlockUpdatedEventArgs(DeviceId, block.Config.BlockId, block.Config.Address, data));
-        }
-
-        private void AttachBlock(ICommunicationBlock block)
-        {
-            block.Updated += OnBlockUpdated;
-        }
-
-        private void DetachBlock(ICommunicationBlock block)
-        {
-            block.Updated -= OnBlockUpdated;
-        }
-
-        private void OnBlockUpdated(object sender, CommunicationBlockUpdatedEventArgs e)
-        {
-            var block = sender as ICommunicationBlock;
-            if (block != null)
-                RaiseBlockUpdated(block, e.Data);
-        }
 
         public virtual void Dispose()
         {
