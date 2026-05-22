@@ -16,8 +16,6 @@ namespace VisualMaster.Communication.Driver
         private CommunicationBlock _singleBlock;
         private CommunicationDeviceConfig _config;
 
-        public override string DriverName => "UART";
-
         public override void Initialize(CommunicationDeviceConfig config)
         {
             _config = config?.Clone() ?? throw new ArgumentNullException(nameof(config));

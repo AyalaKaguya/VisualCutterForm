@@ -35,8 +35,6 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel Margin="0,0,8,0">
                     <TextBlock Text="{Binding DisplayName}" FontSize="13" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
-                    <TextBlock Text="{Binding DriverName}" Foreground="#B0B0B0" FontSize="11" Margin="0,2,0,0"/>
-                    <TextBlock Text="{Binding InterfaceName}" Foreground="#8A8A8A" FontSize="11" TextTrimming="CharacterEllipsis"/>
                 </StackPanel>
                 <ToggleButton Grid.Column="1"
                               HorizontalAlignment="Right"
