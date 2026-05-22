@@ -2,6 +2,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 using VisualMaster.Communication.Api;
 
 namespace VisualMaster.Communication.UI
@@ -56,6 +58,37 @@ namespace VisualMaster.Communication.UI
             Sync();
         }
 
+        private void OnListRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var item = FindAncestor<ListBoxItem>(e.OriginalSource as DependencyObject);
+            if (item == null) return;
+            item.IsSelected = true;
+
+            var menu = new ContextMenu();
+            var rename = new MenuItem { Header = "重命名" };
+            rename.Click += OnRenameClick;
+            menu.Items.Add(rename);
+            var delete = new MenuItem { Header = "删除" };
+            delete.Click += (s, args) => OnRemoveClick(s, args);
+            menu.Items.Add(delete);
+            item.ContextMenu = menu;
+        }
+
+        private void OnRenameClick(object sender, RoutedEventArgs e)
+        {
+            var item = EventList.SelectedItem as CommunicationOutputEventConfig;
+            if (item == null) return;
+            var dialog = new TextInputDialog("重命名事件", "事件名称", item.Name)
+            {
+                Owner = Window.GetWindow(this),
+            };
+            if (dialog.ShowDialog() != true) return;
+            item.Name = string.IsNullOrWhiteSpace(dialog.Value) ? item.Name : dialog.Value.Trim();
+            EditorTitle.Text = item.Name;
+            EventList.Items.Refresh();
+            Sync();
+        }
+
         private void OnEventSelected(object sender, SelectionChangedEventArgs e)
         {
             _selected = EventList.SelectedItem as CommunicationOutputEventConfig;
@@ -78,7 +111,6 @@ namespace VisualMaster.Communication.UI
             _suppress = true;
             try
             {
-                NameBox.Text = _selected?.Name ?? "";
                 DeviceBox.Text = _selected?.DeviceId ?? "";
                 BlockBox.Text = _selected?.BlockId ?? "";
                 VariableGrid.DataContext = _selected;
@@ -90,8 +122,6 @@ namespace VisualMaster.Communication.UI
         private void OnEditorChanged(object sender, RoutedEventArgs e)
         {
             if (_suppress || _selected == null) return;
-            _selected.Name = NameBox.Text;
-            EditorTitle.Text = _selected.Name ?? "";
             _selected.DeviceId = DeviceBox.Text;
             _selected.BlockId = BlockBox.Text;
             EventList.Items.Refresh();
@@ -101,6 +131,16 @@ namespace VisualMaster.Communication.UI
         private void Sync()
         {
             _config?.UpdateOutputEvents(Events.Select(e => e.Clone()));
+        }
+
+        private static T FindAncestor<T>(DependencyObject current) where T : DependencyObject
+        {
+            while (current != null)
+            {
+                if (current is T typed) return typed;
+                current = VisualTreeHelper.GetParent(current);
+            }
+            return null;
         }
     }
 }

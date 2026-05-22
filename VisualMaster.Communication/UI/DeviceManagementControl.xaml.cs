@@ -60,7 +60,7 @@ namespace VisualMaster.Communication.UI
                     Text = "点击设备列表右上角 + 选择驱动后开始配置。",
                     Foreground = Brushes.Gray,
                     FontSize = 14,
-                    Margin = new Thickness(12),
+                    TextAlignment = TextAlignment.Center,
                 };
                 BlockList.Visibility = Visibility.Collapsed;
                 return;
