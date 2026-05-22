@@ -4,7 +4,8 @@
              xmlns:ui="clr-namespace:VisualMaster.Communication.UI"
              xmlns:vm="clr-namespace:VisualMaster.Communication.UI.ViewModels"
              Background="{DynamicResource ColorRootBg}"
-             Foreground="White">
+             Foreground="White"
+             FontSize="15">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

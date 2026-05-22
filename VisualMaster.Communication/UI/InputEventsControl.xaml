@@ -98,7 +98,7 @@
                 </DockPanel>
 
                 <StackPanel x:Name="LengthCheckPanel" Visibility="Collapsed" Margin="48,0,0,0">
-                    <DockPanel Margin="0,0,0,6">
+                    <DockPanel Margin="0,0,0,6" HorizontalAlignment="Left">
                         <TextBlock Text="最少字符数" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
                         <ToggleButton x:Name="MinLengthToggle" Style="{StaticResource DeviceToggle}"
                                       Checked="OnMinLengthToggleChanged" Unchecked="OnMinLengthToggleChanged"/>
@@ -117,7 +117,7 @@
                         <TextBlock Text="等于字符数" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
                         <ToggleButton x:Name="ExactLengthToggle" Style="{StaticResource DeviceToggle}"
                                       Checked="OnExactLengthToggleChanged" Unchecked="OnExactLengthToggleChanged"/>
-                        <DockPanel Width="90" Margin="12,0,0,0">
+                        <DockPanel Width="90" Margin="12,0,0,0" HorizontalAlignment="Left">
                             <StackPanel DockPanel.Dock="Right" Width="20">
                                 <RepeatButton Content="▲" FontSize="8" Padding="0" Height="15"
                                               Click="OnExactLengthUp"/>
@@ -129,7 +129,7 @@
                         </DockPanel>
                     </DockPanel>
                     <DockPanel>
-                        <TextBlock Text="ASCII 16位" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <TextBlock Text="按ASCII字符计算" Width="130" VerticalAlignment="Center" Margin="0,0,12,0"/>
                         <ToggleButton x:Name="AsciiToggle" Style="{StaticResource DeviceToggle}"
                                       Checked="OnAsciiToggleChanged" Unchecked="OnAsciiToggleChanged" HorizontalAlignment="Left"/>
                     </DockPanel>
