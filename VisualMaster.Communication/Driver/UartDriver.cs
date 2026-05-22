@@ -44,6 +44,9 @@ namespace VisualMaster.Communication.Driver
             if (string.IsNullOrWhiteSpace(portName))
                 throw new InvalidOperationException("UART port is not configured.");
 
+            if (stopBits == StopBits.OnePointFive && dataBits != 5)
+                throw new InvalidOperationException("OnePointFive 停止位需要数据位为 5。");
+
             try
             {
                 _port = new SerialPort(portName, baudRate, parity, dataBits, stopBits);
