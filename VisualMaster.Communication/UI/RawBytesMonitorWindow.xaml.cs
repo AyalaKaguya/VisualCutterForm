@@ -74,6 +74,7 @@ namespace VisualMaster.Communication.UI
             else
                 data = CommunicationDataConverter.FromHex(text);
 
+            _lastData = (byte[])data.Clone();
             await _manager.WriteBlockAsync(_deviceId, _blockId, data);
         }
 
