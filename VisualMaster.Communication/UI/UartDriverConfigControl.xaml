@@ -33,7 +33,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="48"/>
         </Grid.RowDefinitions>
-        <TextBlock Grid.ColumnSpan="4" Text="UART 串口驱动" Foreground="White" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,12"/>
+        <TextBlock Grid.ColumnSpan="4" Text="UART 串口驱动" Foreground="White" FontWeight="SemiBold" Margin="0,0,0,12"/>
 
         <TextBlock Grid.Row="1" Text="接口名"/>
         <TextBox x:Name="InterfaceBox" Grid.Row="1" Grid.Column="1"/>
