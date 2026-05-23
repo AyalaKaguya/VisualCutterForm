@@ -48,6 +48,10 @@
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
     </Style>
 
+    <Style TargetType="ComboBoxItem">
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+    </Style>
+
     <!-- ===== Implicit ComboBox ===== -->
     <Style TargetType="ComboBox">
         <Setter Property="Background" Value="{StaticResource ColorTextBoxBg}"/>
