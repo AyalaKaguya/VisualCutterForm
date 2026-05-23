@@ -21,6 +21,7 @@
             <Style x:Key="LightComboBox" TargetType="ComboBox">
                 <Setter Property="Background" Value="White"/>
                 <Setter Property="Foreground" Value="Black"/>
+                <Setter Property="TextElement.Foreground" Value="Black"/>
                 <Setter Property="Height" Value="28"/>
                 <Setter Property="FontSize" Value="13"/>
                 <Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -30,6 +31,7 @@
                         <Style TargetType="ComboBoxItem">
                             <Setter Property="Background" Value="White"/>
                             <Setter Property="Foreground" Value="Black"/>
+                            <Setter Property="TextElement.Foreground" Value="Black"/>
                         </Style>
                     </Setter.Value>
                 </Setter>
