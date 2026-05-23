@@ -58,6 +58,13 @@
         <Setter Property="Foreground" Value="{StaticResource ColorTextPrimary}"/>
         <Setter Property="BorderBrush" Value="{StaticResource ColorButtonBorder}"/>
         <Setter Property="Padding" Value="5,3"/>
+        <Setter Property="ItemContainerStyle">
+            <Setter.Value>
+                <Style TargetType="ComboBoxItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                </Style>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!-- ===== Implicit CheckBox / RadioButton ===== -->
