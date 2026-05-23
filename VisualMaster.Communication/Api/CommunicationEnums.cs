@@ -35,6 +35,8 @@ namespace VisualMaster.Communication.Api
         ChangedFrom,
         LengthAtLeast,
         Contains,
+        RisingEdge,
+        FallingEdge,
     }
 
     public enum CommunicationOutputSegmentKind

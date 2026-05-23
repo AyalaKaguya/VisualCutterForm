@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using VisualMaster.Communication.Api;
+using VisualMaster.Communication.UI.ViewModels;
 
 namespace VisualMaster.Communication.UI
 {
@@ -24,6 +25,10 @@ namespace VisualMaster.Communication.UI
         private CommunicationSystemConfig _config;
         private CommunicationInputEventConfig _selected;
         private bool _suppress;
+        private bool _ruleSuppress;
+
+        private readonly ObservableCollection<RuleItemViewModel> _ruleViewModels =
+            new ObservableCollection<RuleItemViewModel>();
 
         public ObservableCollection<InputEventDisplayItem> Events { get; } =
             new ObservableCollection<InputEventDisplayItem>();
@@ -32,6 +37,7 @@ namespace VisualMaster.Communication.UI
         {
             InitializeComponent();
             EventList.ItemsSource = Events;
+            RuleListControl.ItemsSource = _ruleViewModels;
         }
 
         public void LoadConfig(CommunicationSystemConfig config)
@@ -206,7 +212,7 @@ namespace VisualMaster.Communication.UI
                 ExactLengthToggle.IsChecked = _selected?.ExactLengthEnabled == true;
                 ExactLengthBox.Text = (_selected?.ExactLength ?? 0).ToString();
                 AsciiToggle.IsChecked = _selected?.TreatAsAscii == true;
-                RuleGrid.DataContext = _selected;
+                LoadRules();
             }
             finally { _suppress = false; }
         }
@@ -364,6 +370,108 @@ namespace VisualMaster.Communication.UI
                 }
             }
             combo.Text = text;
+        }
+
+        private void LoadRules()
+        {
+            if (_selected == null) return;
+            _ruleSuppress = true;
+            try
+            {
+                foreach (var vm in _ruleViewModels)
+                    vm.Changed -= OnRuleChanged;
+                _ruleViewModels.Clear();
+
+                if (_selected.Rules != null)
+                {
+                    foreach (var rule in _selected.Rules)
+                    {
+                        var vm = new RuleItemViewModel(rule);
+                        vm.Changed += OnRuleChanged;
+                        _ruleViewModels.Add(vm);
+                    }
+                }
+                RebuildRuleIndices();
+            }
+            finally { _ruleSuppress = false; }
+        }
+
+        private void RebuildRuleIndices()
+        {
+            for (int i = 0; i < _ruleViewModels.Count; i++)
+                _ruleViewModels[i].Index = i + 1;
+        }
+
+        private void OnRuleChanged(RuleItemViewModel vm)
+        {
+            if (_ruleSuppress || _selected == null) return;
+            _selected.Rules = _ruleViewModels.Select(r => r.Rule.Clone()).ToList();
+            Sync();
+        }
+
+        private void OnAddRuleClick(object sender, RoutedEventArgs e)
+        {
+            if (_selected == null) return;
+            var rule = new CommunicationInputMatchRule
+            {
+                Order = _ruleViewModels.Count + 1,
+                TriggerName = "",
+                Length = 1,
+                DataType = CommunicationBlockDataType.Bytes,
+                ByteOrder = CommunicationByteOrder.BigEndian,
+                Operator = CommunicationMatchOperator.Equals,
+            };
+            var vm = new RuleItemViewModel(rule);
+            vm.Changed += OnRuleChanged;
+            _ruleViewModels.Add(vm);
+            RebuildRuleIndices();
+            _selected.Rules = _ruleViewModels.Select(r => r.Rule.Clone()).ToList();
+            Sync();
+        }
+
+        private void OnDeleteRuleClick(object sender, RoutedEventArgs e)
+        {
+            if (!(sender is Button btn) || !(btn.Tag is RuleItemViewModel vm)) return;
+            vm.Changed -= OnRuleChanged;
+            _ruleViewModels.Remove(vm);
+            RebuildRuleIndices();
+            _selected.Rules = _ruleViewModels.Select(r => r.Rule.Clone()).ToList();
+            Sync();
+        }
+
+        private void OnRuleNumericPreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            e.Handled = !int.TryParse(e.Text, out _);
+        }
+
+        private void OnRuleStartUp(object sender, RoutedEventArgs e)
+        {
+            var vm = (sender as FrameworkElement)?.Tag as RuleItemViewModel;
+            if (vm == null) return;
+            vm.StartOffset++;
+        }
+
+        private void OnRuleStartDown(object sender, RoutedEventArgs e)
+        {
+            var vm = (sender as FrameworkElement)?.Tag as RuleItemViewModel;
+            if (vm == null || vm.StartOffset <= 0) return;
+            vm.StartOffset--;
+        }
+
+        private void OnRuleEndUp(object sender, RoutedEventArgs e)
+        {
+            var vm = (sender as FrameworkElement)?.Tag as RuleItemViewModel;
+            if (vm == null) return;
+            vm.EndOffset++;
+        }
+
+        private void OnRuleEndDown(object sender, RoutedEventArgs e)
+        {
+            var vm = (sender as FrameworkElement)?.Tag as RuleItemViewModel;
+            if (vm == null) return;
+            var start = vm.StartOffset;
+            if (vm.EndOffset <= start + 1) return;
+            vm.EndOffset--;
         }
     }
 }

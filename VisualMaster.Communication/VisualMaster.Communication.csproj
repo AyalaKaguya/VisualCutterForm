@@ -109,6 +109,8 @@
     <Compile Include="UI\ViewModels\CommunicationDeviceItemViewModel.cs" />
     <Compile Include="UI\ViewModels\UartDriverConfigViewModel.cs" />
     <Compile Include="UI\ViewModels\TcpDriverConfigViewModel.cs" />
+    <Compile Include="UI\ViewModels\RuleItemViewModel.cs" />
+    <Compile Include="UI\Converters\BoolToVisibilityConverter.cs" />
     <Compile Include="UI\ViewModels\CommunicationManagerViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

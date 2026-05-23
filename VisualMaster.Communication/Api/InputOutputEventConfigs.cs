@@ -47,10 +47,24 @@ namespace VisualMaster.Communication.Api
         public CommunicationByteOrder ByteOrder { get; set; } = CommunicationByteOrder.BigEndian;
         public CommunicationMatchOperator Operator { get; set; } = CommunicationMatchOperator.Equals;
         public string MatchValue { get; set; }
+        public string BeforeValue { get; set; }
+        public string AfterValue { get; set; }
 
         public CommunicationInputMatchRule Clone()
         {
-            return (CommunicationInputMatchRule)MemberwiseClone();
+            return new CommunicationInputMatchRule
+            {
+                Order = Order,
+                TriggerName = TriggerName,
+                StartIndex = StartIndex,
+                Length = Length,
+                DataType = DataType,
+                ByteOrder = ByteOrder,
+                Operator = Operator,
+                MatchValue = MatchValue,
+                BeforeValue = BeforeValue,
+                AfterValue = AfterValue,
+            };
         }
     }
 

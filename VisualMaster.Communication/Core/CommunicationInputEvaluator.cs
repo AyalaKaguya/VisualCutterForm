@@ -40,6 +40,20 @@ namespace VisualMaster.Communication.Core
             if (rule.Operator == CommunicationMatchOperator.LengthAtLeast)
                 return current?.Length >= ParseDouble(rule.MatchValue);
 
+            if (rule.Operator == CommunicationMatchOperator.RisingEdge)
+            {
+                var cv = CommunicationDataConverter.Decode(currentSlice, rule.DataType, rule.ByteOrder);
+                var pv = CommunicationDataConverter.Decode(previousSlice, rule.DataType, rule.ByteOrder);
+                return Compare(pv, 0) == 0 && Compare(cv, 0) != 0;
+            }
+
+            if (rule.Operator == CommunicationMatchOperator.FallingEdge)
+            {
+                var cv = CommunicationDataConverter.Decode(currentSlice, rule.DataType, rule.ByteOrder);
+                var pv = CommunicationDataConverter.Decode(previousSlice, rule.DataType, rule.ByteOrder);
+                return Compare(pv, 0) != 0 && Compare(cv, 0) == 0;
+            }
+
             var currentValue = CommunicationDataConverter.Decode(currentSlice, rule.DataType, rule.ByteOrder);
             var previousValue = CommunicationDataConverter.Decode(previousSlice, rule.DataType, rule.ByteOrder);
             var targetValue = ParseValue(rule.MatchValue, rule.DataType, rule.ByteOrder);
@@ -51,7 +65,17 @@ namespace VisualMaster.Communication.Core
                 case CommunicationMatchOperator.GreaterThanOrEqual: return Compare(currentValue, targetValue) >= 0;
                 case CommunicationMatchOperator.LessThan: return Compare(currentValue, targetValue) < 0;
                 case CommunicationMatchOperator.LessThanOrEqual: return Compare(currentValue, targetValue) <= 0;
-                case CommunicationMatchOperator.ChangedTo: return Compare(previousValue, targetValue) != 0 && Compare(currentValue, targetValue) == 0;
+                case CommunicationMatchOperator.ChangedTo:
+                    if (!string.IsNullOrWhiteSpace(rule.BeforeValue) || !string.IsNullOrWhiteSpace(rule.AfterValue))
+                    {
+                        var beforeTarget = string.IsNullOrWhiteSpace(rule.BeforeValue) ? null
+                            : ParseValue(rule.BeforeValue, rule.DataType, rule.ByteOrder);
+                        var afterTarget = string.IsNullOrWhiteSpace(rule.AfterValue) ? targetValue
+                            : ParseValue(rule.AfterValue, rule.DataType, rule.ByteOrder);
+                        var beforeMatch = beforeTarget == null || Compare(previousValue, beforeTarget) == 0;
+                        return beforeMatch && Compare(currentValue, afterTarget) == 0;
+                    }
+                    return Compare(previousValue, targetValue) != 0 && Compare(currentValue, targetValue) == 0;
                 case CommunicationMatchOperator.ChangedFrom: return Compare(previousValue, targetValue) == 0 && Compare(currentValue, targetValue) != 0;
                 case CommunicationMatchOperator.Contains:
                     return CommunicationDataConverter.ToHex(currentSlice).Contains(rule.MatchValue ?? "");
