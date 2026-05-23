@@ -412,10 +412,11 @@ namespace VisualMaster.Communication.UI
         private void OnAddRuleClick(object sender, RoutedEventArgs e)
         {
             if (_selected == null) return;
+            var namePrefix = _selected?.Name ?? "事件";
             var rule = new CommunicationInputMatchRule
             {
                 Order = _ruleViewModels.Count + 1,
-                TriggerName = "",
+                TriggerName = $"{namePrefix}-{_ruleViewModels.Count + 1}",
                 Length = 1,
                 DataType = CommunicationBlockDataType.Bytes,
                 ByteOrder = CommunicationByteOrder.BigEndian,

@@ -18,6 +18,22 @@
                 <Setter Property="VerticalContentAlignment" Value="Center"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
+            <Style x:Key="LightComboBox" TargetType="ComboBox">
+                <Setter Property="Background" Value="White"/>
+                <Setter Property="Foreground" Value="Black"/>
+                <Setter Property="Height" Value="28"/>
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="ItemContainerStyle">
+                    <Setter.Value>
+                        <Style TargetType="ComboBoxItem">
+                            <Setter Property="Background" Value="White"/>
+                            <Setter Property="Foreground" Value="Black"/>
+                        </Style>
+                    </Setter.Value>
+                </Setter>
+            </Style>
             <Style x:Key="DeviceToggle" TargetType="ToggleButton">
                 <Setter Property="Background" Value="#4A4A4A"/>
                 <Setter Property="Template">
@@ -180,7 +196,7 @@
                                                    Foreground="#999999" HorizontalAlignment="Center"/>
                                         <TextBox Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
                                                  FontSize="14" Height="28" VerticalContentAlignment="Center" Margin="2,0"/>
-                                        <Grid Grid.Column="2" Margin="2,0">
+                                        <Grid Grid.Column="2" Margin="2,0" VerticalAlignment="Center">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="14"/>
@@ -191,7 +207,7 @@
                                             <TextBox Text="{Binding StartOffset, UpdateSourceTrigger=PropertyChanged}" 
                                                      FontSize="13" Height="28" VerticalContentAlignment="Center"
                                                      PreviewTextInput="OnRuleNumericPreviewTextInput"/>
-                                            <StackPanel Grid.Column="1">
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                 <RepeatButton Content="▴" FontSize="6" Height="14" Padding="0" Margin="0"
                                                               Click="OnRuleStartUp" Tag="{Binding}"/>
                                                 <RepeatButton Content="▾" FontSize="6" Height="14" Padding="0" Margin="0"
@@ -202,7 +218,7 @@
                                             <TextBox Grid.Column="3" Text="{Binding EndOffset, UpdateSourceTrigger=PropertyChanged}" 
                                                      FontSize="13" Height="28" VerticalContentAlignment="Center"
                                                      PreviewTextInput="OnRuleNumericPreviewTextInput"/>
-                                            <StackPanel Grid.Column="4">
+                                            <StackPanel Grid.Column="4" VerticalAlignment="Center">
                                                 <RepeatButton Content="▴" FontSize="6" Height="14" Padding="0" Margin="0"
                                                               Click="OnRuleEndUp" Tag="{Binding}"/>
                                                 <RepeatButton Content="▾" FontSize="6" Height="14" Padding="0" Margin="0"
@@ -210,14 +226,11 @@
                                             </StackPanel>
                                         </Grid>
                                         <ComboBox Grid.Column="3" ItemsSource="{Binding Source={x:Static vm:RuleItemViewModel.DataTypeOptions}}"
-                                                  SelectedItem="{Binding SelectedType}" FontSize="13" Height="28"
-                                                  VerticalContentAlignment="Center" Margin="2,0"/>
+                                                  SelectedItem="{Binding SelectedType}" Style="{StaticResource LightComboBox}" Margin="2,0"/>
                                         <ComboBox Grid.Column="4" ItemsSource="{Binding Source={x:Static vm:RuleItemViewModel.ByteOrderOptions}}"
-                                                  SelectedItem="{Binding SelectedByteOrder}" FontSize="13" Height="28"
-                                                  VerticalContentAlignment="Center" Margin="2,0"/>
+                                                  SelectedItem="{Binding SelectedByteOrder}" Style="{StaticResource LightComboBox}" Margin="2,0"/>
                                         <ComboBox Grid.Column="5" ItemsSource="{Binding Source={x:Static vm:RuleItemViewModel.OperatorOptions}}"
-                                                  SelectedItem="{Binding SelectedOperator}" FontSize="13" Height="28"
-                                                  VerticalContentAlignment="Center" Margin="2,0"/>
+                                                  SelectedItem="{Binding SelectedOperator}" Style="{StaticResource LightComboBox}" Margin="2,0"/>
                                         <StackPanel Grid.Column="6" Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0">
                                             <StackPanel Orientation="Horizontal" Visibility="{Binding NeedsTwoParams, Converter={StaticResource BoolToVis}}">
                                                 <TextBox Text="{Binding BeforeValue, UpdateSourceTrigger=PropertyChanged}" Width="56" Height="28"
