@@ -45,14 +45,14 @@
                          Style="{StaticResource DarkListBox}"
                          ItemsSource="{Binding Cameras}"
                          SelectedItem="{Binding SelectedCamera, Mode=TwoWay}"
-                         ItemTemplate="{StaticResource CameraListItem}"/>
+                         ItemTemplate="{StaticResource CameraListItem}" d:ItemsSource="{d:SampleData ItemCount=5}"/>
 
                 <TextBlock DockPanel.Dock="Top" Text="扫描发现" Style="{StaticResource SectionLabel}" Margin="10,2,10,0"/>
                 <ListBox Margin="8,0,8,8"
                          Style="{StaticResource DarkListBox}"
                          ItemsSource="{Binding DiscoveredDevices}"
                          SelectedItem="{Binding SelectedDiscovered, Mode=TwoWay}"
-                         ItemTemplate="{StaticResource DiscoveredCameraListItem}"/>
+                         ItemTemplate="{StaticResource DiscoveredCameraListItem}" d:ItemsSource="{d:SampleData ItemCount=5}"/>
             </DockPanel>
 
             <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" Background="{DynamicResource CameraColorButtonBg}"/>
