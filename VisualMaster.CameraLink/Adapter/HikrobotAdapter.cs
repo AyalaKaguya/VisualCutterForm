@@ -1,6 +1,7 @@
 using VisualMaster.CameraLink.API;
 using System;
 using System.Collections.Generic;
+using System.Runtime.ExceptionServices;
 using MvCameraControl;
 
 namespace VisualMaster.CameraLink.Adapter
@@ -34,11 +35,19 @@ namespace VisualMaster.CameraLink.Adapter
                 throw new InvalidOperationException($"MVS SDK 初始化失败，错误码: 0x{ret:X8}");
         }
 
+        [HandleProcessCorruptedStateExceptions]
         public void FinalizeSdk()
         {
-            int ret = SDKSystem.Finalize();
-            if (ret != MvError.MV_OK)
-                System.Diagnostics.Debug.WriteLine($"MVS SDK 反初始化警告: 0x{ret:X8}");
+            try
+            {
+                int ret = SDKSystem.Finalize();
+                if (ret != MvError.MV_OK)
+                    System.Diagnostics.Debug.WriteLine($"MVS SDK 反初始化警告: 0x{ret:X8}");
+            }
+            catch (AccessViolationException ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"MVS SDK Finalize 访问冲突 (进程退出时可忽略): {ex.Message}");
+            }
         }
 
         public IReadOnlyList<DiscoveredCamera> Scan()

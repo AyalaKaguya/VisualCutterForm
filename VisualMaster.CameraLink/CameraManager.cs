@@ -336,7 +336,10 @@ namespace VisualMaster.CameraLink
             if (IsInitialized)
             {
                 foreach (var adapter in _adapters.Where(a => a.IsAvailable))
-                    adapter.FinalizeSdk();
+                {
+                    try { adapter.FinalizeSdk(); }
+                    catch { /* 进程退出时 SDK 资源由 OS 回收 */ }
+                }
                 IsInitialized = false;
             }
         }
