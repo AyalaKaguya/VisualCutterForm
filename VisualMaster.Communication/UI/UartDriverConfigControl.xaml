@@ -9,12 +9,6 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="../Themes/CommunicationDarkTheme.xaml"/>
             </ResourceDictionary.MergedDictionaries>
-            <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
-                <Setter Property="Height" Value="34"/>
-                <Setter Property="FontSize" Value="15"/>
-                <Setter Property="VerticalContentAlignment" Value="Center"/>
-                <Setter Property="VerticalAlignment" Value="Center"/>
-            </Style>
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid Margin="12">
@@ -42,6 +36,7 @@
             </Grid.ColumnDefinitions>
             <ComboBox x:Name="PortBox" IsEditable="True"
                       ItemsSource="{Binding AvailablePorts}"
+                      Style="{StaticResource CompactComboBox}"
                       Text="{Binding PortName, UpdateSourceTrigger=LostFocus}"/>
             <Button Grid.Column="1" Command="{Binding RefreshPortsCommand}"
                     Width="40" Height="34" Margin="6,0,0,0"
@@ -50,6 +45,7 @@
 
         <TextBlock Grid.Row="2" Text="波特率"/>
         <ComboBox x:Name="BaudBox" Grid.Row="2" Grid.Column="1" IsEditable="True"
+                  Style="{StaticResource CompactComboBox}"
                   Text="{Binding BaudRate, UpdateSourceTrigger=LostFocus}">
             <ComboBoxItem>9600</ComboBoxItem>
             <ComboBoxItem>19200</ComboBoxItem>
@@ -59,6 +55,7 @@
         </ComboBox>
         <TextBlock Grid.Row="2" Grid.Column="2" Text="数据位" Margin="16,0,0,0"/>
         <ComboBox x:Name="DataBitsBox" Grid.Row="2" Grid.Column="3" IsEditable="True"
+                  Style="{StaticResource CompactComboBox}"
                   Text="{Binding DataBits, UpdateSourceTrigger=LostFocus}">
             <ComboBoxItem>5</ComboBoxItem>
             <ComboBoxItem>6</ComboBoxItem>
@@ -68,6 +65,7 @@
 
         <TextBlock Grid.Row="3" Text="Parity"/>
         <ComboBox x:Name="ParityBox" Grid.Row="3" Grid.Column="1" IsEditable="True"
+                  Style="{StaticResource CompactComboBox}"
                   Text="{Binding Parity, UpdateSourceTrigger=LostFocus}">
                 <ComboBoxItem>None</ComboBoxItem>
                 <ComboBoxItem>Odd</ComboBoxItem>
@@ -77,6 +75,7 @@
         </ComboBox>
         <TextBlock Grid.Row="3" Grid.Column="2" Text="StopBits" Margin="16,0,0,0"/>
         <ComboBox x:Name="StopBitsBox" Grid.Row="3" Grid.Column="3" IsEditable="True"
+                  Style="{StaticResource CompactComboBox}"
                   Text="{Binding StopBits, UpdateSourceTrigger=LostFocus}">
                 <ComboBoxItem>One</ComboBoxItem>
                 <ComboBoxItem>Two</ComboBoxItem>
@@ -85,6 +84,7 @@
 
         <TextBlock Grid.Row="4" Text="Handshake"/>
         <ComboBox x:Name="HandshakeBox" Grid.Row="4" Grid.Column="1" IsEditable="True"
+                  Style="{StaticResource CompactComboBox}"
                   Text="{Binding Handshake, UpdateSourceTrigger=LostFocus}">
             <ComboBoxItem>None</ComboBoxItem>
             <ComboBoxItem>XOnXOff</ComboBoxItem>

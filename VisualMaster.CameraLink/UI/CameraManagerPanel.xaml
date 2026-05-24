@@ -4,80 +4,18 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
-             Background="#1E1E1E"
+             Background="{DynamicResource CameraColorRootBg}"
              Foreground="White"
              FontFamily="Segoe UI"
              FontSize="12"
              d:DesignHeight="640"
              d:DesignWidth="1040">
     <UserControl.Resources>
-        <Style x:Key="DarkButton" TargetType="Button">
-            <Setter Property="Background" Value="#333333"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#555555"/>
-            <Setter Property="Padding" Value="10,5"/>
-            <Setter Property="Margin" Value="3"/>
-            <Setter Property="MinWidth" Value="76"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource DarkButton}">
-            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
-            <Setter Property="Width" Value="34"/>
-            <Setter Property="Height" Value="30"/>
-            <Setter Property="MinWidth" Value="34"/>
-            <Setter Property="Padding" Value="0"/>
-        </Style>
-        <Style x:Key="SectionLabel" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#AFAFAF"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Margin" Value="0,2,0,8"/>
-        </Style>
-        <Style x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#CCCCCC"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
-        </Style>
-        <Style x:Key="DarkTextBox" TargetType="TextBox">
-            <Setter Property="Background" Value="#2D2D2D"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#555555"/>
-            <Setter Property="Padding" Value="5,3"/>
-            <Setter Property="MinHeight" Value="26"/>
-        </Style>
-        <Style x:Key="DarkComboBox" TargetType="ComboBox">
-            <Setter Property="Background" Value="#2D2D2D"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#555555"/>
-            <Setter Property="Padding" Value="5,3"/>
-            <Setter Property="MinHeight" Value="26"/>
-        </Style>
-        <DataTemplate x:Key="CameraListItem">
-            <Grid Margin="4,5">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Ellipse Width="9" Height="9" Margin="0,0,8,0" VerticalAlignment="Center">
-                    <Ellipse.Style>
-                        <Style TargetType="Ellipse">
-                            <Setter Property="Fill" Value="#666666"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsConnected}" Value="True">
-                                    <Setter Property="Fill" Value="#4DA3FF"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding IsGrabbing}" Value="True">
-                                    <Setter Property="Fill" Value="#35D36A"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Ellipse.Style>
-                </Ellipse>
-                <StackPanel Grid.Column="1">
-                    <TextBlock Text="{Binding DisplayName}" Foreground="White" TextTrimming="CharacterEllipsis"/>
-                    <TextBlock Text="{Binding StatusText}" Foreground="#8B8B8B" FontSize="11"/>
-                </StackPanel>
-            </Grid>
-        </DataTemplate>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Themes/CameraDarkTheme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </UserControl.Resources>
 
     <Grid>
@@ -93,8 +31,8 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <DockPanel Grid.Column="0" Background="#252525">
-                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Background="#2B2B2B" Margin="6">
+            <DockPanel Grid.Column="0" Background="{DynamicResource CameraColorSidePanel}">
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Background="{DynamicResource CameraColorToolbarBg}" Margin="6">
                     <Button Content="扫描" Command="{Binding ScanCommand}" Style="{StaticResource DarkButton}"/>
                     <Button Content="添加" Command="{Binding AddCameraCommand}" Style="{StaticResource DarkButton}"/>
                     <Button Content="删除" Command="{Binding RemoveCameraCommand}" Style="{StaticResource DarkButton}"/>
@@ -104,27 +42,23 @@
                 <ListBox DockPanel.Dock="Top"
                          Height="210"
                          Margin="8,0,8,8"
-                         Background="#1E1E1E"
-                         Foreground="White"
-                         BorderBrush="#444444"
+                         Style="{StaticResource DarkListBox}"
                          ItemsSource="{Binding Cameras}"
                          SelectedItem="{Binding SelectedCamera, Mode=TwoWay}"
                          ItemTemplate="{StaticResource CameraListItem}"/>
 
                 <TextBlock DockPanel.Dock="Top" Text="扫描发现" Style="{StaticResource SectionLabel}" Margin="10,2,10,0"/>
                 <ListBox Margin="8,0,8,8"
-                         Background="#1E1E1E"
-                         Foreground="White"
-                         BorderBrush="#444444"
+                         Style="{StaticResource DarkListBox}"
                          ItemsSource="{Binding DiscoveredDevices}"
                          SelectedItem="{Binding SelectedDiscovered, Mode=TwoWay}"
                          DisplayMemberPath="DisplayText"/>
             </DockPanel>
 
-            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" Background="#333333"/>
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" Background="{DynamicResource CameraColorButtonBg}"/>
 
-            <DockPanel Grid.Column="2" Background="#1E1E1E">
-                <ToolBar DockPanel.Dock="Top" Background="#252525" BorderBrush="#444444">
+            <DockPanel Grid.Column="2" Background="{DynamicResource CameraColorRootBg}">
+                <ToolBar DockPanel.Dock="Top" Style="{StaticResource DarkToolBar}">
                     <Button Content="连接" Command="{Binding ConnectCommand}" Style="{StaticResource DarkButton}"/>
                     <Button Content="断开" Command="{Binding DisconnectCommand}" Style="{StaticResource DarkButton}"/>
                     <Button Content="开始采集" Command="{Binding StartGrabbingCommand}" Style="{StaticResource DarkButton}"/>
@@ -133,7 +67,7 @@
                     <Button Content="&#xE890;" Command="{Binding OpenPreviewCommand}" Style="{StaticResource IconButton}" ToolTip="打开预览窗口"/>
                 </ToolBar>
 
-                <TabControl Margin="10" Background="#1E1E1E" BorderBrush="#444444" DataContext="{Binding SelectedCamera}">
+                <TabControl Margin="10" Style="{StaticResource DarkTabControl}" DataContext="{Binding SelectedCamera}">
                     <TabItem Header="设备">
                         <Grid Margin="12">
                             <Grid.ColumnDefinitions>
@@ -186,7 +120,7 @@
                             <TextBlock Grid.Row="3" Text="像素格式" Style="{StaticResource FieldLabel}"/>
                             <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding PixelFormat, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DarkTextBox}"/>
                             <TextBlock Grid.Row="3" Grid.Column="2" Text="黑白输出" Style="{StaticResource FieldLabel}" Margin="18,0,8,0"/>
-                            <CheckBox Grid.Row="3" Grid.Column="3" IsChecked="{Binding MonochromeOutput}" Foreground="White" VerticalAlignment="Center"/>
+                            <CheckBox Grid.Row="3" Grid.Column="3" IsChecked="{Binding MonochromeOutput}" Foreground="{DynamicResource CameraColorTextPrimary}" VerticalAlignment="Center"/>
                         </Grid>
                     </TabItem>
 
@@ -216,12 +150,12 @@
             </DockPanel>
         </Grid>
 
-        <DockPanel Grid.Row="1" Background="#2B2B2B">
+        <DockPanel Grid.Row="1" Background="{DynamicResource CameraColorToolbarBg}">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0,2,6,2">
                 <Button Content="保存配置" Command="{Binding SaveCommand}" Style="{StaticResource DarkButton}"/>
                 <Button Content="还原" Command="{Binding RevertCommand}" Style="{StaticResource DarkButton}"/>
             </StackPanel>
-            <TextBlock Text="{Binding StatusMessage}" Foreground="#AAAAAA" VerticalAlignment="Center" Margin="10,0" TextTrimming="CharacterEllipsis"/>
+            <TextBlock Text="{Binding StatusMessage}" Style="{StaticResource StatusText}"/>
         </DockPanel>
     </Grid>
 </UserControl>

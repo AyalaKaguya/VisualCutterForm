@@ -39,6 +39,7 @@ namespace VisualMaster.Communication.Api
 
     public sealed class CommunicationInputMatchRule
     {
+        public string RuleId { get; set; } = Guid.NewGuid().ToString("N");
         public int Order { get; set; }
         public string TriggerName { get; set; }
         public int StartIndex { get; set; }
@@ -54,6 +55,7 @@ namespace VisualMaster.Communication.Api
         {
             return new CommunicationInputMatchRule
             {
+                RuleId = RuleId,
                 Order = Order,
                 TriggerName = TriggerName,
                 StartIndex = StartIndex,
@@ -128,9 +130,25 @@ namespace VisualMaster.Communication.Api
         public string HeartbeatId { get; set; } = Guid.NewGuid().ToString("N");
         public string Name { get; set; }
         public string InputEventId { get; set; }
+        public string InputRuleId { get; set; }
         public string OutputEventId { get; set; }
+        public Dictionary<string, string> VariableValues { get; set; } = new Dictionary<string, string>();
         public bool IsEnabled { get; set; } = true;
 
-        public CommunicationHeartbeatConfig Clone() => (CommunicationHeartbeatConfig)MemberwiseClone();
+        public CommunicationHeartbeatConfig Clone()
+        {
+            return new CommunicationHeartbeatConfig
+            {
+                HeartbeatId = HeartbeatId,
+                Name = Name,
+                InputEventId = InputEventId,
+                InputRuleId = InputRuleId,
+                OutputEventId = OutputEventId,
+                VariableValues = VariableValues != null
+                    ? new Dictionary<string, string>(VariableValues)
+                    : new Dictionary<string, string>(),
+                IsEnabled = IsEnabled,
+            };
+        }
     }
 }

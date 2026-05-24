@@ -7,30 +7,24 @@
         Height="700"
         MinWidth="720"
         MinHeight="480"
-        Background="#171717"
+        Background="{DynamicResource CameraColorViewerBg}"
         WindowStartupLocation="CenterOwner">
     <Window.Resources>
-        <Style x:Key="IconButton" TargetType="Button">
-            <Setter Property="Width" Value="38"/>
-            <Setter Property="Height" Value="34"/>
-            <Setter Property="Margin" Value="3"/>
-            <Setter Property="Background" Value="#303030"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#555555"/>
-            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
-            <Setter Property="FontSize" Value="15"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Themes/CameraDarkTheme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Window.Resources>
     <DockPanel>
-        <Border DockPanel.Dock="Top" Background="#252525" BorderBrush="#444444" BorderThickness="0,0,0,1" Padding="8,5">
+        <Border DockPanel.Dock="Top" Background="{DynamicResource CameraColorSidePanel}" BorderBrush="#444444" BorderThickness="0,0,0,1" Padding="8,5">
             <StackPanel Orientation="Horizontal">
-                <Button Content="&#xE8B7;" Style="{StaticResource IconButton}" Click="OnOpenGrabbingClick" ToolTip="打开相机取像"/>
-                <Button Content="&#xE722;" Style="{StaticResource IconButton}" Click="OnSingleFrameClick" ToolTip="单帧取像"/>
-                <Button Content="&#xE768;" Style="{StaticResource IconButton}" Click="OnContinuousClick" ToolTip="连续取像"/>
-                <Button Content="&#xE71A;" Style="{StaticResource IconButton}" Click="OnStopClick" ToolTip="停止取像"/>
+                <Button Content="&#xE8B7;" Style="{StaticResource PreviewIconButton}" Click="OnOpenGrabbingClick" ToolTip="打开相机取像"/>
+                <Button Content="&#xE722;" Style="{StaticResource PreviewIconButton}" Click="OnSingleFrameClick" ToolTip="单帧取像"/>
+                <Button Content="&#xE768;" Style="{StaticResource PreviewIconButton}" Click="OnContinuousClick" ToolTip="连续取像"/>
+                <Button Content="&#xE71A;" Style="{StaticResource PreviewIconButton}" Click="OnStopClick" ToolTip="停止取像"/>
                 <Separator Margin="8,0"/>
-                <TextBlock x:Name="StatusText" Foreground="#BDBDBD" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                <TextBlock x:Name="StatusText" Foreground="{DynamicResource CameraColorTextDim}" VerticalAlignment="Center" Margin="8,0,0,0"/>
             </StackPanel>
         </Border>
         <ui:CameraPreviewControl x:Name="Preview"/>

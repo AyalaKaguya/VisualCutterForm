@@ -23,6 +23,35 @@
         <Setter Property="Margin" Value="3"/>
     </Style>
 
+    <Style x:Key="CommunicationToolBar" TargetType="ToolBar">
+        <Setter Property="Background" Value="#252525"/>
+    </Style>
+
+    <Style x:Key="NavButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Background" Value="#252525"/>
+        <Setter Property="Foreground" Value="{StaticResource ColorTextPrimary}"/>
+        <Setter Property="BorderBrush" Value="#303030"/>
+        <Setter Property="Height" Value="70"/>
+        <Setter Property="Padding" Value="8,5"/>
+        <Setter Property="Margin" Value="0"/>
+    </Style>
+
+    <Style x:Key="NavIconText" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource ColorTextPrimary}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="NavLabelText" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource ColorTextPrimary}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="Margin" Value="0,4,0,0"/>
+    </Style>
+
     <!-- ===== Implicit TextBox ===== -->
     <Style TargetType="TextBox">
         <Setter Property="Background" Value="{StaticResource ColorTextBoxBg}"/>
@@ -46,12 +75,13 @@
     </Style>
     <Style TargetType="ListBoxItem">
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
 
     <!-- ===== Implicit ComboBox ===== -->
     <Style TargetType="ComboBox">
-        <Setter Property="Background" Value="{StaticResource ColorTextBoxBg}"/>
-        <Setter Property="Foreground" Value="{StaticResource ColorTextPrimary}"/>
+        <Setter Property="Background" Value="{StaticResource ColorTextPrimary}"/>
+        <Setter Property="Foreground" Value="{StaticResource ColorTextBoxBg}"/>
         <Setter Property="BorderBrush" Value="{StaticResource ColorButtonBorder}"/>
         <Setter Property="Padding" Value="5,3"/>
         <Setter Property="IsSynchronizedWithCurrentItem" Value="False"/>
@@ -59,7 +89,60 @@
             <Setter.Value>
                 <Style TargetType="ComboBoxItem">
                     <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    <Setter Property="VerticalContentAlignment" Value="Center"/>
                 </Style>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="CompactComboBox" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+        <Setter Property="Height" Value="34"/>
+        <Setter Property="FontSize" Value="15"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="LightComboBox" TargetType="ComboBox">
+        <Style.Resources>
+            <Style TargetType="TextBlock">
+                <Setter Property="Foreground" Value="Black"/>
+            </Style>
+        </Style.Resources>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="Foreground" Value="Black"/>
+        <Setter Property="TextElement.Foreground" Value="Black"/>
+        <Setter Property="Height" Value="28"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="ItemContainerStyle">
+            <Setter.Value>
+                <Style TargetType="ComboBoxItem">
+                    <Setter Property="Background" Value="White"/>
+                    <Setter Property="Foreground" Value="Black"/>
+                    <Setter Property="TextElement.Foreground" Value="Black"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                </Style>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="DeviceToggle" TargetType="ToggleButton">
+        <Setter Property="Background" Value="#4A4A4A"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border x:Name="Track" Width="42" Height="24" Background="{TemplateBinding Background}" CornerRadius="12">
+                        <Ellipse x:Name="Thumb" Width="20" Height="20" Fill="White" HorizontalAlignment="Left" Margin="2"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Track" Property="Background" Value="#2EAA5F"/>
+                            <Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Right"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
@@ -91,5 +174,27 @@
         <Setter Property="Background" Value="{StaticResource ColorHeaderRow}"/>
         <Setter Property="Foreground" Value="{StaticResource ColorTextPrimary}"/>
     </Style>
+
+    <DataTemplate x:Key="BlockItemTemplate">
+        <Border Background="{StaticResource ColorSurface}" BorderBrush="#3A3A3A" BorderThickness="1" Padding="10" Margin="4">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="{Binding Name}" Foreground="{StaticResource ColorTextPrimary}" FontWeight="SemiBold" FontSize="13"/>
+                    <TextBlock Text="{Binding Address}" Foreground="#9A9A9A" FontSize="11" Margin="0,3,0,0"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                        <TextBlock Text="{Binding DataType}" Foreground="{StaticResource ColorTextDim}" FontSize="11"/>
+                        <TextBlock Text="  |  " Foreground="#666666" FontSize="11"/>
+                        <TextBlock Text="{Binding PollingEnabled, StringFormat=轮询: {0}}" Foreground="{StaticResource ColorTextDim}" FontSize="11"/>
+                        <TextBlock Text="  |  " Foreground="#666666" FontSize="11"/>
+                        <TextBlock Text="{Binding PollingIntervalMs, StringFormat=周期: {0}ms}" Foreground="{StaticResource ColorTextDim}" FontSize="11"/>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </DataTemplate>
 
 </ResourceDictionary>

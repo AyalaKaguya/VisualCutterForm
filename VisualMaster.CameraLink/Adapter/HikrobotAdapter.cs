@@ -29,12 +29,16 @@ namespace VisualMaster.CameraLink.Adapter
 
         public void InitializeSdk()
         {
-            SDKSystem.Initialize();
+            int ret = SDKSystem.Initialize();
+            if (ret != MvError.MV_OK)
+                throw new InvalidOperationException($"MVS SDK 初始化失败，错误码: 0x{ret:X8}");
         }
 
         public void FinalizeSdk()
         {
-            SDKSystem.Finalize();
+            int ret = SDKSystem.Finalize();
+            if (ret != MvError.MV_OK)
+                System.Diagnostics.Debug.WriteLine($"MVS SDK 反初始化警告: 0x{ret:X8}");
         }
 
         public IReadOnlyList<DiscoveredCamera> Scan()
@@ -42,11 +46,19 @@ namespace VisualMaster.CameraLink.Adapter
             var result = new List<DiscoveredCamera>();
 
             var tLayerTypes = DeviceTLayerType.MvGigEDevice | DeviceTLayerType.MvUsbDevice
+                | DeviceTLayerType.MvVirGigEDevice | DeviceTLayerType.MvVirUsbDevice
+                | DeviceTLayerType.MvCameraLinkDevice
                 | DeviceTLayerType.MvGenTLGigEDevice | DeviceTLayerType.MvGenTLCXPDevice
                 | DeviceTLayerType.MvGenTLCameraLinkDevice | DeviceTLayerType.MvGenTLXoFDevice;
 
             int ret = DeviceEnumerator.EnumDevices(tLayerTypes, out List<IDeviceInfo> devInfoList);
-            if (ret != MvError.MV_OK || devInfoList == null)
+            if (ret != MvError.MV_OK)
+            {
+                System.Diagnostics.Debug.WriteLine($"MVS 设备枚举失败: 0x{ret:X8}");
+                return result;
+            }
+
+            if (devInfoList == null || devInfoList.Count == 0)
                 return result;
 
             foreach (var devInfo in devInfoList)
@@ -96,6 +108,9 @@ namespace VisualMaster.CameraLink.Adapter
             {
                 case DeviceTLayerType.MvGigEDevice:     return "GigE";
                 case DeviceTLayerType.MvUsbDevice:      return "USB3";
+                case DeviceTLayerType.MvVirGigEDevice:  return "Virtual-GigE";
+                case DeviceTLayerType.MvVirUsbDevice:   return "Virtual-USB3";
+                case DeviceTLayerType.MvCameraLinkDevice: return "CameraLink";
                 case DeviceTLayerType.MvGenTLGigEDevice:    return "GenTL-GigE";
                 case DeviceTLayerType.MvGenTLCXPDevice:     return "GenTL-CXP";
                 case DeviceTLayerType.MvGenTLCameraLinkDevice: return "CameraLink";

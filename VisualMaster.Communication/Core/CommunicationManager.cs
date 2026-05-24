@@ -272,11 +272,26 @@ namespace VisualMaster.Communication.Core
                     continue;
 
                 InputEventTriggered?.Invoke(this, input);
-                foreach (var heartbeat in _config.Heartbeats.Where(h => h.IsEnabled && h.InputEventId == input.EventId))
-                    ExecuteOutputEventAsync(heartbeat.OutputEventId).GetAwaiter().GetResult();
+                foreach (var heartbeat in _config.Heartbeats.Where(h => IsHeartbeatBoundToInput(h, input)))
+                    ExecuteOutputEventAsync(heartbeat.OutputEventId, heartbeat.VariableValues).GetAwaiter().GetResult();
             }
 
             _previousValues[key] = e.Data != null ? (byte[])e.Data.Clone() : new byte[0];
+        }
+
+        private static bool IsHeartbeatBoundToInput(CommunicationHeartbeatConfig heartbeat, CommunicationInputEventConfig input)
+        {
+            if (heartbeat == null || input == null || !heartbeat.IsEnabled)
+                return false;
+
+            if (!string.Equals(heartbeat.InputEventId, input.EventId, StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            if (string.IsNullOrWhiteSpace(heartbeat.InputRuleId))
+                return true;
+
+            return input.Rules != null && input.Rules.Any(rule =>
+                string.Equals(rule.RuleId, heartbeat.InputRuleId, StringComparison.OrdinalIgnoreCase));
         }
 
         private void OnDeviceAdded(object sender, CommunicationDeviceConfig e) => CreateOrUpdateDriver(e);

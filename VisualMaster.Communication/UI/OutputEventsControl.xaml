@@ -11,53 +11,6 @@
                 <ResourceDictionary Source="../Themes/CommunicationDarkTheme.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             <conv:BoolToVisibilityConverter x:Key="BoolToVis"/>
-            <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
-                <Setter Property="Height" Value="34"/>
-                <Setter Property="FontSize" Value="15"/>
-                <Setter Property="VerticalContentAlignment" Value="Center"/>
-                <Setter Property="VerticalAlignment" Value="Center"/>
-            </Style>
-            <Style x:Key="LightComboBox" TargetType="ComboBox">
-                <Style.Resources>
-                    <Style TargetType="TextBlock">
-                        <Setter Property="Foreground" Value="Black"/>
-                    </Style>
-                </Style.Resources>
-                <Setter Property="Background" Value="White"/>
-                <Setter Property="Foreground" Value="Black"/>
-                <Setter Property="TextElement.Foreground" Value="Black"/>
-                <Setter Property="Height" Value="28"/>
-                <Setter Property="FontSize" Value="13"/>
-                <Setter Property="VerticalContentAlignment" Value="Center"/>
-                <Setter Property="VerticalAlignment" Value="Center"/>
-                <Setter Property="ItemContainerStyle">
-                    <Setter.Value>
-                        <Style TargetType="ComboBoxItem">
-                            <Setter Property="Background" Value="White"/>
-                            <Setter Property="Foreground" Value="Black"/>
-                            <Setter Property="TextElement.Foreground" Value="Black"/>
-                        </Style>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-            <Style x:Key="DeviceToggle" TargetType="ToggleButton">
-                <Setter Property="Background" Value="#4A4A4A"/>
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="ToggleButton">
-                            <Border x:Name="Track" Width="42" Height="24" Background="{TemplateBinding Background}" CornerRadius="12">
-                                <Ellipse x:Name="Thumb" Width="20" Height="20" Fill="White" HorizontalAlignment="Left" Margin="2"/>
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsChecked" Value="True">
-                                    <Setter TargetName="Track" Property="Background" Value="#2EAA5F"/>
-                                    <Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Right"/>
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -111,11 +64,13 @@
                     <TextBlock Text="绑定" FontWeight="SemiBold" Margin="0,10,0,6"/>
                     <DockPanel Margin="0,0,0,6">
                         <TextBlock Text="通信设备" Width="96" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                        <ComboBox x:Name="DeviceCombo" MinWidth="240" SelectionChanged="OnDeviceComboChanged" HorizontalAlignment="Left"/>
+                        <ComboBox x:Name="DeviceCombo" MinWidth="240" SelectionChanged="OnDeviceComboChanged" HorizontalAlignment="Left"
+                                  Style="{StaticResource LightComboBox}"/>
                     </DockPanel>
                     <DockPanel Margin="0,0,0,6">
                         <TextBlock Text="数据块" Width="96" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                        <ComboBox x:Name="BlockCombo" MinWidth="240" SelectionChanged="OnBlockComboChanged" HorizontalAlignment="Left"/>
+                        <ComboBox x:Name="BlockCombo" MinWidth="240" SelectionChanged="OnBlockComboChanged" HorizontalAlignment="Left"
+                                  Style="{StaticResource LightComboBox}"/>
                     </DockPanel>
 
                     <Border Height="1" Background="#303030" Margin="0,14,0,12"/>
@@ -239,11 +194,13 @@
                     <StackPanel x:Name="CrcPanel" Visibility="Collapsed" Margin="48,0,0,0">
                         <DockPanel Margin="0,0,0,6">
                             <TextBlock Text="校验方法" Width="96" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                            <ComboBox x:Name="CrcMethodCombo" MinWidth="180" SelectionChanged="OnCrcMethodChanged" HorizontalAlignment="Left"/>
+                            <ComboBox x:Name="CrcMethodCombo" MinWidth="180" SelectionChanged="OnCrcMethodChanged" HorizontalAlignment="Left"
+                                      Style="{StaticResource LightComboBox}"/>
                         </DockPanel>
                         <DockPanel Margin="0,0,0,6">
                             <TextBlock Text="CRC字节序" Width="96" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                            <ComboBox x:Name="CrcByteOrderCombo" MinWidth="180" SelectionChanged="OnCrcByteOrderChanged" HorizontalAlignment="Left"/>
+                            <ComboBox x:Name="CrcByteOrderCombo" MinWidth="180" SelectionChanged="OnCrcByteOrderChanged" HorizontalAlignment="Left"
+                                      Style="{StaticResource LightComboBox}"/>
                         </DockPanel>
                         <DockPanel>
                             <TextBlock Text="包含头部" Width="96" VerticalAlignment="Center" Margin="0,0,12,0"/>

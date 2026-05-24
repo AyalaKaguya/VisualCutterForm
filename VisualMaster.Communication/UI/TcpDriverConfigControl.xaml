@@ -9,12 +9,6 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="../Themes/CommunicationDarkTheme.xaml"/>
             </ResourceDictionary.MergedDictionaries>
-            <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
-                <Setter Property="Height" Value="34"/>
-                <Setter Property="FontSize" Value="15"/>
-                <Setter Property="VerticalContentAlignment" Value="Center"/>
-                <Setter Property="VerticalAlignment" Value="Center"/>
-            </Style>
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid Margin="12">

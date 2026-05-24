@@ -49,7 +49,17 @@ namespace VisualMaster.CameraLink
             if (IsInitialized) return;
 
             foreach (var adapter in _adapters.Where(a => a.IsAvailable))
-                adapter.InitializeSdk();
+            {
+                try
+                {
+                    adapter.InitializeSdk();
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException(
+                        $"无法初始化相机适配器 {adapter.AdapterName}，请确认驱动已正确安装。\n{ex.Message}", ex);
+                }
+            }
 
             IsInitialized = true;
         }

@@ -8,17 +8,6 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="../Themes/CommunicationDarkTheme.xaml"/>
             </ResourceDictionary.MergedDictionaries>
-            <Style x:Key="NavButton" TargetType="Button">
-                <Setter Property="Background" Value="#252525"/>
-                <Setter Property="Foreground" Value="White"/>
-                <Setter Property="BorderBrush" Value="#303030"/>
-                <Setter Property="Height" Value="70"/>
-                <Setter Property="Padding" Value="8,5"/>
-                <Setter Property="Margin" Value="0"/>
-            </Style>
-            <Style TargetType="TextBlock">
-                <Setter Property="Foreground" Value="White"/>
-            </Style>
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
@@ -29,26 +18,26 @@
         <StackPanel Background="#252525">
             <Button x:Name="BtnDevices" Style="{StaticResource NavButton}" Click="OnDevicesPage" ToolTip="设备管理">
                 <StackPanel>
-                    <TextBlock Text="&#xE8B7;" FontFamily="Segoe MDL2 Assets" FontSize="18" HorizontalAlignment="Center"/>
-                    <TextBlock Text="设备管理" FontSize="12" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                    <TextBlock Text="&#xE8B7;" Style="{StaticResource NavIconText}"/>
+                    <TextBlock Text="设备管理" Style="{StaticResource NavLabelText}"/>
                 </StackPanel>
             </Button>
             <Button x:Name="BtnInput" Style="{StaticResource NavButton}" Click="OnInputPage" ToolTip="输入事件">
                 <StackPanel>
-                    <TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="18" HorizontalAlignment="Center"/>
-                    <TextBlock Text="输入事件" FontSize="12" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                    <TextBlock Text="&#xE8A5;" Style="{StaticResource NavIconText}"/>
+                    <TextBlock Text="输入事件" Style="{StaticResource NavLabelText}"/>
                 </StackPanel>
             </Button>
             <Button x:Name="BtnOutput" Style="{StaticResource NavButton}" Click="OnOutputPage" ToolTip="输出事件">
                 <StackPanel>
-                    <TextBlock Text="&#xE8A7;" FontFamily="Segoe MDL2 Assets" FontSize="18" HorizontalAlignment="Center"/>
-                    <TextBlock Text="输出事件" FontSize="12" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                    <TextBlock Text="&#xE8A7;" Style="{StaticResource NavIconText}"/>
+                    <TextBlock Text="输出事件" Style="{StaticResource NavLabelText}"/>
                 </StackPanel>
             </Button>
             <Button x:Name="BtnHeartbeat" Style="{StaticResource NavButton}" Click="OnHeartbeatPage" ToolTip="心跳">
                 <StackPanel>
-                    <TextBlock Text="&#xE95E;" FontFamily="Segoe MDL2 Assets" FontSize="18" HorizontalAlignment="Center"/>
-                    <TextBlock Text="心跳" FontSize="12" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                    <TextBlock Text="&#xE95E;" Style="{StaticResource NavIconText}"/>
+                    <TextBlock Text="心跳" Style="{StaticResource NavLabelText}"/>
                 </StackPanel>
             </Button>
         </StackPanel>

@@ -3,9 +3,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="clr-namespace:VisualMaster.CameraLink.UI"
         Title="相机管理" Height="640" Width="960"
-        Background="#1E1E1E"
+        Background="{DynamicResource CameraColorRootBg}"
         WindowStartupLocation="CenterOwner"
         ResizeMode="CanResizeWithGrip">
+    <Window.Resources>
+        <ResourceDictionary Source="../Themes/CameraDarkTheme.xaml"/>
+    </Window.Resources>
 
     <Grid>
         <ui:CameraManagerPanel x:Name="Panel"/>

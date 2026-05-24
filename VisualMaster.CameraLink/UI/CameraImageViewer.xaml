@@ -1,14 +1,21 @@
 <UserControl x:Class="VisualMaster.CameraLink.UI.CameraImageViewer"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             Background="#202020"
+             Background="{DynamicResource CameraColorViewerBg}"
              Focusable="True">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Themes/CameraDarkTheme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
     <Grid x:Name="Root" ClipToBounds="True"
           MouseWheel="OnMouseWheel"
           MouseRightButtonUp="OnMouseRightButtonUp">
-        <Canvas x:Name="ImageLayer" Background="#202020" ClipToBounds="True">
+        <Canvas x:Name="ImageLayer" Background="{DynamicResource CameraColorViewerBg}" ClipToBounds="True">
             <Border x:Name="ImageBounds"
-                    Background="#2B2B2B"
+                    Background="{DynamicResource CameraColorViewerImageBg}"
                     Width="1"
                     Height="1"
                     MouseLeftButtonDown="OnImageMouseLeftButtonDown"
@@ -29,28 +36,22 @@
         <Border x:Name="Toolbar"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
-                Background="#CC242424"
-                BorderBrush="#555555"
-                BorderThickness="1"
-                CornerRadius="3"
+                Style="{StaticResource ViewerOverlay}"
                 Margin="8"
                 Padding="4">
             <StackPanel Orientation="Horizontal">
-                <Button Content="&#xE9A6;" FontFamily="Segoe MDL2 Assets" Width="32" Height="28" Margin="2" Click="OnFitClick" ToolTip="适合窗口"/>
-                <Button Content="1:1" Width="42" Height="28" Margin="2" Click="OnActualSizeClick" ToolTip="1:1 像素"/>
-                <Button Content="&#xE74E;" FontFamily="Segoe MDL2 Assets" Width="32" Height="28" Margin="2" Click="OnSaveClick" ToolTip="保存图像"/>
+                <Button Content="&#xE9A6;" Style="{StaticResource ViewerIconButton}" Click="OnFitClick" ToolTip="适合窗口"/>
+                <Button Content="1:1" Style="{StaticResource ViewerToolButton}" Width="42" MinWidth="42" Click="OnActualSizeClick" ToolTip="1:1 像素"/>
+                <Button Content="&#xE74E;" Style="{StaticResource ViewerIconButton}" Click="OnSaveClick" ToolTip="保存图像"/>
             </StackPanel>
         </Border>
 
         <Border HorizontalAlignment="Left"
                 VerticalAlignment="Bottom"
-                Background="#CC242424"
-                BorderBrush="#555555"
-                BorderThickness="1"
-                CornerRadius="3"
+                Style="{StaticResource ViewerOverlay}"
                 Margin="8"
                 Padding="6,3">
-            <TextBlock x:Name="InfoText" Foreground="#E6E6E6"/>
+            <TextBlock x:Name="InfoText" Foreground="{DynamicResource CameraColorTextPrimary}"/>
         </Border>
 
         <Canvas x:Name="Navigator"
@@ -59,13 +60,13 @@
                 HorizontalAlignment="Right"
                 VerticalAlignment="Bottom"
                 Margin="8"
-                Background="#AA202020">
+                Background="{DynamicResource CameraColorNavigatorBg}">
             <Rectangle x:Name="NavigatorImage"
-                       Stroke="White"
+                       Stroke="{DynamicResource CameraColorTextPrimary}"
                        StrokeThickness="1"
-                       Fill="#20FFFFFF"/>
+                       Fill="{DynamicResource CameraColorNavigatorFill}"/>
             <Rectangle x:Name="NavigatorViewport"
-                       Stroke="#FFD800"
+                       Stroke="{DynamicResource CameraColorNavigatorViewport}"
                        StrokeThickness="2"/>
         </Canvas>
     </Grid>

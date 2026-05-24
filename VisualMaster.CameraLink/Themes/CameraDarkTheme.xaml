@@ -1,0 +1,162 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <SolidColorBrush x:Key="CameraColorRootBg" Color="#1E1E1E"/>
+    <SolidColorBrush x:Key="CameraColorSidePanel" Color="#252525"/>
+    <SolidColorBrush x:Key="CameraColorToolbarBg" Color="#2B2B2B"/>
+    <SolidColorBrush x:Key="CameraColorSurface" Color="#242424"/>
+    <SolidColorBrush x:Key="CameraColorButtonBg" Color="#333333"/>
+    <SolidColorBrush x:Key="CameraColorBorder" Color="#555555"/>
+    <SolidColorBrush x:Key="CameraColorTextBoxBg" Color="#2D2D2D"/>
+    <SolidColorBrush x:Key="CameraColorTextPrimary" Color="White"/>
+    <SolidColorBrush x:Key="CameraColorTextDim" Color="#CCCCCC"/>
+    <SolidColorBrush x:Key="CameraColorTextMuted" Color="#8B8B8B"/>
+    <SolidColorBrush x:Key="CameraColorViewerBg" Color="#202020"/>
+    <SolidColorBrush x:Key="CameraColorViewerImageBg" Color="#2B2B2B"/>
+    <SolidColorBrush x:Key="CameraColorViewerOverlayBg" Color="#CC242424"/>
+    <SolidColorBrush x:Key="CameraColorNavigatorBg" Color="#AA202020"/>
+    <SolidColorBrush x:Key="CameraColorNavigatorFill" Color="#20FFFFFF"/>
+    <SolidColorBrush x:Key="CameraColorNavigatorViewport" Color="#FFD800"/>
+
+    <Style x:Key="DarkButton" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource CameraColorButtonBg}"/>
+        <Setter Property="Foreground" Value="{StaticResource CameraColorTextPrimary}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource CameraColorBorder}"/>
+        <Setter Property="Padding" Value="10,5"/>
+        <Setter Property="Margin" Value="3"/>
+        <Setter Property="MinWidth" Value="76"/>
+        <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+
+    <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource DarkButton}">
+        <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+        <Setter Property="Width" Value="34"/>
+        <Setter Property="Height" Value="30"/>
+        <Setter Property="MinWidth" Value="34"/>
+        <Setter Property="Padding" Value="0"/>
+    </Style>
+
+    <Style x:Key="PreviewIconButton" TargetType="Button" BasedOn="{StaticResource IconButton}">
+        <Setter Property="Width" Value="38"/>
+        <Setter Property="Height" Value="34"/>
+        <Setter Property="FontSize" Value="15"/>
+    </Style>
+
+    <Style x:Key="ViewerToolButton" TargetType="Button" BasedOn="{StaticResource DarkButton}">
+        <Setter Property="Width" Value="32"/>
+        <Setter Property="Height" Value="28"/>
+        <Setter Property="MinWidth" Value="32"/>
+        <Setter Property="Margin" Value="2"/>
+        <Setter Property="Padding" Value="0"/>
+    </Style>
+
+    <Style x:Key="ViewerIconButton" TargetType="Button" BasedOn="{StaticResource ViewerToolButton}">
+        <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+    </Style>
+
+    <Style x:Key="ViewerOverlay" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource CameraColorViewerOverlayBg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource CameraColorBorder}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="3"/>
+        <Setter Property="Margin" Value="8"/>
+    </Style>
+
+    <Style x:Key="DarkToolBar" TargetType="ToolBar">
+        <Setter Property="Background" Value="{StaticResource CameraColorSidePanel}"/>
+        <Setter Property="BorderBrush" Value="#444444"/>
+    </Style>
+
+    <Style x:Key="DarkTabControl" TargetType="TabControl">
+        <Setter Property="Background" Value="{StaticResource CameraColorRootBg}"/>
+        <Setter Property="BorderBrush" Value="#444444"/>
+    </Style>
+
+    <Style x:Key="StatusText" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="#AAAAAA"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Margin" Value="10,0"/>
+        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+    </Style>
+
+    <Style x:Key="SectionLabel" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="#AFAFAF"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Margin" Value="0,2,0,8"/>
+    </Style>
+
+    <Style x:Key="FieldLabel" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource CameraColorTextDim}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Margin" Value="0,0,8,0"/>
+    </Style>
+
+    <Style x:Key="DarkTextBox" TargetType="TextBox">
+        <Setter Property="Background" Value="{StaticResource CameraColorTextBoxBg}"/>
+        <Setter Property="Foreground" Value="{StaticResource CameraColorTextPrimary}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource CameraColorBorder}"/>
+        <Setter Property="Padding" Value="5,3"/>
+        <Setter Property="MinHeight" Value="26"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="DarkComboBox" TargetType="ComboBox">
+        <Setter Property="Background" Value="{StaticResource CameraColorTextBoxBg}"/>
+        <Setter Property="Foreground" Value="{StaticResource CameraColorTextPrimary}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource CameraColorBorder}"/>
+        <Setter Property="Padding" Value="5,3"/>
+        <Setter Property="MinHeight" Value="26"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="ItemContainerStyle">
+            <Setter.Value>
+                <Style TargetType="ComboBoxItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                </Style>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="DarkListBox" TargetType="ListBox">
+        <Setter Property="Background" Value="{StaticResource CameraColorRootBg}"/>
+        <Setter Property="Foreground" Value="{StaticResource CameraColorTextPrimary}"/>
+        <Setter Property="BorderBrush" Value="#444444"/>
+        <Setter Property="ItemContainerStyle">
+            <Setter.Value>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                </Style>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <DataTemplate x:Key="CameraListItem">
+        <Grid Margin="4,5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Ellipse Width="9" Height="9" Margin="0,0,8,0" VerticalAlignment="Center">
+                <Ellipse.Style>
+                    <Style TargetType="Ellipse">
+                        <Setter Property="Fill" Value="#666666"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsConnected}" Value="True">
+                                <Setter Property="Fill" Value="#4DA3FF"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsGrabbing}" Value="True">
+                                <Setter Property="Fill" Value="#35D36A"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Ellipse.Style>
+            </Ellipse>
+            <StackPanel Grid.Column="1">
+                <TextBlock Text="{Binding DisplayName}" Foreground="White" TextTrimming="CharacterEllipsis"/>
+                <TextBlock Text="{Binding StatusText}" Foreground="#8B8B8B" FontSize="11"/>
+            </StackPanel>
+        </Grid>
+    </DataTemplate>
+
+</ResourceDictionary>

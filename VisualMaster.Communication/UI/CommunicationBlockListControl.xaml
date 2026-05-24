@@ -7,36 +7,10 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="../Themes/CommunicationDarkTheme.xaml"/>
             </ResourceDictionary.MergedDictionaries>
-            <DataTemplate x:Key="BlockItemTemplate">
-            <Border Background="#242424" BorderBrush="#3A3A3A" BorderThickness="1" Padding="10" Margin="4">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <StackPanel>
-                        <TextBlock Text="{Binding Name}" Foreground="White" FontWeight="SemiBold" FontSize="13"/>
-                        <TextBlock Text="{Binding Address}" Foreground="#9A9A9A" FontSize="11" Margin="0,3,0,0"/>
-                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                            <TextBlock Text="{Binding DataType}" Foreground="#CCCCCC" FontSize="11"/>
-                            <TextBlock Text="  |  " Foreground="#666666" FontSize="11"/>
-                            <TextBlock Text="{Binding PollingEnabled, StringFormat=轮询: {0}}" Foreground="#CCCCCC" FontSize="11"/>
-                            <TextBlock Text="  |  " Foreground="#666666" FontSize="11"/>
-                            <TextBlock Text="{Binding PollingIntervalMs, StringFormat=周期: {0}ms}" Foreground="#CCCCCC" FontSize="11"/>
-                        </StackPanel>
-                    </StackPanel>
-                </Grid>
-            </Border>
-        </DataTemplate>
-            <Style TargetType="ListBox">
-                <Setter Property="Background" Value="#1E1E1E"/>
-                <Setter Property="Foreground" Value="White"/>
-                <Setter Property="BorderBrush" Value="#444444"/>
-            </Style>
         </ResourceDictionary>
     </UserControl.Resources>
     <DockPanel Background="{DynamicResource ColorRootBg}">
-        <ToolBar DockPanel.Dock="Top" Background="#252525">
+        <ToolBar DockPanel.Dock="Top" Style="{StaticResource CommunicationToolBar}">
             <Button Content="新增块" Foreground="White"  Click="OnAddClick"/>
             <Button Content="删除块" Foreground="White" Click="OnRemoveClick"/>
             <Button Content="监视" Foreground="White" Click="OnMonitorClick"/>

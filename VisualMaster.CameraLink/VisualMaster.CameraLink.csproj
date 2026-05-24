@@ -93,6 +93,10 @@
   </ItemGroup>
   <ItemGroup>
     <!-- WPF XAML 文件 -->
+    <Page Include="Themes\CameraDarkTheme.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="UI\CameraImageViewer.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
