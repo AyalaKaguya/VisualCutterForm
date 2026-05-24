@@ -74,6 +74,7 @@ namespace VisualMaster.Communication.Api
         public string Name { get; set; }
         public string DeviceId { get; set; }
         public string BlockId { get; set; }
+        public CommunicationProtocolAssemblyConfig ProtocolAssembly { get; set; } = new CommunicationProtocolAssemblyConfig();
         public List<CommunicationOutputVariable> Variables { get; set; } = new List<CommunicationOutputVariable>();
         public List<CommunicationOutputSegment> Segments { get; set; } = new List<CommunicationOutputSegment>();
 
@@ -85,10 +86,22 @@ namespace VisualMaster.Communication.Api
                 Name = Name,
                 DeviceId = DeviceId,
                 BlockId = BlockId,
+                ProtocolAssembly = ProtocolAssembly?.Clone() ?? new CommunicationProtocolAssemblyConfig(),
                 Variables = Variables?.Select(v => v.Clone()).ToList() ?? new List<CommunicationOutputVariable>(),
                 Segments = Segments?.Select(s => s.Clone()).ToList() ?? new List<CommunicationOutputSegment>(),
             };
         }
+    }
+
+    public sealed class CommunicationProtocolAssemblyConfig
+    {
+        public string HeaderHex { get; set; }
+        public bool CrcEnabled { get; set; }
+        public CommunicationCrcMethod CrcMethod { get; set; } = CommunicationCrcMethod.None;
+        public CommunicationByteOrder CrcByteOrder { get; set; } = CommunicationByteOrder.LittleEndian;
+        public bool CrcIncludesHeader { get; set; } = true;
+
+        public CommunicationProtocolAssemblyConfig Clone() => (CommunicationProtocolAssemblyConfig)MemberwiseClone();
     }
 
     public sealed class CommunicationOutputVariable

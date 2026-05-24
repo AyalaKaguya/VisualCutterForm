@@ -45,6 +45,15 @@ namespace VisualMaster.Communication.Api
         Variable,
     }
 
+    public enum CommunicationCrcMethod
+    {
+        None,
+        Sum8,
+        Xor8,
+        ModbusCrc16,
+        Crc16Ccitt,
+    }
+
     public enum ByteDisplayMode
     {
         Short,
