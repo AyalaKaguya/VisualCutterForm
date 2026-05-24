@@ -33,6 +33,20 @@ namespace VisualMaster.CameraLink.UI.ViewModels
         public bool IsConnected => _status?.IsConnected == true;
         public bool IsGrabbing  => _status?.IsGrabbing  == true;
 
+        public bool IsEnabled
+        {
+            get => _config.IsEnabled;
+            set
+            {
+                if (_config.IsEnabled != value)
+                {
+                    _config.IsEnabled = value;
+                    OnPropertyChanged();
+                    NotifyConfigChanged();
+                }
+            }
+        }
+
         public string StatusText
         {
             get
@@ -83,6 +97,7 @@ namespace VisualMaster.CameraLink.UI.ViewModels
             {
                 _config.DisplayName = config.DisplayName;
                 _config.AssignedSerial = config.AssignedSerial;
+                _config.IsEnabled = config.IsEnabled;
                 _config.Settings = config.Settings?.Clone() ?? new CameraSettings();
                 ConfigVm.LoadFrom(_config.Settings);
                 OnPropertyChanged(nameof(DisplayName));

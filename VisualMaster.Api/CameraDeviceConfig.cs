@@ -5,6 +5,7 @@ namespace VisualMaster.Api
         public string DeviceId { get; set; }
         public string DisplayName { get; set; }
         public string AssignedSerial { get; set; }
+        public bool IsEnabled { get; set; } = true;
         public CameraSettings Settings { get; set; } = new CameraSettings();
 
         public CameraDeviceConfig Clone()
@@ -14,6 +15,7 @@ namespace VisualMaster.Api
                 DeviceId = DeviceId,
                 DisplayName = DisplayName,
                 AssignedSerial = AssignedSerial,
+                IsEnabled = IsEnabled,
                 Settings = Settings?.Clone() ?? new CameraSettings(),
             };
         }

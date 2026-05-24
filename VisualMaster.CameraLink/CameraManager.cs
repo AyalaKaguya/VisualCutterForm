@@ -68,8 +68,37 @@ namespace VisualMaster.CameraLink
         public async Task InitializeRuntimeAsync(CameraSystemConfig config)
         {
             LoadConfig(config);
-            await Task.Run(() => EnumerateCameras()).ConfigureAwait(false);
-            ApplyConfiguredDevices();
+            await EnumerateCamerasAsync().ConfigureAwait(false);
+            await AutoConnectEnabledDevicesAsync().ConfigureAwait(false);
+        }
+
+        private async Task AutoConnectEnabledDevicesAsync()
+        {
+            foreach (var entry in _devices.ToList())
+            {
+                if (!entry.Config.IsEnabled || entry.IsConnected)
+                    continue;
+
+                var serial = entry.Config.AssignedSerial;
+                if (string.IsNullOrWhiteSpace(serial))
+                    continue;
+
+                var info = _enumeratedCameras.FirstOrDefault(c =>
+                    string.Equals(c.SerialNumber, serial, StringComparison.OrdinalIgnoreCase));
+                if (info == null)
+                    continue;
+
+                try
+                {
+                    OpenDevice(entry.DeviceId, info);
+                }
+                catch (Exception ex)
+                {
+                    entry.Config.IsEnabled = false;
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[CameraManager] 自动连接失败，已禁用: {entry.Config.DisplayName} (SN: {serial})\n{ex.Message}");
+                }
+            }
         }
 
         public void LoadConfig(CameraSystemConfig config)

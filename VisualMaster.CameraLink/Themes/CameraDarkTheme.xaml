@@ -136,6 +136,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <Ellipse Width="9" Height="9" Margin="0,0,8,0" VerticalAlignment="Center">
                 <Ellipse.Style>
@@ -156,6 +157,9 @@
                 <TextBlock Text="{Binding DisplayName}" Foreground="White" TextTrimming="CharacterEllipsis"/>
                 <TextBlock Text="{Binding StatusText}" Foreground="#8B8B8B" FontSize="11"/>
             </StackPanel>
+            <ToggleButton Grid.Column="2" Width="36" Height="20" Margin="4,0,0,0"
+                          IsChecked="{Binding IsEnabled}" VerticalAlignment="Center"
+                          Style="{StaticResource CameraToggle}"/>
         </Grid>
     </DataTemplate>
 
@@ -198,5 +202,24 @@
             </Grid>
         </Border>
     </DataTemplate>
+
+    <Style x:Key="CameraToggle" TargetType="ToggleButton">
+        <Setter Property="Background" Value="#4A4A4A"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border x:Name="Track" Background="{TemplateBinding Background}" CornerRadius="10">
+                        <Ellipse x:Name="Thumb" Width="16" Height="16" Fill="White" HorizontalAlignment="Left" Margin="2"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Track" Property="Background" Value="#2EAA5F"/>
+                            <Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Right"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 
 </ResourceDictionary>
