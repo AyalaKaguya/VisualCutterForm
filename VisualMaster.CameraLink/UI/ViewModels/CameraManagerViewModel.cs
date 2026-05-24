@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -18,6 +19,7 @@ namespace VisualMaster.CameraLink.UI.ViewModels
     {
         private readonly ICameraManager _manager;
         private readonly CameraSystemConfig _config;
+        private CancellationTokenSource _scanCts;
 
         private CameraItemViewModel _selectedCamera;
         private DiscoveredCameraItemViewModel _selectedDiscovered;
@@ -129,17 +131,25 @@ namespace VisualMaster.CameraLink.UI.ViewModels
 
         private async void ExecuteScan()
         {
+            CancelCurrentScan();
+            _scanCts = new CancellationTokenSource();
+            var token = _scanCts.Token;
+
             IsBusy = true;
             StatusMessage = "正在扫描相机...";
             DiscoveredDevices.Clear();
 
             try
             {
-                var result = await Task.Run(() => _manager.EnumerateCameras());
+                var result = await _manager.EnumerateCamerasAsync(token);
                 foreach (var info in result)
                     DiscoveredDevices.Add(new DiscoveredCameraItemViewModel(info, OnAddDiscoveredCamera));
 
                 StatusMessage = $"扫描完成，共发现 {DiscoveredDevices.Count} 台相机。";
+            }
+            catch (OperationCanceledException)
+            {
+                StatusMessage = "扫描已取消。";
             }
             catch (Exception ex)
             {
@@ -148,6 +158,21 @@ namespace VisualMaster.CameraLink.UI.ViewModels
             finally
             {
                 IsBusy = false;
+                if (_scanCts != null)
+                {
+                    _scanCts.Dispose();
+                    _scanCts = null;
+                }
+            }
+        }
+
+        private void CancelCurrentScan()
+        {
+            if (_scanCts != null)
+            {
+                try { _scanCts.Cancel(); } catch { }
+                try { _scanCts.Dispose(); } catch { }
+                _scanCts = null;
             }
         }
 
@@ -361,6 +386,7 @@ namespace VisualMaster.CameraLink.UI.ViewModels
 
         public void Dispose()
         {
+            CancelCurrentScan();
             _config.DeviceAdded   -= OnConfigDeviceAdded;
             _config.DeviceRemoved -= OnConfigDeviceRemoved;
             _config.DeviceUpdated -= OnConfigDeviceUpdated;

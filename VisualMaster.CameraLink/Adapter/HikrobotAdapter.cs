@@ -2,6 +2,7 @@ using VisualMaster.CameraLink.API;
 using System;
 using System.Collections.Generic;
 using System.Runtime.ExceptionServices;
+using System.Threading;
 using MvCameraControl;
 
 namespace VisualMaster.CameraLink.Adapter
@@ -50,7 +51,7 @@ namespace VisualMaster.CameraLink.Adapter
             }
         }
 
-        public IReadOnlyList<DiscoveredCamera> Scan()
+        public IReadOnlyList<DiscoveredCamera> Scan(CancellationToken cancellationToken = default(CancellationToken))
         {
             var result = new List<DiscoveredCamera>();
 
@@ -66,6 +67,8 @@ namespace VisualMaster.CameraLink.Adapter
                 System.Diagnostics.Debug.WriteLine($"MVS 设备枚举失败: 0x{ret:X8}");
                 return result;
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             if (devInfoList == null || devInfoList.Count == 0)
                 return result;

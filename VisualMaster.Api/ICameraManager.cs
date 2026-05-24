@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace VisualMaster.Api
@@ -20,6 +21,7 @@ namespace VisualMaster.Api
 
         IReadOnlyList<CameraInfo> Cameras { get; }
         List<CameraInfo> EnumerateCameras();
+        Task<List<CameraInfo>> EnumerateCamerasAsync(CancellationToken cancellationToken = default(CancellationToken));
         void ApplyConfiguredDevices();
 
         // ── 设备配置 API ──────────────────────────────────────────────

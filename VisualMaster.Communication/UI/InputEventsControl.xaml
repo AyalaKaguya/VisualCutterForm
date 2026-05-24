@@ -1,8 +1,9 @@
-<UserControl x:Class="VisualMaster.Communication.UI.InputEventsControl"
+<UserControl
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:conv="clr-namespace:VisualMaster.Communication.UI.Converters"
              xmlns:vm="clr-namespace:VisualMaster.Communication.UI.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="VisualMaster.Communication.UI.InputEventsControl"
              Background="{DynamicResource ColorRootBg}"
              Foreground="White"
              FontSize="15">
@@ -31,7 +32,7 @@
             <ListBox x:Name="EventList"
                      Margin="8"
                      SelectionChanged="OnEventSelected"
-                     PreviewMouseRightButtonDown="OnListRightButtonDown">
+                     PreviewMouseRightButtonDown="OnListRightButtonDown" d:ItemsSource="{d:SampleData ItemCount=5}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Margin="4,6">
@@ -39,7 +40,7 @@
                             <TextBlock FontSize="10" Foreground="#999999" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"
                                        Text="{Binding BindingInfo}"/>
                             <TextBlock FontSize="10" Foreground="#777777" Margin="0,1,0,0"
-                                       Text="{Binding Rules.Count, StringFormat='规则: {0} 条'}"/>
+                                       Text="{Binding Rules.Count, StringFormat=规则: \{0\} 条}"/>
                         </StackPanel>
                     </DataTemplate>
                 </ListBox.ItemTemplate>

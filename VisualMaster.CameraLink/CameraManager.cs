@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using VisualMaster.Api;
 using VisualMaster.CameraLink.Adapter;
@@ -92,20 +93,26 @@ namespace VisualMaster.CameraLink
             _systemConfig.Reset += OnConfigReset;
         }
 
-        public List<CameraInfo> EnumerateCameras()
+        public async Task<List<CameraInfo>> EnumerateCamerasAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             if (!IsInitialized) Initialize();
 
             _enumeratedCameras.Clear();
             _discoveries.Clear();
 
-            var adapters = _adapters.Where(a => a.IsAvailable).ToList();
-            var tasks = adapters.Select(adapter => Task.Run(() => ScanAdapter(adapter))).ToArray();
-            Task.WaitAll(tasks);
+            cancellationToken.ThrowIfCancellationRequested();
 
-            foreach (var task in tasks)
+            var adapters = _adapters.Where(a => a.IsAvailable).ToList();
+            var tasks = adapters.Select(adapter =>
+                Task.Run(() => ScanAdapter(adapter, cancellationToken), cancellationToken)).ToArray();
+
+            var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            foreach (var discoveredList in results)
             {
-                foreach (var discovered in task.Result)
+                foreach (var discovered in discoveredList)
                 {
                     _discoveries[MakeDiscoveryKey(discovered.AdapterName, discovered.SerialNumber)] = discovered;
                     _enumeratedCameras.Add(ToCameraInfo(discovered));
@@ -113,6 +120,11 @@ namespace VisualMaster.CameraLink
             }
 
             return _enumeratedCameras.ToList();
+        }
+
+        public List<CameraInfo> EnumerateCameras()
+        {
+            return EnumerateCamerasAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         public void ApplyConfiguredDevices()
@@ -416,9 +428,11 @@ namespace VisualMaster.CameraLink
             entry.ApplySettings(config.Settings ?? new CameraSettings());
         }
 
-        private IReadOnlyList<DiscoveredCamera> ScanAdapter(ICameraAdapter adapter)
+        private IReadOnlyList<DiscoveredCamera> ScanAdapter(ICameraAdapter adapter, CancellationToken cancellationToken)
         {
-            try { return adapter.Scan() ?? new List<DiscoveredCamera>(); }
+            cancellationToken.ThrowIfCancellationRequested();
+            try { return adapter.Scan(cancellationToken) ?? new List<DiscoveredCamera>(); }
+            catch (OperationCanceledException) { throw; }
             catch { return new List<DiscoveredCamera>(); }
         }
 

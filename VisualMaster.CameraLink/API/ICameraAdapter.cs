@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 
 namespace VisualMaster.CameraLink.API
 {
@@ -21,7 +22,7 @@ namespace VisualMaster.CameraLink.API
         void FinalizeSdk();
 
         /// <summary>扫描当前网络/总线上所有可见的相机。</summary>
-        IReadOnlyList<DiscoveredCamera> Scan();
+        IReadOnlyList<DiscoveredCamera> Scan(CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>根据已发现的相机描述创建并返回一个设备驱动实例（尚未 Open）。</summary>
         ICameraDeviceDriver CreateDevice(DiscoveredCamera discovered);
