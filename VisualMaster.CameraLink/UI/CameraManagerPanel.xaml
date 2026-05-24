@@ -156,10 +156,6 @@
         </Grid>
 
         <DockPanel Grid.Row="1" Background="{DynamicResource CameraColorToolbarBg}">
-            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0,2,6,2">
-                <Button Content="保存配置" Command="{Binding SaveCommand}" Style="{StaticResource DarkButton}"/>
-                <Button Content="还原" Command="{Binding RevertCommand}" Style="{StaticResource DarkButton}"/>
-            </StackPanel>
             <TextBlock Text="{Binding StatusMessage}" Style="{StaticResource StatusText}"/>
         </DockPanel>
     </Grid>

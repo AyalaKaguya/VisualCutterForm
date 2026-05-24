@@ -454,7 +454,8 @@ namespace VisualMaster.CameraLink
 
             entry.Config.DisplayName = config.DisplayName;
             entry.Config.AssignedSerial = config.AssignedSerial;
-            entry.ApplySettings(config.Settings ?? new CameraSettings());
+            entry.Config.IsEnabled = config.IsEnabled;
+            entry.Config.Settings = config.Settings?.Clone() ?? new CameraSettings();
         }
 
         private IReadOnlyList<DiscoveredCamera> ScanAdapter(ICameraAdapter adapter, CancellationToken cancellationToken)

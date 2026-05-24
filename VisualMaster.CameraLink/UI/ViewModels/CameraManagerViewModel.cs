@@ -77,8 +77,6 @@ namespace VisualMaster.CameraLink.UI.ViewModels
         public ICommand StartGrabbingCommand  { get; }
         public ICommand StopGrabbingCommand   { get; }
         public ICommand OpenPreviewCommand    { get; }
-        public ICommand SaveCommand           { get; }
-        public ICommand RevertCommand         { get; }
 
         public CameraManagerViewModel(ICameraManager manager, CameraSystemConfig config)
         {
@@ -93,8 +91,6 @@ namespace VisualMaster.CameraLink.UI.ViewModels
             StartGrabbingCommand = new RelayCommand(ExecuteStartGrabbing, () => !IsBusy && SelectedCamera != null && SelectedCamera.IsConnected && !SelectedCamera.IsGrabbing);
             StopGrabbingCommand  = new RelayCommand(ExecuteStopGrabbing,  () => !IsBusy && SelectedCamera != null && SelectedCamera.IsGrabbing);
             OpenPreviewCommand   = new RelayCommand(ExecuteOpenPreview,   () => !IsBusy && SelectedCamera != null && SelectedCamera.IsConnected);
-            SaveCommand          = new RelayCommand(ExecuteSave,          () => !IsBusy);
-            RevertCommand        = new RelayCommand(ExecuteRevert,        () => !IsBusy);
 
             // 从已有配置加载设备列表
             LoadFromConfig();
@@ -278,38 +274,6 @@ namespace VisualMaster.CameraLink.UI.ViewModels
             window.Show();
         }
 
-        private void ExecuteSave()
-        {
-            try
-            {
-                // 将所有 ViewModel 更改写入 config，再请求保存
-                foreach (var cam in Cameras)
-                    _config.UpdateDevice(cam.GetConfig());
-
-                _config.RequestSave();
-                StatusMessage = "配置已保存。";
-            }
-            catch (Exception ex) { StatusMessage = $"保存失败：{ex.Message}"; }
-        }
-
-        private void ExecuteRevert()
-        {
-            try
-            {
-                bool reverted = _config.RevertChanges();
-                if (reverted)
-                {
-                    LoadFromConfig();
-                    StatusMessage = "已还原到上次保存的配置。";
-                }
-                else
-                {
-                    StatusMessage = "没有可还原的快照。";
-                }
-            }
-            catch (Exception ex) { StatusMessage = $"还原失败：{ex.Message}"; }
-        }
-
         // ── 配置变更事件响应 ──────────────────────────────────────────
 
         private void OnConfigDeviceAdded(object sender, CameraDeviceConfig cfg)
@@ -372,8 +336,6 @@ namespace VisualMaster.CameraLink.UI.ViewModels
             (StartGrabbingCommand as RelayCommand)?.RaiseCanExecuteChanged();
             (StopGrabbingCommand  as RelayCommand)?.RaiseCanExecuteChanged();
             (OpenPreviewCommand   as RelayCommand)?.RaiseCanExecuteChanged();
-            (SaveCommand          as RelayCommand)?.RaiseCanExecuteChanged();
-            (RevertCommand        as RelayCommand)?.RaiseCanExecuteChanged();
         }
 
         private static void InvokeOnUI(Action action)
