@@ -137,7 +137,7 @@ namespace VisualMaster.CameraLink.UI.ViewModels
             {
                 var result = await Task.Run(() => _manager.EnumerateCameras());
                 foreach (var info in result)
-                    DiscoveredDevices.Add(new DiscoveredCameraItemViewModel(info));
+                    DiscoveredDevices.Add(new DiscoveredCameraItemViewModel(info, OnAddDiscoveredCamera));
 
                 StatusMessage = $"扫描完成，共发现 {DiscoveredDevices.Count} 台相机。";
             }
@@ -149,6 +149,13 @@ namespace VisualMaster.CameraLink.UI.ViewModels
             {
                 IsBusy = false;
             }
+        }
+
+        private void OnAddDiscoveredCamera(DiscoveredCameraItemViewModel discovered)
+        {
+            if (discovered == null || IsBusy) return;
+            SelectedDiscovered = discovered;
+            ExecuteAddCamera();
         }
 
         private void ExecuteAddCamera()
@@ -368,17 +375,25 @@ namespace VisualMaster.CameraLink.UI.ViewModels
     public sealed class DiscoveredCameraItemViewModel : NotifyBase
     {
         public CameraInfo Info { get; }
+        public ICommand AddCommand { get; }
 
-        public string DisplayText =>
-            $"{Info.ModelName}  [{Info.TransportTypeName}]  SN: {Info.SerialNumber}";
+        public string ModelName => Info.ModelName ?? "";
+        public string SerialNumber => Info.SerialNumber ?? "";
+        public string Manufacturer => Info.ManufacturerName ?? "";
+        public string TransportType => Info.TransportTypeName ?? "";
+        public string DeviceVersion => Info.DeviceVersion ?? "";
 
         public string IpAddress => Info.IpAddress != 0
             ? $"{(Info.IpAddress >> 24) & 0xFF}.{(Info.IpAddress >> 16) & 0xFF}.{(Info.IpAddress >> 8) & 0xFF}.{Info.IpAddress & 0xFF}"
             : "";
 
-        public DiscoveredCameraItemViewModel(CameraInfo info)
+        public string DisplayText =>
+            $"{Info.ModelName}  [{Info.TransportTypeName}]  SN: {Info.SerialNumber}";
+
+        public DiscoveredCameraItemViewModel(CameraInfo info, Action<DiscoveredCameraItemViewModel> onAdd = null)
         {
             Info = info ?? throw new ArgumentNullException(nameof(info));
+            AddCommand = new RelayCommand(() => onAdd?.Invoke(this));
         }
     }
 }

@@ -70,6 +70,7 @@
     <Compile Include="UI\ViewModels\CameraConfigViewModel.cs" />
     <Compile Include="UI\ViewModels\CameraItemViewModel.cs" />
     <Compile Include="UI\ViewModels\CameraManagerViewModel.cs" />
+    <Compile Include="UI\Converters\BoolToVisibilityConverter.cs" />
     <!-- UI / XAML code-behind -->
     <Compile Include="UI\CameraImageViewer.xaml.cs">
       <DependentUpon>CameraImageViewer.xaml</DependentUpon>

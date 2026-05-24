@@ -52,7 +52,7 @@
                          Style="{StaticResource DarkListBox}"
                          ItemsSource="{Binding DiscoveredDevices}"
                          SelectedItem="{Binding SelectedDiscovered, Mode=TwoWay}"
-                         DisplayMemberPath="DisplayText"/>
+                         ItemTemplate="{StaticResource DiscoveredCameraListItem}"/>
             </DockPanel>
 
             <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" Background="{DynamicResource CameraColorButtonBg}"/>
