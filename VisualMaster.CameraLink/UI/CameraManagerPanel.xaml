@@ -19,10 +19,6 @@
     </UserControl.Resources>
 
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="36"/>
-        </Grid.RowDefinitions>
 
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
@@ -154,9 +150,5 @@
                 </TabControl>
             </DockPanel>
         </Grid>
-
-        <DockPanel Grid.Row="1" Background="{DynamicResource CameraColorToolbarBg}">
-            <TextBlock Text="{Binding StatusMessage}" Style="{StaticResource StatusText}"/>
-        </DockPanel>
     </Grid>
 </UserControl>
