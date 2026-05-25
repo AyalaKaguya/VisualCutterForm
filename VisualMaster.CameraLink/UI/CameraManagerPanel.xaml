@@ -74,18 +74,13 @@
                                 <RowDefinition Height="34"/>
                                 <RowDefinition Height="34"/>
                                 <RowDefinition Height="34"/>
-                                <RowDefinition Height="34"/>
                             </Grid.RowDefinitions>
                             <TextBlock Grid.Row="0" Text="名称" Style="{StaticResource FieldLabel}"/>
-                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DarkTextBox}"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding DisplayName}" Foreground="White" VerticalAlignment="Center"/>
                             <TextBlock Grid.Row="1" Text="型号" Style="{StaticResource FieldLabel}"/>
-                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ModelName}" IsReadOnly="True" Style="{StaticResource DarkTextBox}"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ModelName}" Foreground="#AAAAAA" VerticalAlignment="Center"/>
                             <TextBlock Grid.Row="2" Text="序列号" Style="{StaticResource FieldLabel}"/>
-                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding AssignedSerial}" IsReadOnly="True" Style="{StaticResource DarkTextBox}"/>
-                            <TextBlock Grid.Row="3" Text="启用" Style="{StaticResource FieldLabel}"/>
-                            <ToggleButton Grid.Row="3" Grid.Column="1" Width="42" Height="22"
-                                          IsChecked="{Binding IsEnabled}" HorizontalAlignment="Left"
-                                          Style="{StaticResource CameraToggle}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding AssignedSerial}" Foreground="#AAAAAA" VerticalAlignment="Center"/>
                         </Grid>
                     </TabItem>
 
