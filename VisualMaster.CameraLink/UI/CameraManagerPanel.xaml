@@ -28,22 +28,24 @@
             </Grid.ColumnDefinitions>
 
             <DockPanel Grid.Column="0" Background="{DynamicResource CameraColorSidePanel}">
-                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Background="{DynamicResource CameraColorToolbarBg}" Margin="6">
-                    <Button Content="扫描" Command="{Binding ScanCommand}" Style="{StaticResource DarkButton}"/>
-                    <Button Content="添加" Command="{Binding AddCameraCommand}" Style="{StaticResource DarkButton}"/>
-                    <Button Content="删除" Command="{Binding RemoveCameraCommand}" Style="{StaticResource DarkButton}"/>
-                </StackPanel>
-
-                <TextBlock DockPanel.Dock="Top" Text="已配置设备" Style="{StaticResource SectionLabel}" Margin="10,6,10,0"/>
+                <TextBlock DockPanel.Dock="Top" Text="已配置设备" Style="{StaticResource SectionLabel}" Margin="10,6,10,0" Height="23"/>
                 <ListBox DockPanel.Dock="Top"
                          Height="210"
                          Margin="8,0,8,8"
                          Style="{StaticResource DarkListBox}"
                          ItemsSource="{Binding Cameras}"
                          SelectedItem="{Binding SelectedCamera, Mode=TwoWay}"
-                         ItemTemplate="{StaticResource CameraListItem}" d:ItemsSource="{d:SampleData ItemCount=5}"/>
+                         ItemTemplate="{StaticResource CameraListItem}"
+                         PreviewMouseRightButtonDown="OnCameraListRightClick" d:ItemsSource="{d:SampleData ItemCount=5}"/>
 
-                <TextBlock DockPanel.Dock="Top" Text="扫描发现" Style="{StaticResource SectionLabel}" Margin="10,2,10,0"/>
+                <Grid DockPanel.Dock="Top" Margin="10,2,10,0">
+                    <TextBlock Text="扫描发现" Style="{StaticResource SectionLabel}" HorizontalAlignment="Left" Margin="0,5,0,5"/>
+                    <Button Content="&#xE72E;" Style="{StaticResource IconButton}"
+                            Command="{Binding ScanCommand}" ToolTip="扫描相机"
+                            HorizontalAlignment="Left"
+                            Width="16" Height="22" MinWidth="22" Padding="0"
+                            FontSize="14" Margin="254,3,0,3"/>
+                </Grid>
                 <ListBox Margin="8,0,8,8"
                          Style="{StaticResource DarkListBox}"
                          ItemsSource="{Binding DiscoveredDevices}"
@@ -55,11 +57,7 @@
 
             <DockPanel Grid.Column="2" Background="{DynamicResource CameraColorRootBg}">
                 <ToolBar DockPanel.Dock="Top" Style="{StaticResource DarkToolBar}">
-                    <Button Content="连接" Command="{Binding ConnectCommand}" Style="{StaticResource DarkButton}"/>
-                    <Button Content="断开" Command="{Binding DisconnectCommand}" Style="{StaticResource DarkButton}"/>
-                    <Button Content="开始采集" Command="{Binding StartGrabbingCommand}" Style="{StaticResource DarkButton}"/>
-                    <Button Content="停止采集" Command="{Binding StopGrabbingCommand}" Style="{StaticResource DarkButton}"/>
-                    <Separator/>
+                    <Button Content="&#xE777;" Command="{Binding ReloadConfigCommand}" Style="{StaticResource IconButton}" ToolTip="重载配置并重启采集"/>
                     <Button Content="&#xE890;" Command="{Binding OpenPreviewCommand}" Style="{StaticResource IconButton}" ToolTip="打开预览窗口"/>
                 </ToolBar>
 
@@ -76,11 +74,59 @@
                                 <RowDefinition Height="34"/>
                             </Grid.RowDefinitions>
                             <TextBlock Grid.Row="0" Text="名称" Style="{StaticResource FieldLabel}"/>
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding DisplayName}" Foreground="White" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding DisplayName}" VerticalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="White"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding DisplayName}" Value="">
+                                                <Setter Property="Text" Value="---"/>
+                                                <Setter Property="Foreground" Value="#666666"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding DisplayName}" Value="{x:Null}">
+                                                <Setter Property="Text" Value="---"/>
+                                                <Setter Property="Foreground" Value="#666666"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
                             <TextBlock Grid.Row="1" Text="型号" Style="{StaticResource FieldLabel}"/>
-                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ModelName}" Foreground="#AAAAAA" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ModelName}" VerticalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="#AAAAAA"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ModelName}" Value="">
+                                                <Setter Property="Text" Value="---"/>
+                                                <Setter Property="Foreground" Value="#555555"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding ModelName}" Value="{x:Null}">
+                                                <Setter Property="Text" Value="---"/>
+                                                <Setter Property="Foreground" Value="#555555"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
                             <TextBlock Grid.Row="2" Text="序列号" Style="{StaticResource FieldLabel}"/>
-                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding AssignedSerial}" Foreground="#AAAAAA" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding AssignedSerial}" VerticalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="#AAAAAA"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding AssignedSerial}" Value="">
+                                                <Setter Property="Text" Value="---"/>
+                                                <Setter Property="Foreground" Value="#555555"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding AssignedSerial}" Value="{x:Null}">
+                                                <Setter Property="Text" Value="---"/>
+                                                <Setter Property="Foreground" Value="#555555"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
                         </Grid>
                     </TabItem>
 

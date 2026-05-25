@@ -67,6 +67,7 @@
     <!-- UI / ViewModels -->
     <Compile Include="UI\ViewModels\NotifyBase.cs" />
     <Compile Include="UI\ViewModels\RelayCommand.cs" />
+    <Compile Include="UI\RenameDialog.cs" />
     <Compile Include="UI\ViewModels\CameraConfigViewModel.cs" />
     <Compile Include="UI\ViewModels\CameraItemViewModel.cs" />
     <Compile Include="UI\ViewModels\CameraManagerViewModel.cs" />

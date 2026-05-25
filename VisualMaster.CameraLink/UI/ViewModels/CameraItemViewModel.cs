@@ -33,6 +33,8 @@ namespace VisualMaster.CameraLink.UI.ViewModels
         public bool IsConnected => _status?.IsConnected == true;
         public bool IsGrabbing  => _status?.IsGrabbing  == true;
 
+        public Action<CameraItemViewModel> IsEnabledChangedCallback { get; set; }
+
         public bool IsEnabled
         {
             get => _config.IsEnabled;
@@ -42,6 +44,7 @@ namespace VisualMaster.CameraLink.UI.ViewModels
                 {
                     _config.IsEnabled = value;
                     OnPropertyChanged();
+                    IsEnabledChangedCallback?.Invoke(this);
                     NotifyConfigChanged();
                 }
             }

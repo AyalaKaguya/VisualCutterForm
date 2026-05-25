@@ -70,13 +70,9 @@ namespace VisualMaster.CameraLink.UI.ViewModels
 
         // ── 命令 ──────────────────────────────────────────────────────
         public ICommand ScanCommand           { get; }
-        public ICommand AddCameraCommand      { get; }
         public ICommand RemoveCameraCommand   { get; }
-        public ICommand ConnectCommand        { get; }
-        public ICommand DisconnectCommand     { get; }
-        public ICommand StartGrabbingCommand  { get; }
-        public ICommand StopGrabbingCommand   { get; }
         public ICommand OpenPreviewCommand    { get; }
+        public ICommand ReloadConfigCommand   { get; }
 
         public CameraManagerViewModel(ICameraManager manager, CameraSystemConfig config)
         {
@@ -84,13 +80,9 @@ namespace VisualMaster.CameraLink.UI.ViewModels
             _config  = config  ?? throw new ArgumentNullException(nameof(config));
 
             ScanCommand          = new RelayCommand(ExecuteScan,          () => !IsBusy);
-            AddCameraCommand     = new RelayCommand(ExecuteAddCamera,     () => !IsBusy && SelectedDiscovered != null);
             RemoveCameraCommand  = new RelayCommand(ExecuteRemoveCamera,  () => !IsBusy && SelectedCamera != null);
-            ConnectCommand       = new RelayCommand(ExecuteConnect,       () => !IsBusy && SelectedCamera != null && !SelectedCamera.IsConnected);
-            DisconnectCommand    = new RelayCommand(ExecuteDisconnect,    () => !IsBusy && SelectedCamera != null && SelectedCamera.IsConnected);
-            StartGrabbingCommand = new RelayCommand(ExecuteStartGrabbing, () => !IsBusy && SelectedCamera != null && SelectedCamera.IsConnected && !SelectedCamera.IsGrabbing);
-            StopGrabbingCommand  = new RelayCommand(ExecuteStopGrabbing,  () => !IsBusy && SelectedCamera != null && SelectedCamera.IsGrabbing);
             OpenPreviewCommand   = new RelayCommand(ExecuteOpenPreview,   () => !IsBusy && SelectedCamera != null && SelectedCamera.IsConnected);
+            ReloadConfigCommand  = new RelayCommand(ExecuteReloadConfig,  () => !IsBusy && SelectedCamera != null);
 
             // 从已有配置加载设备列表
             LoadFromConfig();
@@ -196,71 +188,102 @@ namespace VisualMaster.CameraLink.UI.ViewModels
         private void ExecuteRemoveCamera()
         {
             if (SelectedCamera == null) return;
+            if (SelectedCamera.IsConnected)
+            {
+                try { _manager.StopGrabbing(SelectedCamera.DeviceId); } catch { }
+                try { _manager.CloseDevice(SelectedCamera.DeviceId); } catch { }
+            }
             _config.RemoveDevice(SelectedCamera.DeviceId);
         }
 
-        private void ExecuteConnect()
+        public void RenameSelectedCamera(string newName)
+        {
+            if (SelectedCamera == null || string.IsNullOrWhiteSpace(newName)) return;
+            SelectedCamera.DisplayName = newName;
+        }
+
+        private void OnIsEnabledChanged(CameraItemViewModel vm)
+        {
+            if (IsBusy || vm == null) return;
+
+            if (vm.IsEnabled)
+            {
+                var info = DiscoveredDevices.FirstOrDefault(d =>
+                    d.Info.SerialNumber == vm.AssignedSerial)?.Info;
+                if (info == null || !vm.IsConnected)
+                {
+                    try
+                    {
+                        if (info != null)
+                        {
+                            _manager.OpenDevice(vm.DeviceId, info);
+                            _manager.UpdateDeviceSettings(vm.DeviceId, vm.ConfigVm.ToSettings());
+                            _manager.StartGrabbing(vm.DeviceId);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        vm.IsEnabled = false;
+                        System.Diagnostics.Debug.WriteLine($"[Camera] 自动连接失败: {vm.DisplayName}\n{ex.Message}");
+                    }
+                }
+            }
+            else
+            {
+                try
+                {
+                    if (vm.IsGrabbing) _manager.StopGrabbing(vm.DeviceId);
+                    if (vm.IsConnected) _manager.CloseDevice(vm.DeviceId);
+                }
+                catch { }
+            }
+
+            vm.RefreshStatus(_manager.GetDeviceStatus(vm.DeviceId));
+            RefreshCommands();
+        }
+
+        private async void ExecuteReloadConfig()
         {
             if (SelectedCamera == null) return;
+            IsBusy = true;
+            StatusMessage = "正在重载配置...";
+
             try
             {
-                var info = DiscoveredDevices
-                    .FirstOrDefault(d => d.Info.SerialNumber == SelectedCamera.AssignedSerial)
-                    ?.Info;
+                var wasEnabled = SelectedCamera.IsEnabled;
+                var info = DiscoveredDevices.FirstOrDefault(d =>
+                    d.Info.SerialNumber == SelectedCamera.AssignedSerial)?.Info;
+
                 if (info == null)
                 {
-                    StatusMessage = "未找到匹配的物理相机，请先扫描。";
+                    StatusMessage = "未找到匹配相机，请先扫描。";
                     return;
                 }
+
+                _manager.CloseDevice(SelectedCamera.DeviceId);
+
+                _config.UpdateDevice(SelectedCamera.GetConfig());
+
                 _manager.OpenDevice(SelectedCamera.DeviceId, info);
+                _manager.UpdateDeviceSettings(SelectedCamera.DeviceId, SelectedCamera.ConfigVm.ToSettings());
+
+                if (wasEnabled)
+                {
+                    _manager.StartGrabbing(SelectedCamera.DeviceId);
+                }
+
                 SelectedCamera.RefreshStatus(_manager.GetDeviceStatus(SelectedCamera.DeviceId));
-                StatusMessage = $"已连接：{SelectedCamera.DisplayName}";
+                StatusMessage = "配置已重载。";
             }
             catch (Exception ex)
             {
-                StatusMessage = $"连接失败：{ex.Message}";
+                StatusMessage = $"重载失败: {ex.Message}";
             }
-            RefreshCommands();
-        }
-
-        private void ExecuteDisconnect()
-        {
-            if (SelectedCamera == null) return;
-            try
+            finally
             {
-                _manager.CloseDevice(SelectedCamera.DeviceId);
-                SelectedCamera.RefreshStatus(_manager.GetDeviceStatus(SelectedCamera.DeviceId));
-                StatusMessage = $"已断开：{SelectedCamera.DisplayName}";
+                IsBusy = false;
+                RefreshCommands();
             }
-            catch (Exception ex) { StatusMessage = $"断开失败：{ex.Message}"; }
-            RefreshCommands();
-        }
-
-        private void ExecuteStartGrabbing()
-        {
-            if (SelectedCamera == null) return;
-            try
-            {
-                _manager.UpdateDeviceSettings(SelectedCamera.DeviceId, SelectedCamera.ConfigVm.ToSettings());
-                _manager.StartGrabbing(SelectedCamera.DeviceId);
-                SelectedCamera.RefreshStatus(_manager.GetDeviceStatus(SelectedCamera.DeviceId));
-                StatusMessage = $"已启动采集：{SelectedCamera.DisplayName}";
-            }
-            catch (Exception ex) { StatusMessage = $"启动采集失败：{ex.Message}"; }
-            RefreshCommands();
-        }
-
-        private void ExecuteStopGrabbing()
-        {
-            if (SelectedCamera == null) return;
-            try
-            {
-                _manager.StopGrabbing(SelectedCamera.DeviceId);
-                SelectedCamera.RefreshStatus(_manager.GetDeviceStatus(SelectedCamera.DeviceId));
-                StatusMessage = $"已停止采集：{SelectedCamera.DisplayName}";
-            }
-            catch (Exception ex) { StatusMessage = $"停止采集失败：{ex.Message}"; }
-            RefreshCommands();
         }
 
         private void ExecuteOpenPreview()
@@ -316,6 +339,7 @@ namespace VisualMaster.CameraLink.UI.ViewModels
         {
             var vm = new CameraItemViewModel(cfg);
             vm.ConfigChanged += OnCameraConfigChanged;
+            vm.IsEnabledChangedCallback = OnIsEnabledChanged;
             return vm;
         }
 
@@ -329,13 +353,9 @@ namespace VisualMaster.CameraLink.UI.ViewModels
         private void RefreshCommands()
         {
             (ScanCommand          as RelayCommand)?.RaiseCanExecuteChanged();
-            (AddCameraCommand     as RelayCommand)?.RaiseCanExecuteChanged();
             (RemoveCameraCommand  as RelayCommand)?.RaiseCanExecuteChanged();
-            (ConnectCommand       as RelayCommand)?.RaiseCanExecuteChanged();
-            (DisconnectCommand    as RelayCommand)?.RaiseCanExecuteChanged();
-            (StartGrabbingCommand as RelayCommand)?.RaiseCanExecuteChanged();
-            (StopGrabbingCommand  as RelayCommand)?.RaiseCanExecuteChanged();
             (OpenPreviewCommand   as RelayCommand)?.RaiseCanExecuteChanged();
+            (ReloadConfigCommand  as RelayCommand)?.RaiseCanExecuteChanged();
         }
 
         private static void InvokeOnUI(Action action)

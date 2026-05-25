@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Background="{DynamicResource ColorRootBg}"
              Foreground="White"
+             MinWidth="500"
              FontSize="15">
     <UserControl.Resources>
         <ResourceDictionary>
