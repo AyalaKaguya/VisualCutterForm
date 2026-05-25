@@ -10,7 +10,7 @@ namespace VisualMaster.CameraLink.App
 {
     public partial class App : Application
     {
-        private CameraManager _manager;
+        private ICameraManager _manager;
 
         protected override void OnStartup(StartupEventArgs e)
         {
@@ -42,7 +42,7 @@ namespace VisualMaster.CameraLink.App
             };
 
             // 初始化相机管理器
-            _manager = new CameraManager();
+            _manager = new VisualMaster.CameraLink.Core.CameraManager();
             _manager.Initialize();
             _manager.LoadConfig(sysConfig);
 

@@ -1,4 +1,6 @@
 using VisualMaster.CameraLink.UI.ViewModels;
+using System;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -73,6 +75,34 @@ namespace VisualMaster.CameraLink.UI
                 current = VisualTreeHelper.GetParent(current);
             }
             return null;
+        }
+
+        private void OnRoiNumUp(object sender, RoutedEventArgs e)
+        {
+            AdjustRoiNum(sender, 1);
+        }
+
+        private void OnRoiNumDown(object sender, RoutedEventArgs e)
+        {
+            AdjustRoiNum(sender, -1);
+        }
+
+        private static void AdjustRoiNum(object sender, int delta)
+        {
+            var btn = sender as FrameworkElement;
+            if (btn == null) return;
+
+            var parentGrid = FindParent<Grid>(btn);
+            if (parentGrid == null) return;
+
+            var textBox = parentGrid.Children.OfType<TextBox>().FirstOrDefault();
+            if (textBox == null) return;
+
+            if (int.TryParse(textBox.Text, out int v))
+            {
+                v = Math.Max(0, v + delta);
+                textBox.Text = v.ToString();
+            }
         }
     }
 }

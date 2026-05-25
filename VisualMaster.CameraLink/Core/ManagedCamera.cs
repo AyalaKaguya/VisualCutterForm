@@ -118,6 +118,13 @@ namespace VisualMaster.CameraLink.Core
             catch { return Array.Empty<string>(); }
         }
 
+        public string[] GetAvailableTriggerSources()
+        {
+            if (Driver == null) return Array.Empty<string>();
+            try { return Driver.GetAvailableTriggerSources(); }
+            catch { return Array.Empty<string>(); }
+        }
+
         public void ApplySettings(CameraSettings settings)
         {
             if (settings == null) return;

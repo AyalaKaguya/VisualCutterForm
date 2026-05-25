@@ -50,25 +50,7 @@ namespace VisualMaster.Api
         ImageFifo GetFifo(string deviceId);
         bool TryGrabImage(string deviceId, out Bitmap bitmap, int timeoutMs);
         string[] GetAvailablePixelFormats(string deviceId);
-
-        // ── 已废弃的槽位 API（保留向后兼容，将在后续版本删除）────────────
-        [Obsolete("Use AddDevice / CameraDevices instead.", false)]
-        IReadOnlyList<CameraSlot> Slots { get; }
-
-        [Obsolete("Use AddDevice instead.", false)]
-        CameraSlot AddSlot(string name, CameraSettings settings = null);
-
-        [Obsolete("Use RemoveDevice instead.", false)]
-        void RemoveSlot(string slotId);
-
-        [Obsolete("Use OpenDevice instead.", false)]
-        void OpenSlot(string slotId, CameraInfo info);
-
-        [Obsolete("Use CloseDevice instead.", false)]
-        void CloseSlot(string slotId);
-
-        [Obsolete("Use IsDeviceOpen instead.", false)]
-        bool IsSlotOpen(string slotId);
+        string[] GetAvailableTriggerSources(string deviceId);
 
         // ── 事件 ───────────────────────────────────────────────────────
         /// <summary>设备已打开（连接到相机）。</summary>
@@ -76,11 +58,5 @@ namespace VisualMaster.Api
 
         /// <summary>设备已关闭。</summary>
         event EventHandler<CameraDeviceConfig> DeviceClosed;
-
-        [Obsolete("Use DeviceOpened instead.", false)]
-        event EventHandler<CameraSlot> SlotOpened;
-
-        [Obsolete("Use DeviceClosed instead.", false)]
-        event EventHandler<CameraSlot> SlotClosed;
     }
 }

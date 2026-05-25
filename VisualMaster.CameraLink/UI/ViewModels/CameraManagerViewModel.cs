@@ -217,6 +217,7 @@ namespace VisualMaster.CameraLink.UI.ViewModels
                         if (info != null)
                         {
                             _manager.OpenDevice(vm.DeviceId, info);
+                            RefreshCameraOptions(vm.DeviceId);
                             _manager.UpdateDeviceSettings(vm.DeviceId, vm.ConfigVm.ToSettings());
                             _manager.StartGrabbing(vm.DeviceId);
                         }
@@ -265,6 +266,7 @@ namespace VisualMaster.CameraLink.UI.ViewModels
                 _config.UpdateDevice(SelectedCamera.GetConfig());
 
                 _manager.OpenDevice(SelectedCamera.DeviceId, info);
+                RefreshCameraOptions(SelectedCamera.DeviceId);
                 _manager.UpdateDeviceSettings(SelectedCamera.DeviceId, SelectedCamera.ConfigVm.ToSettings());
 
                 if (wasEnabled)
@@ -295,6 +297,22 @@ namespace VisualMaster.CameraLink.UI.ViewModels
                 Owner = Application.Current?.MainWindow,
             };
             window.Show();
+        }
+
+        private void RefreshCameraOptions(string deviceId)
+        {
+            if (SelectedCamera == null) return;
+            try
+            {
+                var sources = _manager.GetAvailableTriggerSources(deviceId);
+                if (sources != null && sources.Length > 0)
+                    SelectedCamera.ConfigVm.TriggerSources = sources;
+
+                var formats = _manager.GetAvailablePixelFormats(deviceId);
+                if (formats != null && formats.Length > 0)
+                    SelectedCamera.ConfigVm.PixelFormats = formats;
+            }
+            catch { }
         }
 
         // ── 配置变更事件响应 ──────────────────────────────────────────

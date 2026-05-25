@@ -23,6 +23,8 @@ namespace VisualMaster.CameraLink.UI
             InitializeComponent();
 
             Panel.DataContext = _viewModel;
+
+            Loaded += (s, e) => _viewModel.ScanCommand.Execute(null);
         }
 
         protected override void OnClosed(EventArgs e)

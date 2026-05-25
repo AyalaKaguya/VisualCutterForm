@@ -15,6 +15,22 @@ namespace VisualMaster.CameraLink.UI.ViewModels
         public string[] TriggerActivations { get; } =
             new[] { "RisingEdge", "FallingEdge", "AnyEdge", "LevelHigh", "LevelLow" };
 
+        public int[] FifoOptions { get; } = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+
+        private string[] _triggerSources = new[] { "Software", "Line0", "Line1", "Line2", "Line3" };
+        public string[] TriggerSources
+        {
+            get => _triggerSources;
+            set { _triggerSources = value ?? new string[0]; OnPropertyChanged(); }
+        }
+
+        private string[] _pixelFormats = new string[0];
+        public string[] PixelFormats
+        {
+            get => _pixelFormats;
+            set { _pixelFormats = value ?? new string[0]; OnPropertyChanged(); }
+        }
+
         private double _exposureTimeUs;
         private double _gainRaw;
         private int _width;
@@ -27,6 +43,13 @@ namespace VisualMaster.CameraLink.UI.ViewModels
         private string _triggerActivation;
         private int _fifoCapacity;
         private bool _monochromeOutput;
+        private bool _isRoiEnabled;
+
+        public bool IsRoiEnabled
+        {
+            get => _isRoiEnabled;
+            set { if (SetField(ref _isRoiEnabled, value)) Notify(); }
+        }
 
         public double ExposureTimeUs
         {
@@ -131,6 +154,7 @@ namespace VisualMaster.CameraLink.UI.ViewModels
             _triggerActivation = s.TriggerActivation ?? "RisingEdge";
             _fifoCapacity     = s.FifoCapacity;
             _monochromeOutput = s.MonochromeOutput;
+            _isRoiEnabled     = s.Width > 0 || s.Height > 0;
 
             OnPropertyChanged(null);          // 刷新所有绑定
         }
@@ -139,10 +163,10 @@ namespace VisualMaster.CameraLink.UI.ViewModels
         {
             ExposureTimeUs    = _exposureTimeUs,
             GainRaw           = _gainRaw,
-            Width             = _width,
-            Height            = _height,
-            OffsetX           = _offsetX,
-            OffsetY           = _offsetY,
+            Width             = _isRoiEnabled ? _width : 0,
+            Height            = _isRoiEnabled ? _height : 0,
+            OffsetX           = _isRoiEnabled ? _offsetX : 0,
+            OffsetY           = _isRoiEnabled ? _offsetY : 0,
             PixelFormat       = _pixelFormat ?? "",
             TriggerMode       = _triggerMode,
             TriggerSource     = _triggerSource ?? "Software",

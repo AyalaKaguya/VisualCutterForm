@@ -49,7 +49,8 @@ namespace VisualMaster.CameraLink.API
 
         /// <summary>获取相机支持的像素格式列表。</summary>
         string[] GetAvailablePixelFormats();
-
+        /// <summary>获取相机支持的触发源列表。</summary>
+        string[] GetAvailableTriggerSources();
         /// <summary>将设备信息转换为 Api 层通用的 CameraInfo。</summary>
         CameraInfo ToCameraInfo();
 

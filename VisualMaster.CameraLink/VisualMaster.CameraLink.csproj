@@ -51,7 +51,6 @@
   </ItemGroup>
   <ItemGroup>
     <!-- API 层 -->
-    <Compile Include="API\CameraAcquireMode.cs" />
     <Compile Include="API\DiscoveredCamera.cs" />
     <Compile Include="API\FrameAcquiredEventArgs.cs" />
     <Compile Include="API\ICameraAdapter.cs" />
@@ -61,6 +60,7 @@
     <Compile Include="Adapter\HikrobotDevice.cs" />
     <!-- Core 层 -->
     <Compile Include="Core\ManagedCamera.cs" />
+    <Compile Include="Core\CameraManager.cs" />
     <!-- 根命名空间（保持对外 API 兼容） -->
     <Compile Include="CameraManager.cs" />
     <Compile Include="MvsCamera.cs" />

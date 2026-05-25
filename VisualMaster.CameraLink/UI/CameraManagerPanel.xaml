@@ -38,14 +38,29 @@
                          ItemTemplate="{StaticResource CameraListItem}"
                          PreviewMouseRightButtonDown="OnCameraListRightClick" d:ItemsSource="{d:SampleData ItemCount=5}"/>
 
-                <Grid DockPanel.Dock="Top" Margin="10,2,10,0">
+                <DockPanel DockPanel.Dock="Top" Margin="10,2,10,0">
                     <TextBlock Text="扫描发现" Style="{StaticResource SectionLabel}" HorizontalAlignment="Left" Margin="0,5,0,5"/>
-                    <Button Content="&#xE72E;" Style="{StaticResource IconButton}"
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <TextBlock DockPanel.Dock="Top" Text="{Binding StatusMessage}" Foreground="#AAAAAA" FontSize="12"
+                           Margin="10,5,10,5" TextTrimming="CharacterEllipsis">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <Button Content="&#xE777;" Style="{StaticResource IconButton}"
                             Command="{Binding ScanCommand}" ToolTip="扫描相机"
-                            HorizontalAlignment="Left"
-                            Width="16" Height="22" MinWidth="22" Padding="0"
-                            FontSize="14" Margin="254,3,0,3"/>
-                </Grid>
+                            HorizontalAlignment="Right"
+                            Width="22" Height="22" MinWidth="22" Padding="0"
+                            FontSize="10" Margin="0,3,3,3"/>
+                    </StackPanel>
+                </DockPanel>
                 <ListBox Margin="8,0,8,8"
                          Style="{StaticResource DarkListBox}"
                          ItemsSource="{Binding DiscoveredDevices}"
@@ -56,10 +71,10 @@
             <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" Background="{DynamicResource CameraColorButtonBg}"/>
 
             <DockPanel Grid.Column="2" Background="{DynamicResource CameraColorRootBg}">
-                <ToolBar DockPanel.Dock="Top" Style="{StaticResource DarkToolBar}">
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
                     <Button Content="&#xE777;" Command="{Binding ReloadConfigCommand}" Style="{StaticResource IconButton}" ToolTip="重载配置并重启采集"/>
                     <Button Content="&#xE890;" Command="{Binding OpenPreviewCommand}" Style="{StaticResource IconButton}" ToolTip="打开预览窗口"/>
-                </ToolBar>
+                </StackPanel>
 
                 <TabControl Margin="10" Style="{StaticResource DarkTabControl}" DataContext="{Binding SelectedCamera}">
                     <TabItem Header="设备">
@@ -131,62 +146,172 @@
                     </TabItem>
 
                     <TabItem Header="采集">
-                        <Grid Margin="12" DataContext="{Binding ConfigVm}">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="110"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="110"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="34"/>
-                                <RowDefinition Height="34"/>
-                                <RowDefinition Height="34"/>
-                                <RowDefinition Height="34"/>
-                            </Grid.RowDefinitions>
-                            <TextBlock Grid.Row="0" Text="触发模式" Style="{StaticResource FieldLabel}"/>
-                            <ComboBox Grid.Row="0" Grid.Column="1" SelectedItem="{Binding TriggerMode}" ItemsSource="{Binding TriggerModes}" Style="{StaticResource DarkComboBox}"/>
-                            <TextBlock Grid.Row="0" Grid.Column="2" Text="触发源" Style="{StaticResource FieldLabel}" Margin="18,0,8,0"/>
-                            <TextBox Grid.Row="0" Grid.Column="3" Text="{Binding TriggerSource, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsTriggerSourceEnabled}" Style="{StaticResource DarkTextBox}"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="12" DataContext="{Binding ConfigVm}">
+                            <StackPanel>
+                                <TextBlock Text="触发配置" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,6"/>
+                                <Border Height="1" Background="#303030" Margin="0,0,0,10"/>
+                                <Grid Margin="0,0,0,16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="30"/>
+                                        <RowDefinition Height="30"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Text="触发模式" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox Grid.Row="0" Grid.Column="1" Height="26" SelectedItem="{Binding TriggerMode}" ItemsSource="{Binding TriggerModes}" Style="{StaticResource DarkComboBox}"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="触发源" Style="{StaticResource FieldLabel}" Margin="12,0,8,0"/>
+                                    <ComboBox Grid.Row="0" Grid.Column="3" Height="26" SelectedItem="{Binding TriggerSource}" ItemsSource="{Binding TriggerSources}" IsEnabled="{Binding IsTriggerSourceEnabled}" Style="{StaticResource DarkComboBox}"/>
+                                    <TextBlock Grid.Row="1" Text="信号边沿" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox Grid.Row="1" Grid.Column="1" Height="26" SelectedItem="{Binding TriggerActivation}" ItemsSource="{Binding TriggerActivations}" IsEnabled="{Binding IsTriggerSourceEnabled}" Style="{StaticResource DarkComboBox}"/>
+                                </Grid>
 
-                            <TextBlock Grid.Row="1" Text="信号边沿" Style="{StaticResource FieldLabel}"/>
-                            <ComboBox Grid.Row="1" Grid.Column="1" SelectedItem="{Binding TriggerActivation}" ItemsSource="{Binding TriggerActivations}" IsEnabled="{Binding IsTriggerSourceEnabled}" Style="{StaticResource DarkComboBox}"/>
-                            <TextBlock Grid.Row="1" Grid.Column="2" Text="队列容量" Style="{StaticResource FieldLabel}" Margin="18,0,8,0"/>
-                            <TextBox Grid.Row="1" Grid.Column="3" Text="{Binding FifoCapacity, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DarkTextBox}"/>
+                                <TextBlock Text="曝光配置" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,6"/>
+                                <Border Height="1" Background="#303030" Margin="0,0,0,10"/>
+                                <Grid Margin="0,0,0,16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="30"/>
+                                        <RowDefinition Height="30"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Text="曝光 (us)" Style="{StaticResource FieldLabel}"/>
+                                    <Grid Grid.Row="0" Grid.Column="1" VerticalAlignment="Center">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="64"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Slider Value="{Binding ExposureTimeUs}" Minimum="1" Maximum="1000000" TickFrequency="1000"
+                                                IsSnapToTickEnabled="True" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                        <TextBox Grid.Column="1" Text="{Binding ExposureTimeUs, UpdateSourceTrigger=PropertyChanged}"
+                                                 Width="56" Height="24" VerticalContentAlignment="Center" Style="{StaticResource DarkTextBox}"/>
+                                    </Grid>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="增益" Style="{StaticResource FieldLabel}" Margin="12,0,8,0"/>
+                                    <Grid Grid.Row="0" Grid.Column="3" VerticalAlignment="Center">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="64"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Slider Value="{Binding GainRaw}" Minimum="0" Maximum="40" TickFrequency="0.1"
+                                                IsSnapToTickEnabled="True" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                        <TextBox Grid.Column="1" Text="{Binding GainRaw, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:F1}}"
+                                                 Width="56" Height="24" VerticalContentAlignment="Center" Style="{StaticResource DarkTextBox}"/>
+                                    </Grid>
+                                    <TextBlock Grid.Row="1" Text="像素格式" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox Grid.Row="1" Grid.Column="1" Height="26" SelectedItem="{Binding PixelFormat}" ItemsSource="{Binding PixelFormats}" Style="{StaticResource DarkComboBox}"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="2" Text="黑白输出" Style="{StaticResource FieldLabel}" Margin="12,0,8,0"/>
+                                    <CheckBox Grid.Row="1" Grid.Column="3" IsChecked="{Binding MonochromeOutput}" Foreground="{DynamicResource CameraColorTextPrimary}" VerticalAlignment="Center"/>
+                                </Grid>
 
-                            <TextBlock Grid.Row="2" Text="曝光 (us)" Style="{StaticResource FieldLabel}"/>
-                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding ExposureTimeUs, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DarkTextBox}"/>
-                            <TextBlock Grid.Row="2" Grid.Column="2" Text="增益" Style="{StaticResource FieldLabel}" Margin="18,0,8,0"/>
-                            <TextBox Grid.Row="2" Grid.Column="3" Text="{Binding GainRaw, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DarkTextBox}"/>
-
-                            <TextBlock Grid.Row="3" Text="像素格式" Style="{StaticResource FieldLabel}"/>
-                            <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding PixelFormat, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DarkTextBox}"/>
-                            <TextBlock Grid.Row="3" Grid.Column="2" Text="黑白输出" Style="{StaticResource FieldLabel}" Margin="18,0,8,0"/>
-                            <CheckBox Grid.Row="3" Grid.Column="3" IsChecked="{Binding MonochromeOutput}" Foreground="{DynamicResource CameraColorTextPrimary}" VerticalAlignment="Center"/>
-                        </Grid>
+                                <TextBlock Text="FIFO 配置" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,6"/>
+                                <Border Height="1" Background="#303030" Margin="0,0,0,10"/>
+                                <Grid Margin="0,0,0,16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="30"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Text="队列容量" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox Grid.Row="0" Grid.Column="1" Height="26" Width="80" HorizontalAlignment="Left"
+                                              SelectedItem="{Binding FifoCapacity}" ItemsSource="{Binding FifoOptions}" Style="{StaticResource DarkComboBox}"/>
+                                </Grid>
+                            </StackPanel>
+                        </ScrollViewer>
                     </TabItem>
 
                     <TabItem Header="ROI">
-                        <Grid Margin="12" DataContext="{Binding ConfigVm}">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="70"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="70"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="34"/>
-                                <RowDefinition Height="34"/>
-                            </Grid.RowDefinitions>
-                            <TextBlock Grid.Row="0" Text="X" Style="{StaticResource FieldLabel}"/>
-                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding OffsetX, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DarkTextBox}"/>
-                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Y" Style="{StaticResource FieldLabel}" Margin="18,0,8,0"/>
-                            <TextBox Grid.Row="0" Grid.Column="3" Text="{Binding OffsetY, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DarkTextBox}"/>
-                            <TextBlock Grid.Row="1" Text="宽" Style="{StaticResource FieldLabel}"/>
-                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Width, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DarkTextBox}"/>
-                            <TextBlock Grid.Row="1" Grid.Column="2" Text="高" Style="{StaticResource FieldLabel}" Margin="18,0,8,0"/>
-                            <TextBox Grid.Row="1" Grid.Column="3" Text="{Binding Height, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DarkTextBox}"/>
-                        </Grid>
+                        <StackPanel Margin="12" DataContext="{Binding ConfigVm}">
+                            <DockPanel Margin="0,0,0,10">
+                                <TextBlock Text="启用 ROI" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <ToggleButton Width="42" Height="22" IsChecked="{Binding IsRoiEnabled}"
+                                              Style="{StaticResource CameraToggle}" VerticalAlignment="Center"/>
+                            </DockPanel>
+                            <Grid Margin="0,0,0,16">
+                                <Grid.Style>
+                                    <Style TargetType="Grid">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsRoiEnabled}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Grid.Style>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="70"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="70"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="30"/>
+                                    <RowDefinition Height="30"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="0" Text="X" Style="{StaticResource FieldLabel}"/>
+                                <Grid Grid.Row="0" Grid.Column="1" Margin="0,0,12,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="18"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Text="{Binding OffsetX, UpdateSourceTrigger=PropertyChanged}" Height="26"
+                                             VerticalContentAlignment="Center" Style="{StaticResource DarkTextBox}"/>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <RepeatButton Content="▴" x:Name="RoiXUp" FontSize="6" Height="13" Padding="0" Margin="0" Click="OnRoiNumUp"/>
+                                        <RepeatButton Content="▾" x:Name="RoiXDown" FontSize="6" Height="13" Padding="0" Margin="0" Click="OnRoiNumDown"/>
+                                    </StackPanel>
+                                </Grid>
+                                <TextBlock Grid.Row="0" Grid.Column="2" Text="Y" Style="{StaticResource FieldLabel}" Margin="12,0,8,0"/>
+                                <Grid Grid.Row="0" Grid.Column="3">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="18"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Text="{Binding OffsetY, UpdateSourceTrigger=PropertyChanged}" Height="26"
+                                             VerticalContentAlignment="Center" Style="{StaticResource DarkTextBox}"/>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <RepeatButton Content="▴" FontSize="6" Height="13" Padding="0" Margin="0" Click="OnRoiNumUp"/>
+                                        <RepeatButton Content="▾" FontSize="6" Height="13" Padding="0" Margin="0" Click="OnRoiNumDown"/>
+                                    </StackPanel>
+                                </Grid>
+                                <TextBlock Grid.Row="1" Text="宽" Style="{StaticResource FieldLabel}"/>
+                                <Grid Grid.Row="1" Grid.Column="1" Margin="0,0,12,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="18"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Text="{Binding Width, UpdateSourceTrigger=PropertyChanged}" Height="26"
+                                             VerticalContentAlignment="Center" Style="{StaticResource DarkTextBox}"/>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <RepeatButton Content="▴" FontSize="6" Height="13" Padding="0" Margin="0" Click="OnRoiNumUp"/>
+                                        <RepeatButton Content="▾" FontSize="6" Height="13" Padding="0" Margin="0" Click="OnRoiNumDown"/>
+                                    </StackPanel>
+                                </Grid>
+                                <TextBlock Grid.Row="1" Grid.Column="2" Text="高" Style="{StaticResource FieldLabel}" Margin="12,0,8,0"/>
+                                <Grid Grid.Row="1" Grid.Column="3">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="18"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Text="{Binding Height, UpdateSourceTrigger=PropertyChanged}" Height="26"
+                                             VerticalContentAlignment="Center" Style="{StaticResource DarkTextBox}"/>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <RepeatButton Content="▴" FontSize="6" Height="13" Padding="0" Margin="0" Click="OnRoiNumUp"/>
+                                        <RepeatButton Content="▾" FontSize="6" Height="13" Padding="0" Margin="0" Click="OnRoiNumDown"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Grid>
+                        </StackPanel>
                     </TabItem>
                 </TabControl>
             </DockPanel>

@@ -3,6 +3,7 @@ using VisualMaster.CameraLink.API;
 using System;
 using System.Drawing;
 using System.Linq;
+using System.Threading;
 using MvCameraControl;
 
 namespace VisualMaster.CameraLink.Adapter
@@ -17,6 +18,8 @@ namespace VisualMaster.CameraLink.Adapter
         private readonly DiscoveredCamera _discovered;
         private volatile bool _isGrabbing;
         private volatile bool _disposed;
+        private int _consecutiveFailures;
+        private const int MaxConsecutiveFailures = 3;
 
         public string UniqueHardwareId => _discovered.SerialNumber;
         public bool IsOpen => _device != null;
@@ -52,6 +55,7 @@ namespace VisualMaster.CameraLink.Adapter
             }
 
             _device.StreamGrabber.FrameGrabedEvent += OnFrameGrabbed;
+            _consecutiveFailures = 0;
         }
 
         public void Close()
@@ -189,6 +193,20 @@ namespace VisualMaster.CameraLink.Adapter
             catch { return Array.Empty<string>(); }
         }
 
+        public string[] GetAvailableTriggerSources()
+        {
+            if (_device == null) return Array.Empty<string>();
+            try
+            {
+                _device.Parameters.GetEnumValue("TriggerSource", out IEnumValue enumValue);
+                return enumValue?.SupportEnumEntries?
+                    .Select(e => e.Symbolic)
+                    .Where(s => !string.IsNullOrEmpty(s))
+                    .ToArray() ?? Array.Empty<string>();
+            }
+            catch { return Array.Empty<string>(); }
+        }
+
         public CameraInfo ToCameraInfo()
         {
             return new CameraInfo
@@ -223,17 +241,41 @@ namespace VisualMaster.CameraLink.Adapter
             try
             {
                 var frame = e.FrameOut;
-                if (frame?.Image == null) return;
+                if (frame?.Image == null)
+                {
+                    Interlocked.Increment(ref _consecutiveFailures);
+                    CheckDisconnection();
+                    return;
+                }
 
                 using (var bmp = frame.Image.ToBitmap())
                 {
-                    if (bmp == null) return;
+                    if (bmp == null)
+                    {
+                        Interlocked.Increment(ref _consecutiveFailures);
+                        CheckDisconnection();
+                        return;
+                    }
                     var clone = (Bitmap)bmp.Clone();
                     FrameAcquired?.Invoke(this,
                         new FrameAcquiredEventArgs(clone, UniqueHardwareId, DateTime.Now));
+                    _consecutiveFailures = 0;
                 }
             }
-            catch { }
+            catch
+            {
+                Interlocked.Increment(ref _consecutiveFailures);
+                CheckDisconnection();
+            }
+        }
+
+        private void CheckDisconnection()
+        {
+            if (_consecutiveFailures >= MaxConsecutiveFailures)
+            {
+                try { StopGrabbing(); } catch { }
+                Disconnected?.Invoke(this, EventArgs.Empty);
+            }
         }
 
         public void Dispose()
