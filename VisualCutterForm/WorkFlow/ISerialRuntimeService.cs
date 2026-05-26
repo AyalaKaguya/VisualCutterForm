@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using VisualMaster.Api;
+using VisualCutterForm.Legacy;
 
 namespace VisualMaster.WorkFlow
 {

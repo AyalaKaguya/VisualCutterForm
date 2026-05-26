@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace VisualMaster.Api
+namespace VisualCutterForm.Legacy
 {
     public interface ISerialManager : IDisposable
     {

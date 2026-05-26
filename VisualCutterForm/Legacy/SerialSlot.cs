@@ -1,6 +1,6 @@
 using System;
 
-namespace VisualMaster.Api
+namespace VisualCutterForm.Legacy
 {
     /// <summary>
     /// 已废弃的串口槽位类。配置请使用 <see cref="SerialDeviceConfig"/>。

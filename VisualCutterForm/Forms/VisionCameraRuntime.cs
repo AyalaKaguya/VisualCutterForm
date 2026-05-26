@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Linq;
 using VisualMaster.Api;
 using VisualMaster.CameraLink;
+using VisualCutterForm.Legacy;
 
 namespace VisualMaster.Forms
 {

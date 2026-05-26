@@ -5,6 +5,7 @@ using System.Linq;
 using VisualMaster.Api;
 using VisualMaster.Communication.Api;
 using VisualMaster.Communication.Core;
+using VisualCutterForm.Legacy;
 
 namespace VisualMaster.Forms
 {

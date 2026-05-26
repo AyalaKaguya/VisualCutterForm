@@ -1,6 +1,7 @@
 using System;
+using VisualMaster.Api;
 
-namespace VisualMaster.Api
+namespace VisualCutterForm.Legacy
 {
     /// <summary>
     /// 已废弃的相机槽位类。

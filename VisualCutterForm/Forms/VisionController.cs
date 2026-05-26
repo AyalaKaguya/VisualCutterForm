@@ -3,6 +3,7 @@ using VisualMaster.CameraLink;
 using VisualMaster.Communication;
 using VisualMaster.WorkFlow;
 using VisualMaster.WorkFlow.Data;
+using VisualCutterForm.Legacy;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

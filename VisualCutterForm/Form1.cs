@@ -2,8 +2,6 @@ using VisualMaster.WorkFlow;
 using VisualMaster.WorkFlow.Data;
 using VisualMaster.WorkFlow.Triggers;
 using VisualMaster.Api;
-using VisualMaster.CameraLink;
-using VisualMaster.Communication;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -15,6 +13,7 @@ using System.Windows.Forms;
 using VisualMaster.Forms;
 using VisualMaster.Forms.Camera;
 using VisualMaster.Forms.FlowEditor;
+using VisualCutterForm.Legacy;
 using VisualMaster.WorkFlow.Nodes;
 
 namespace VisualCutterForm

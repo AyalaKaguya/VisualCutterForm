@@ -58,10 +58,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\VisualMaster.Api\VisualMaster.Api.csproj">
-      <Project>{afc9c44c-4155-40a6-b333-971924253c41}</Project>
-      <Name>VisualMaster.Api</Name>
-    </ProjectReference>
     <ProjectReference Include="..\VisualMaster.CameraLink\VisualMaster.CameraLink.csproj">
       <Project>{8AE7EBD1-875E-4868-9FA0-A6A89050CE98}</Project>
       <Name>VisualMaster.CameraLink</Name>

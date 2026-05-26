@@ -2,7 +2,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace VisualMaster.Communication
+namespace VisualCutterForm.Legacy
 {
     public static class LogRingBuffer
     {

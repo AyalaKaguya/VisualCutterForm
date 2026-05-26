@@ -9,6 +9,7 @@ using VisualMaster.WorkFlow;
 using VisualMaster.WorkFlow.Data;
 using VisualMaster.WorkFlow.Triggers;
 using VisualMaster.Communication;
+using VisualCutterForm.Legacy;
 using VisualMaster.Forms;
 using VisualMaster.Forms.Camera;
 using VisualMaster.Forms.TriggerEditor;

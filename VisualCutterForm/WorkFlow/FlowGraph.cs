@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using VisualMaster.Api;
 using VisualMaster.WorkFlow.Triggers;
+using VisualCutterForm.Legacy;
 
 namespace VisualMaster.WorkFlow
 {

@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using VisualMaster.Api;
 using VisualMaster.WorkFlow.Nodes;
 using VisualMaster.WorkFlow.Triggers;
+using VisualCutterForm.Legacy;
 
 namespace VisualMaster.WorkFlow
 {

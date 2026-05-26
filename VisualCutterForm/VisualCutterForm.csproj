@@ -45,16 +45,165 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Net.Http.WebRequest" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="MvCameraControl.Net">
       <HintPath>C:\Program Files (x86)\MVS\Development\DotNet\AnyCpu\MvCameraControl.Net.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <!-- ===== Api ===== -->
+    <Compile Include="Api\CameraDeviceConfig.cs" />
+    <Compile Include="Api\CameraDeviceStatus.cs" />
+    <Compile Include="Api\CameraFrameBuffer.cs" />
+    <Compile Include="Api\CameraFrameSnapshot.cs" />
+    <Compile Include="Api\CameraInfo.cs" />
+    <Compile Include="Api\CameraSettings.cs" />
+    <Compile Include="Api\CameraSystemConfig.cs" />
+    <Compile Include="Api\ICameraManager.cs" />
+    <Compile Include="Api\ImageFifo.cs" />
+    <Compile Include="Api\IniFile.cs" />
+    <Compile Include="Api\RuntimeDiagnosticEvent.cs" />
+    <Compile Include="Api\RuntimeDiagnosticsHub.cs" />
+    <Compile Include="Api\SerialDeviceConfig.cs" />
+    <Compile Include="Api\TriggerModeEnum.cs" />
+    <Compile Include="Api\UserRole.cs" />
+    <!-- ===== Legacy ===== -->
+    <Compile Include="Legacy\CameraManager.cs" />
+    <Compile Include="Legacy\CameraSlot.cs" />
+    <Compile Include="Legacy\ICamera.cs" />
+    <Compile Include="Legacy\ISerialManager.cs" />
+    <Compile Include="Legacy\ISerialPort.cs" />
+    <Compile Include="Legacy\LogRingBuffer.cs" />
+    <Compile Include="Legacy\SerialSlot.cs" />
+    <!-- ===== WorkFlow ===== -->
+    <Compile Include="WorkFlow\FlowContext.cs" />
+    <Compile Include="WorkFlow\FlowExecutor.cs" />
+    <Compile Include="WorkFlow\FlowGraph.cs" />
+    <Compile Include="WorkFlow\FlowNode.cs" />
+    <Compile Include="WorkFlow\FlowProjectDefinition.cs" />
+    <Compile Include="WorkFlow\FlowSerializer.cs" />
+    <Compile Include="WorkFlow\FlowSubGraph.cs" />
+    <Compile Include="WorkFlow\ICameraRuntimeService.cs" />
+    <Compile Include="WorkFlow\IDeviceConfigurationService.cs" />
+    <Compile Include="WorkFlow\IFlowServiceProvider.cs" />
+    <Compile Include="WorkFlow\ImageConverter.cs" />
+    <Compile Include="WorkFlow\ISerialRuntimeService.cs" />
+    <Compile Include="WorkFlow\NodeAttributes.cs" />
+    <Compile Include="WorkFlow\NodeConnection.cs" />
+    <Compile Include="WorkFlow\NodeFactory.cs" />
+    <Compile Include="WorkFlow\NodePin.cs" />
+    <Compile Include="WorkFlow\PinTypeResolver.cs" />
+    <Compile Include="WorkFlow\ServiceProvider.cs" />
+    <Compile Include="WorkFlow\Data\AcquisitionResult.cs" />
+    <Compile Include="WorkFlow\Data\FlowLogEntry.cs" />
+    <Compile Include="WorkFlow\Data\FlowRunMetadata.cs" />
+    <Compile Include="WorkFlow\Data\FlowTriggerContext.cs" />
+    <Compile Include="WorkFlow\Data\SerialTriggerRule.cs" />
+    <Compile Include="WorkFlow\Nodes\AcqResultToMatNode.cs" />
+    <Compile Include="WorkFlow\Nodes\CameraAcquisitionNode.cs" />
+    <Compile Include="WorkFlow\Nodes\ComputationNode.cs" />
+    <Compile Include="WorkFlow\Nodes\CSharpScriptCompiler.cs" />
+    <Compile Include="WorkFlow\Nodes\FileAcquisitionNode.cs" />
+    <Compile Include="WorkFlow\Nodes\ImageDisplayNode.cs" />
+    <Compile Include="WorkFlow\Nodes\OpenCvOperators.cs" />
+    <Compile Include="WorkFlow\Nodes\SerialReceiveNode.cs" />
+    <Compile Include="WorkFlow\Nodes\SerialSendNode.cs" />
+    <Compile Include="WorkFlow\Triggers\TriggerEntry.cs" />
+    <Compile Include="WorkFlow\Triggers\TriggerManager.cs" />
+    <!-- ===== Forms ===== -->
+    <Compile Include="Forms\AppConfig.cs" />
+    <Compile Include="Forms\DarkTheme.cs" />
+    <Compile Include="Forms\DisplayItem.cs" />
+    <Compile Include="Forms\ImageViewer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Forms\RuntimeDiagnosticsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\SerialManagerForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\SerialManagerForm.Designer.cs">
+      <DependentUpon>SerialManagerForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\VisionCameraRuntime.cs" />
+    <Compile Include="Forms\VisionController.cs" />
+    <Compile Include="Forms\VisionGraphSync.cs" />
+    <Compile Include="Forms\VisionSerialRuntime.cs" />
+    <Compile Include="Forms\Camera\CameraDiscoveryControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Forms\Camera\CameraDiscoveryControl.Designer.cs">
+      <DependentUpon>CameraDiscoveryControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Camera\CameraManagerForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Camera\CameraManagerForm.Designer.cs">
+      <DependentUpon>CameraManagerForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Camera\CameraPreviewForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Camera\CameraPreviewForm.Designer.cs">
+      <DependentUpon>CameraPreviewForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Camera\CameraSettingsControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Forms\Camera\CameraSettingsControl.Designer.cs">
+      <DependentUpon>CameraSettingsControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Camera\CameraSettingsDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Camera\CameraSettingsDialog.Designer.cs">
+      <DependentUpon>CameraSettingsDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\FlowEditor\FlowCanvas.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Forms\FlowEditor\FlowEditorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FlowEditor\FlowNodeView.cs" />
+    <Compile Include="Forms\FlowEditor\FlowPropertyInspector.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Forms\FlowEditor\FlowToolbox.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Forms\FlowEditor\InputDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FlowEditor\PropertyEditors.cs" />
+    <Compile Include="Forms\CodeEditor\CodeEditorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\CodeEditor\ReferenceManager.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\TriggerEditor\TriggerEditorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\TriggerEditor\TriggerEditorForm.Designer.cs">
+      <DependentUpon>TriggerEditorForm.cs</DependentUpon>
+    </Compile>
+    <!-- ===== Shell ===== -->
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form\LoginForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form\DefaultLoginForm.cs">
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -82,15 +231,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <Compile Include="Form\LoginForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Form\DefaultLoginForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
   </ItemGroup>
-  <ItemGroup />
-  <ItemGroup />
   <ItemGroup>
     <PackageReference Include="OpenCvSharp4.Windows" Version="4.8.0.20230708" />
     <PackageReference Include="System.IO.Ports" Version="8.0.0" />
@@ -98,15 +239,9 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NuGet.Protocol" Version="6.12.5" />
     <PackageReference Include="FCTB" Version="2.16.24" />
-    <PackageReference Include="System.Text.Json">
-      <Version>8.0.6</Version>
-    </PackageReference>
+    <PackageReference Include="System.Text.Json" Version="8.0.6" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\VisualMaster.Api\VisualMaster.Api.csproj">
-      <Project>{afc9c44c-4155-40a6-b333-971924253c41}</Project>
-      <Name>VisualMaster.Api</Name>
-    </ProjectReference>
     <ProjectReference Include="..\VisualMaster.CameraLink\VisualMaster.CameraLink.csproj">
       <Project>{8ae7ebd1-875e-4868-9fa0-a6a89050ce98}</Project>
       <Name>VisualMaster.CameraLink</Name>
@@ -114,14 +249,6 @@
     <ProjectReference Include="..\VisualMaster.Communication\VisualMaster.Communication.csproj">
       <Project>{dff219f5-74a2-416a-b51c-37a8929ac58d}</Project>
       <Name>VisualMaster.Communication</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\VisualMaster.WorkFlow\VisualMaster.WorkFlow.csproj">
-      <Project>{1d113d79-cf79-4f01-a9db-c384a9624d6a}</Project>
-      <Name>VisualMaster.WorkFlow</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\VisualMaster.Forms\VisualMaster.Forms.csproj">
-      <Project>{733e85af-f215-4914-87b8-1b082e965c0a}</Project>
-      <Name>VisualMaster.Forms</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,6 +1,6 @@
 using System;
 
-namespace VisualMaster.Api
+namespace VisualCutterForm.Legacy
 {
     public interface ISerialPort : IDisposable
     {

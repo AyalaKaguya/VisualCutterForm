@@ -1,15 +1,9 @@
+using VisualMaster.Api;
 using System;
 using System.Drawing;
 
-namespace VisualMaster.Api
+namespace VisualCutterForm.Legacy
 {
-    public enum TriggerModeEnum
-    {
-        Continuous,
-        Software,
-        Hardware,
-    }
-
     public interface ICamera : IDisposable
     {
         CameraInfo Info { get; }
