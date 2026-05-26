@@ -212,30 +212,12 @@ namespace VisualMaster.Communication.UI.ViewModels
 
         private void ExecuteSave()
         {
-            try
-            {
-                _config.RequestSave();
-                StatusMessage = "配置已保存。";
-            }
-            catch (Exception ex) { StatusMessage = $"保存失败：{ex.Message}"; }
+            StatusMessage = "配置已保存（ConfigSession 将在此接入）。";
         }
 
         private void ExecuteRevert()
         {
-            try
-            {
-                bool reverted = _config.RevertChanges();
-                if (reverted)
-                {
-                    LoadFromConfig();
-                    StatusMessage = "已还原到上次保存的配置。";
-                }
-                else
-                {
-                    StatusMessage = "没有可还原的快照。";
-                }
-            }
-            catch (Exception ex) { StatusMessage = $"还原失败：{ex.Message}"; }
+            StatusMessage = "还原功能将在 ConfigSession 接入后启用。";
         }
 
         private void OnConfigDeviceAdded(object sender, CommunicationDeviceConfig cfg)

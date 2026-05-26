@@ -133,5 +133,11 @@
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\VisualMaster.Config.Abstractions\VisualMaster.Config.Abstractions.csproj">
+      <Project>{e1f2a3b4-5c6d-7e8f-9a0b-1c2d3e4f5a6b}</Project>
+      <Name>VisualMaster.Config.Abstractions</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

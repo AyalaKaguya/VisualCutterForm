@@ -50,11 +50,11 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <TextBlock x:Name="EditorTitle" Foreground="#E6E6E6" FontSize="17" FontWeight="SemiBold" VerticalAlignment="Center"
+            <TextBlock x:Name="EditorTitle" Style="{StaticResource EditorPageTitle}" Margin="0"
                        Text="请选择输出事件"/>
             <TextBlock x:Name="EditorPlaceholder" Grid.Row="1"
                        Text="请从左侧选择或添加一个输出事件。"
-                       Foreground="Gray" FontSize="14" Margin="0,12,0,0" HorizontalAlignment="Center"/>
+                       Style="{StaticResource EditorPlaceholderText}"/>
             <ScrollViewer x:Name="EditorPanel" Grid.Row="1" Margin="0,8,0,0" Visibility="Collapsed"
                           VerticalScrollBarVisibility="Auto">
                 <StackPanel>
@@ -70,9 +70,9 @@
                                   Style="{StaticResource BindingSelectorCombo}"/>
                     </DockPanel>
 
-                    <Border Height="1" Background="#303030" Margin="0,14,0,12"/>
+                    <Border Style="{StaticResource SectionDivider}"/>
 
-                    <TextBlock Text="变量" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                    <TextBlock Text="变量" Style="{StaticResource SectionHeaderText}"/>
                     <Grid Margin="0,0,0,4">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="180"/>
@@ -80,9 +80,9 @@
                             <ColumnDefinition Width="130"/>
                             <ColumnDefinition Width="40"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="变量名" FontSize="13" Foreground="#AAAAAA" Margin="4,0,0,0"/>
-                        <TextBlock Grid.Column="1" Text="类型" FontSize="13" Foreground="#AAAAAA" Margin="4,0,0,0"/>
-                        <TextBlock Grid.Column="2" Text="字节序" FontSize="13" Foreground="#AAAAAA" Margin="4,0,0,0"/>
+                        <TextBlock Text="变量名" Style="{StaticResource TableHeaderText}"/>
+                        <TextBlock Grid.Column="1" Text="类型" Style="{StaticResource TableHeaderText}"/>
+                        <TextBlock Grid.Column="2" Text="字节序" Style="{StaticResource TableHeaderText}"/>
                     </Grid>
                     <ItemsControl x:Name="VariableListControl">
                         <ItemsControl.ItemTemplate>
@@ -113,11 +113,11 @@
                             Background="#2A2A2A" BorderBrush="#444444" Foreground="#999999"
                             Margin="0,6,0,0" HorizontalAlignment="Left" Width="110"/>
 
-                    <Border Height="1" Background="#303030" Margin="0,14,0,12"/>
+                    <Border Style="{StaticResource SectionDivider}"/>
 
-                    <TextBlock Text="协议组装" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                    <TextBlock Text="协议组装" Style="{StaticResource SectionHeaderText}"/>
                     <DockPanel Margin="0,0,0,8">
-                        <TextBlock Text="头部HEX" Width="96" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <TextBlock Text="头部HEX" Width="96" Style="{StaticResource FormFieldLabelText}"/>
                         <TextBox x:Name="HeaderHexBox" MinWidth="240" HorizontalAlignment="Left" Height="28"
                                  TextChanged="OnHeaderChanged" VerticalContentAlignment="Center"/>
                     </DockPanel>
@@ -131,11 +131,11 @@
                             <ColumnDefinition Width="120"/>
                             <ColumnDefinition Width="40"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="序号" FontSize="13" Foreground="#AAAAAA"/>
-                        <TextBlock Grid.Column="1" Text="段类型" FontSize="13" Foreground="#AAAAAA" Margin="4,0,0,0"/>
-                        <TextBlock Grid.Column="2" Text="值/变量" FontSize="13" Foreground="#AAAAAA" Margin="4,0,0,0"/>
-                        <TextBlock Grid.Column="3" Text="常量类型" FontSize="13" Foreground="#AAAAAA" Margin="4,0,0,0"/>
-                        <TextBlock Grid.Column="4" Text="常量字节序" FontSize="13" Foreground="#AAAAAA" Margin="4,0,0,0"/>
+                        <TextBlock Text="序号" Style="{StaticResource TableHeaderTextLeading}"/>
+                        <TextBlock Grid.Column="1" Text="段类型" Style="{StaticResource TableHeaderText}"/>
+                        <TextBlock Grid.Column="2" Text="值/变量" Style="{StaticResource TableHeaderText}"/>
+                        <TextBlock Grid.Column="3" Text="常量类型" Style="{StaticResource TableHeaderText}"/>
+                        <TextBlock Grid.Column="4" Text="常量字节序" Style="{StaticResource TableHeaderText}"/>
                     </Grid>
                     <ItemsControl x:Name="SegmentListControl">
                         <ItemsControl.ItemTemplate>
@@ -180,27 +180,27 @@
                             Background="#2A2A2A" BorderBrush="#444444" Foreground="#999999"
                             Margin="0,6,0,0" HorizontalAlignment="Left" Width="120"/>
 
-                    <Border Height="1" Background="#303030" Margin="0,14,0,12"/>
+                    <Border Style="{StaticResource SectionDivider}"/>
 
-                    <TextBlock Text="CRC 尾部" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                    <TextBlock Text="CRC 尾部" Style="{StaticResource SectionHeaderText}"/>
                     <DockPanel Margin="0,0,0,8">
-                        <TextBlock Text="启用CRC" Width="96" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <TextBlock Text="启用CRC" Width="96" Style="{StaticResource FormFieldLabelText}"/>
                         <ToggleButton x:Name="CrcToggle" Style="{StaticResource SwitchButton}"
                                       Checked="OnCrcToggleChanged" Unchecked="OnCrcToggleChanged" HorizontalAlignment="Left"/>
                     </DockPanel>
                     <StackPanel x:Name="CrcPanel" Visibility="Collapsed" Margin="48,0,0,0">
                         <DockPanel Margin="0,0,0,6">
-                            <TextBlock Text="校验方法" Width="96" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                            <TextBlock Text="校验方法" Width="96" Style="{StaticResource FormFieldLabelText}"/>
                             <ComboBox x:Name="CrcMethodCombo" MinWidth="180" SelectionChanged="OnCrcMethodChanged" HorizontalAlignment="Left"
                                       Style="{StaticResource LightComboBox}"/>
                         </DockPanel>
                         <DockPanel Margin="0,0,0,6">
-                            <TextBlock Text="CRC字节序" Width="96" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                            <TextBlock Text="CRC字节序" Width="96" Style="{StaticResource FormFieldLabelText}"/>
                             <ComboBox x:Name="CrcByteOrderCombo" MinWidth="180" SelectionChanged="OnCrcByteOrderChanged" HorizontalAlignment="Left"
                                       Style="{StaticResource LightComboBox}"/>
                         </DockPanel>
                         <DockPanel>
-                            <TextBlock Text="包含头部" Width="96" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                            <TextBlock Text="包含头部" Width="96" Style="{StaticResource FormFieldLabelText}"/>
                             <ToggleButton x:Name="CrcIncludeHeaderToggle" Style="{StaticResource SwitchButton}"
                                           Checked="OnCrcIncludeHeaderChanged" Unchecked="OnCrcIncludeHeaderChanged" HorizontalAlignment="Left"/>
                         </DockPanel>

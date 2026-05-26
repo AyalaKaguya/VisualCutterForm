@@ -54,11 +54,11 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <TextBlock x:Name="EditorTitle" Foreground="#E6E6E6" FontSize="17" FontWeight="SemiBold" VerticalAlignment="Center"
+            <TextBlock x:Name="EditorTitle" Style="{StaticResource EditorPageTitle}" Margin="0"
                        Text="请选择心跳"/>
             <TextBlock x:Name="EditorPlaceholder" Grid.Row="1"
                        Text="请从左侧选择或添加一个心跳。"
-                       Foreground="Gray" FontSize="14" TextAlignment="Center" Margin="0,12,0,0"/>
+                       Style="{StaticResource EditorPlaceholderText}"/>
             <StackPanel x:Name="EditorPanel" Grid.Row="1" Margin="0,8,0,0" Visibility="Collapsed">
                 <TextBlock Text="绑定" Style="{StaticResource SectionSubtitle}"/>
                 <DockPanel Style="{StaticResource ConfigFieldRow}">
@@ -72,18 +72,18 @@
                               Style="{StaticResource BindingSelectorCombo}"/>
                 </DockPanel>
 
-                <Border Height="1" Background="#303030" Margin="0,14,0,12"/>
+                <Border Style="{StaticResource SectionDivider}"/>
 
-                <TextBlock Text="输出变量" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                <TextBlock Text="输出变量" Style="{StaticResource SectionHeaderText}"/>
                 <Grid Margin="0,0,0,4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="180"/>
                         <ColumnDefinition Width="180"/>
                         <ColumnDefinition Width="240"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Text="变量名" FontSize="13" Foreground="#AAAAAA" Margin="4,0,0,0"/>
-                    <TextBlock Grid.Column="1" Text="类型" FontSize="13" Foreground="#AAAAAA" Margin="4,0,0,0"/>
-                    <TextBlock Grid.Column="2" Text="值" FontSize="13" Foreground="#AAAAAA" Margin="4,0,0,0"/>
+                    <TextBlock Text="变量名" Style="{StaticResource TableHeaderText}"/>
+                    <TextBlock Grid.Column="1" Text="类型" Style="{StaticResource TableHeaderText}"/>
+                    <TextBlock Grid.Column="2" Text="值" Style="{StaticResource TableHeaderText}"/>
                 </Grid>
                 <ItemsControl x:Name="VariableListControl">
                     <ItemsControl.ItemTemplate>

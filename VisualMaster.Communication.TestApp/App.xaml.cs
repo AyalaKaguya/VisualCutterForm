@@ -27,7 +27,8 @@ namespace VisualMaster.Communication.TestApp
             config.UpdateOutputEvents(file.OutputEvents);
             config.UpdateHeartbeats(file.Heartbeats);
 
-            config.SaveRequested += (s, _) =>
+            // ConfigSession-based save will replace SaveRequested
+            /* config.SaveRequested += (s, _) =>
             {
                 file.Devices = config.Devices.Select(d => d.Clone()).ToList();
                 file.InputEvents = config.InputEvents.Select(d => d.Clone()).ToList();
@@ -39,7 +40,7 @@ namespace VisualMaster.Communication.TestApp
                     MessageBox.Show($"保存通信配置失败：{ex.Message}", "错误",
                         MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
-            };
+            }; */
 
             _manager = new CommunicationManager();
             var window = new CommunicationManagerWindow(_manager, config)

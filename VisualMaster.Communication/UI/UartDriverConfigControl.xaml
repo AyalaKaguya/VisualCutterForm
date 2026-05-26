@@ -12,99 +12,89 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid Margin="12">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="128"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="128"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="48"/>
-            <RowDefinition Height="48"/>
-            <RowDefinition Height="48"/>
-            <RowDefinition Height="48"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <TextBlock Grid.ColumnSpan="4" Text="UART 串口驱动" Foreground="White" FontWeight="SemiBold" Margin="0,0,0,12"/>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="12">
+            <TextBlock Text="UART 串口驱动" Style="{StaticResource EditorPageTitle}"/>
+            <TextBlock Text="连接配置" Style="{StaticResource SectionSubtitle}" Margin="0,0,0,8"/>
 
-        <TextBlock Grid.Row="1" Text="COM 端口"/>
-        <Grid Grid.Row="1" Grid.Column="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <ComboBox x:Name="PortBox" IsEditable="True"
-                      ItemsSource="{Binding AvailablePorts}"
-                      Style="{StaticResource CompactComboBox}"
-                      Text="{Binding PortName, UpdateSourceTrigger=LostFocus}"/>
-            <Button Grid.Column="1" Command="{Binding RefreshPortsCommand}"
-                    Width="40" Height="34" Margin="6,0,0,0"
-                    ToolTip="刷新可用串口" Content="↻"/>
-        </Grid>
+            <DockPanel Style="{StaticResource ConfigFieldRow}">
+                <TextBlock Text="COM 端口" Style="{StaticResource ConfigFieldLabel}"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox x:Name="PortBox" IsEditable="True"
+                              ItemsSource="{Binding AvailablePorts}"
+                              Style="{StaticResource LightComboBox}" MinWidth="180" HorizontalAlignment="Left"
+                              Text="{Binding PortName, UpdateSourceTrigger=LostFocus}"/>
+                    <Button Grid.Column="1" Command="{Binding RefreshPortsCommand}"
+                            Width="40" MinWidth="40" Style="{StaticResource ActionButtonSmall}" Padding="0" Margin="6,0,0,0"
+                            ToolTip="刷新可用串口" Content="↻"/>
+                </Grid>
+            </DockPanel>
 
-        <TextBlock Grid.Row="2" Text="波特率"/>
-        <ComboBox x:Name="BaudBox" Grid.Row="2" Grid.Column="1" IsEditable="True"
-                  Style="{StaticResource CompactComboBox}"
-                  Text="{Binding BaudRate, UpdateSourceTrigger=LostFocus}">
-            <ComboBoxItem>9600</ComboBoxItem>
-            <ComboBoxItem>19200</ComboBoxItem>
-            <ComboBoxItem>38400</ComboBoxItem>
-            <ComboBoxItem>57600</ComboBoxItem>
-            <ComboBoxItem>115200</ComboBoxItem>
-        </ComboBox>
-        <TextBlock Grid.Row="2" Grid.Column="2" Text="数据位" Margin="16,0,0,0"/>
-        <ComboBox x:Name="DataBitsBox" Grid.Row="2" Grid.Column="3" IsEditable="True"
-                  Style="{StaticResource CompactComboBox}"
-                  Text="{Binding DataBits, UpdateSourceTrigger=LostFocus}">
-            <ComboBoxItem>5</ComboBoxItem>
-            <ComboBoxItem>6</ComboBoxItem>
-            <ComboBoxItem>7</ComboBoxItem>
-            <ComboBoxItem>8</ComboBoxItem>
-        </ComboBox>
-
-        <TextBlock Grid.Row="3" Text="Parity"/>
-        <ComboBox x:Name="ParityBox" Grid.Row="3" Grid.Column="1" IsEditable="True"
-                  Style="{StaticResource CompactComboBox}"
-                  Text="{Binding Parity, UpdateSourceTrigger=LostFocus}">
-                <ComboBoxItem>None</ComboBoxItem>
-                <ComboBoxItem>Odd</ComboBoxItem>
-                <ComboBoxItem>Even</ComboBoxItem>
-                <ComboBoxItem>Mark</ComboBoxItem>
-                <ComboBoxItem>Space</ComboBoxItem>
-        </ComboBox>
-        <TextBlock Grid.Row="3" Grid.Column="2" Text="StopBits" Margin="16,0,0,0"/>
-        <ComboBox x:Name="StopBitsBox" Grid.Row="3" Grid.Column="3" IsEditable="True"
-                  Style="{StaticResource CompactComboBox}"
-                  Text="{Binding StopBits, UpdateSourceTrigger=LostFocus}">
-                <ComboBoxItem>One</ComboBoxItem>
-                <ComboBoxItem>Two</ComboBoxItem>
-                <ComboBoxItem>OnePointFive</ComboBoxItem>
-        </ComboBox>
-
-        <TextBlock Grid.Row="4" Text="Handshake"/>
-        <ComboBox x:Name="HandshakeBox" Grid.Row="4" Grid.Column="1" IsEditable="True"
-                  Style="{StaticResource CompactComboBox}"
-                  Text="{Binding Handshake, UpdateSourceTrigger=LostFocus}">
-            <ComboBoxItem>None</ComboBoxItem>
-            <ComboBoxItem>XOnXOff</ComboBoxItem>
-            <ComboBoxItem>RequestToSend</ComboBoxItem>
-            <ComboBoxItem>RequestToSendXOnXOff</ComboBoxItem>
-        </ComboBox>
-
-        <Border Grid.Row="5" Grid.ColumnSpan="4" Background="{DynamicResource ColorSurface}" BorderBrush="{DynamicResource ColorButtonBorder}" BorderThickness="1" Padding="10" Margin="0,14,0,8">
-            <Grid>
+            <Grid Margin="0,0,0,8">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="128"/>
+                    <ColumnDefinition Width="110"/>
+                    <ColumnDefinition Width="180"/>
+                    <ColumnDefinition Width="24"/>
+                    <ColumnDefinition Width="110"/>
+                    <ColumnDefinition Width="180"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="绑定块名称"/>
-                <TextBox x:Name="BlockNameBox" Grid.Column="1"
-                         Text="{Binding BlockName, UpdateSourceTrigger=PropertyChanged}"/>
-                <Button Grid.Column="2" Content="实时" MinWidth="78" Height="34" FontSize="15" Margin="12,0,0,0" Click="OnRealtimeClick"/>
+                <TextBlock Text="波特率" Style="{StaticResource ConfigFieldLabel}" Width="110" Margin="0,0,12,0"/>
+                <ComboBox x:Name="BaudBox" Grid.Column="1" IsEditable="True"
+                          ItemsSource="{Binding BaudRateOptions}"
+                          Style="{StaticResource LightComboBox}" MinWidth="180" HorizontalAlignment="Left"
+                          Text="{Binding BaudRate, UpdateSourceTrigger=LostFocus}"/>
+                <TextBlock Grid.Column="3" Text="数据位" Style="{StaticResource ConfigFieldLabel}" Width="110" Margin="0,0,12,0"/>
+                <ComboBox x:Name="DataBitsBox" Grid.Column="4" IsEditable="False"
+                          ItemsSource="{Binding DataBitsOptions}"
+                          Style="{StaticResource LightComboBox}" MinWidth="180" HorizontalAlignment="Left"
+                          SelectedItem="{Binding DataBits, UpdateSourceTrigger=PropertyChanged}"/>
             </Grid>
-        </Border>
-    </Grid>
+
+            <Grid Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="110"/>
+                    <ColumnDefinition Width="180"/>
+                    <ColumnDefinition Width="24"/>
+                    <ColumnDefinition Width="110"/>
+                    <ColumnDefinition Width="180"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Parity" Style="{StaticResource ConfigFieldLabel}" Width="110" Margin="0,0,12,0"/>
+                <ComboBox x:Name="ParityBox" Grid.Column="1" IsEditable="False"
+                          ItemsSource="{Binding ParityOptions}"
+                          Style="{StaticResource LightComboBox}" MinWidth="180" HorizontalAlignment="Left"
+                          SelectedItem="{Binding Parity, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBlock Grid.Column="3" Text="StopBits" Style="{StaticResource ConfigFieldLabel}" Width="110" Margin="0,0,12,0"/>
+                <ComboBox x:Name="StopBitsBox" Grid.Column="4" IsEditable="False"
+                          ItemsSource="{Binding StopBitsOptions}"
+                          Style="{StaticResource LightComboBox}" MinWidth="180" HorizontalAlignment="Left"
+                          SelectedItem="{Binding StopBits, UpdateSourceTrigger=PropertyChanged}"/>
+            </Grid>
+
+            <DockPanel Style="{StaticResource ConfigFieldRow}">
+                <TextBlock Text="Handshake" Style="{StaticResource ConfigFieldLabel}"/>
+                <ComboBox x:Name="HandshakeBox" IsEditable="False"
+                          ItemsSource="{Binding HandshakeOptions}"
+                          Style="{StaticResource LightComboBox}" MinWidth="180" HorizontalAlignment="Left"
+                          SelectedItem="{Binding Handshake, UpdateSourceTrigger=PropertyChanged}"/>
+            </DockPanel>
+
+            <Border Style="{StaticResource SectionCard}">
+                <StackPanel>
+                    <TextBlock Text="数据块" Style="{StaticResource SectionSubtitle}" Margin="0,0,0,8"/>
+                    <DockPanel Style="{StaticResource ConfigFieldRow}" Margin="0">
+                        <TextBlock Text="绑定块名称" Style="{StaticResource ConfigFieldLabel}"/>
+                        <TextBox x:Name="BlockNameBox" Style="{StaticResource FormValueTextBox}"
+                                 Text="{Binding BlockName, UpdateSourceTrigger=PropertyChanged}"/>
+                        <Button Content="实时" MinWidth="78" Style="{StaticResource ActionButtonSmall}" Margin="12,0,0,0" Click="OnRealtimeClick"/>
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>

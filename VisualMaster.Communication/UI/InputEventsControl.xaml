@@ -51,11 +51,11 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <TextBlock x:Name="EditorTitle" Foreground="#E6E6E6" FontSize="17" FontWeight="SemiBold" VerticalAlignment="Center"
+            <TextBlock x:Name="EditorTitle" Style="{StaticResource EditorPageTitle}" Margin="0"
                        Text="请选择输入事件"/>
             <TextBlock x:Name="EditorPlaceholder" Grid.Row="1"
                        Text="请从左侧选择或添加一个输入事件。"
-                       Foreground="Gray" FontSize="14" Margin="0,12,0,0" HorizontalAlignment="Center"/>
+                       Style="{StaticResource EditorPlaceholderText}"/>
             <StackPanel x:Name="EditorPanel" Grid.Row="1" Margin="0,8,0,0" Visibility="Collapsed">
                 <TextBlock Text="绑定" Style="{StaticResource SectionSubtitle}"/>
                 <DockPanel Style="{StaticResource ConfigFieldRow}">
@@ -66,18 +66,18 @@
                     <TextBlock Text="数据块" Style="{StaticResource ConfigFieldLabel}"/>
                     <ComboBox x:Name="BlockCombo" SelectionChanged="OnBlockComboChanged" Style="{StaticResource BindingSelectorCombo}"/>
                 </DockPanel>
-                <Border Height="1" Background="#303030" Margin="0,14,0,12"/>
+                <Border Style="{StaticResource SectionDivider}"/>
 
-                <TextBlock Text="基本配置" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                <TextBlock Text="基本配置" Style="{StaticResource SectionHeaderText}"/>
                 <DockPanel Margin="0,0,0,8">
-                    <TextBlock Text="载荷长度比较" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <TextBlock Text="载荷长度比较" Width="110" Style="{StaticResource FormFieldLabelText}"/>
                     <ToggleButton x:Name="LengthCheckToggle" Style="{StaticResource SwitchButton}"
                                   Checked="OnLengthCheckChanged" Unchecked="OnLengthCheckChanged" HorizontalAlignment="Left"/>
                 </DockPanel>
 
                 <StackPanel x:Name="LengthCheckPanel" Visibility="Collapsed" Margin="48,0,0,0">
                     <DockPanel Margin="0,0,0,6" HorizontalAlignment="Left">
-                        <TextBlock Text="最少字符数" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <TextBlock Text="最少字符数" Width="110" Style="{StaticResource FormFieldLabelText}"/>
                         <ToggleButton x:Name="MinLengthToggle" Style="{StaticResource SwitchButton}"
                                       Checked="OnMinLengthToggleChanged" Unchecked="OnMinLengthToggleChanged"/>
                         <DockPanel Width="90" Margin="12,0,0,0">
@@ -92,7 +92,7 @@
                         </DockPanel>
                     </DockPanel>
                     <DockPanel Margin="0,0,0,6">
-                        <TextBlock Text="等于字符数" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <TextBlock Text="等于字符数" Width="110" Style="{StaticResource FormFieldLabelText}"/>
                         <ToggleButton x:Name="ExactLengthToggle" Style="{StaticResource SwitchButton}"
                                       Checked="OnExactLengthToggleChanged" Unchecked="OnExactLengthToggleChanged"/>
                         <DockPanel Width="90" Margin="12,0,0,0" HorizontalAlignment="Left">
@@ -107,15 +107,15 @@
                         </DockPanel>
                     </DockPanel>
                     <DockPanel>
-                        <TextBlock Text="文本长度模式" Width="130" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <TextBlock Text="文本长度模式" Width="130" Style="{StaticResource FormFieldLabelText}"/>
                         <ToggleButton x:Name="AsciiToggle" Style="{StaticResource SwitchButton}"
                                       Checked="OnAsciiToggleChanged" Unchecked="OnAsciiToggleChanged" HorizontalAlignment="Left"/>
                     </DockPanel>
                 </StackPanel>
 
-                <Border Height="1" Background="#303030" Margin="0,14,0,12"/>
+                <Border Style="{StaticResource SectionDivider}"/>
 
-                <TextBlock Text="触发条件" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                <TextBlock Text="触发条件" Style="{StaticResource SectionHeaderText}"/>
                 <Grid Margin="0,0,0,4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="36"/>
@@ -127,13 +127,13 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="40"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Text="序号" FontSize="13" Foreground="#AAAAAA"/>
-                    <TextBlock Grid.Column="1" Text="名称" FontSize="13" Foreground="#AAAAAA" Margin="4,0,0,0"/>
-                    <TextBlock Grid.Column="2" Text="起止位置" FontSize="13" Foreground="#AAAAAA" Margin="4,0,0,0"/>
-                    <TextBlock Grid.Column="3" Text="类型" FontSize="13" Foreground="#AAAAAA" Margin="4,0,0,0"/>
-                    <TextBlock Grid.Column="4" Text="字节序" FontSize="13" Foreground="#AAAAAA" Margin="4,0,0,0"/>
-                    <TextBlock Grid.Column="5" Text="条件" FontSize="13" Foreground="#AAAAAA" Margin="4,0,0,0"/>
-                    <TextBlock Grid.Column="6" Text="参数" FontSize="13" Foreground="#AAAAAA" Margin="4,0,0,0"/>
+                    <TextBlock Text="序号" Style="{StaticResource TableHeaderTextLeading}"/>
+                    <TextBlock Grid.Column="1" Text="名称" Style="{StaticResource TableHeaderText}"/>
+                    <TextBlock Grid.Column="2" Text="起止位置" Style="{StaticResource TableHeaderText}"/>
+                    <TextBlock Grid.Column="3" Text="类型" Style="{StaticResource TableHeaderText}"/>
+                    <TextBlock Grid.Column="4" Text="字节序" Style="{StaticResource TableHeaderText}"/>
+                    <TextBlock Grid.Column="5" Text="条件" Style="{StaticResource TableHeaderText}"/>
+                    <TextBlock Grid.Column="6" Text="参数" Style="{StaticResource TableHeaderText}"/>
                 </Grid>
                 <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="320">
                     <ItemsControl x:Name="RuleListControl">

@@ -65,6 +65,39 @@
         <Setter Property="Foreground" Value="{StaticResource ColorTextPrimary}"/>
     </Style>
 
+    <Style x:Key="SectionHeaderText" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Margin" Value="0,0,0,6"/>
+        <Setter Property="Foreground" Value="{StaticResource ColorTextPrimary}"/>
+    </Style>
+
+    <Style x:Key="PanelHeaderText" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource ColorTextPrimary}"/>
+    </Style>
+
+    <Style x:Key="SectionDivider" TargetType="Border">
+        <Setter Property="Height" Value="1"/>
+        <Setter Property="Background" Value="{StaticResource ColorHeaderRow}"/>
+        <Setter Property="Margin" Value="0,14,0,12"/>
+    </Style>
+
+    <Style x:Key="EditorPageTitle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+        <Setter Property="Foreground" Value="#E6E6E6"/>
+        <Setter Property="FontSize" Value="17"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Margin" Value="0,0,0,8"/>
+    </Style>
+
+    <Style x:Key="EditorPlaceholderText" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+        <Setter Property="Foreground" Value="Gray"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Margin" Value="0,12,0,0"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="TextAlignment" Value="Center"/>
+    </Style>
+
     <Style x:Key="ConfigFieldRow" TargetType="DockPanel">
         <Setter Property="Margin" Value="0,0,0,8"/>
         <Setter Property="HorizontalAlignment" Value="Left"/>
@@ -77,6 +110,22 @@
         <Setter Property="Foreground" Value="{StaticResource ColorTextDim}"/>
     </Style>
 
+    <Style x:Key="FormFieldLabelText" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+        <Setter Property="Margin" Value="0,0,12,0"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Foreground" Value="{StaticResource ColorTextDim}"/>
+    </Style>
+
+    <Style x:Key="TableHeaderText" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Foreground" Value="#AAAAAA"/>
+        <Setter Property="Margin" Value="4,0,0,0"/>
+    </Style>
+
+    <Style x:Key="TableHeaderTextLeading" TargetType="TextBlock" BasedOn="{StaticResource TableHeaderText}">
+        <Setter Property="Margin" Value="0"/>
+    </Style>
+
     <!-- ===== Implicit TextBox ===== -->
     <Style TargetType="TextBox">
         <Setter Property="Background" Value="{StaticResource ColorTextBoxBg}"/>
@@ -84,6 +133,13 @@
         <Setter Property="BorderBrush" Value="{StaticResource ColorButtonBorder}"/>
         <Setter Property="Padding" Value="5,3"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="FormValueTextBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+        <Setter Property="Height" Value="28"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="MinWidth" Value="280"/>
+        <Setter Property="HorizontalAlignment" Value="Left"/>
     </Style>
 
     <!-- ===== Implicit TextBlock ===== -->
@@ -156,6 +212,23 @@
     <Style x:Key="BindingSelectorCombo" TargetType="ComboBox" BasedOn="{StaticResource LightComboBox}">
         <Setter Property="MinWidth" Value="280"/>
         <Setter Property="HorizontalAlignment" Value="Left"/>
+    </Style>
+
+    <Style x:Key="ActionButtonSmall" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Height" Value="28"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Padding" Value="10,3"/>
+        <Setter Property="Margin" Value="0"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="SectionCard" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource ColorSurface}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource ColorButtonBorder}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="12"/>
+        <Setter Property="Margin" Value="0,12,0,0"/>
+        <Setter Property="CornerRadius" Value="4"/>
     </Style>
 
     <Style x:Key="SwitchButton" TargetType="ToggleButton">

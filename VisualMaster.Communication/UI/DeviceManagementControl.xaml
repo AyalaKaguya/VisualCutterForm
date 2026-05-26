@@ -43,7 +43,7 @@
 
         <DockPanel Grid.Column="0" Background="{DynamicResource ColorSidePanel}">
             <DockPanel DockPanel.Dock="Top" Margin="8">
-                <TextBlock Text="设备列表" FontWeight="SemiBold"/>
+                <TextBlock Text="设备列表" Style="{StaticResource PanelHeaderText}"/>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button Content="+" Width="30" Click="OnAddDeviceClick"/>
                 </StackPanel>
@@ -65,7 +65,7 @@
             <DockPanel x:Name="DeviceCommandBar">
                 <TextBlock x:Name="DeviceTitleText"
                            Text="{Binding SelectedDevice.DisplayName, FallbackValue=请选择或添加一个通信设备}"
-                           Foreground="#E6E6E6" FontSize="17" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                           Style="{StaticResource EditorPageTitle}" Margin="0"/>
             </DockPanel>
             <ContentControl x:Name="DriverConfigHost" Grid.Row="1" Margin="0,8,0,8"/>
             <ui:CommunicationBlockListControl x:Name="BlockList" Grid.Row="2"/>

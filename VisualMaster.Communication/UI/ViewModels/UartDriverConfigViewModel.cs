@@ -10,6 +10,12 @@ namespace VisualMaster.Communication.UI.ViewModels
 {
     public sealed class UartDriverConfigViewModel : NotifyBase
     {
+        private static readonly IReadOnlyList<string> BaudRateOptionsInternal = new[] { "9600", "19200", "38400", "57600", "115200" };
+        private static readonly IReadOnlyList<string> DataBitsOptionsInternal = new[] { "5", "6", "7", "8" };
+        private static readonly IReadOnlyList<string> ParityOptionsInternal = new[] { "None", "Odd", "Even", "Mark", "Space" };
+        private static readonly IReadOnlyList<string> StopBitsOptionsInternal = new[] { "One", "Two", "OnePointFive" };
+        private static readonly IReadOnlyList<string> HandshakeOptionsInternal = new[] { "None", "XOnXOff", "RequestToSend", "RequestToSendXOnXOff" };
+
         private string _portName;
         private string _baudRate;
         private string _dataBits;
@@ -23,6 +29,12 @@ namespace VisualMaster.Communication.UI.ViewModels
 
         public ObservableCollection<string> AvailablePorts { get; } = new ObservableCollection<string>();
 
+    public IReadOnlyList<string> BaudRateOptions => BaudRateOptionsInternal;
+    public IReadOnlyList<string> DataBitsOptions => DataBitsOptionsInternal;
+    public IReadOnlyList<string> ParityOptions => ParityOptionsInternal;
+    public IReadOnlyList<string> StopBitsOptions => StopBitsOptionsInternal;
+    public IReadOnlyList<string> HandshakeOptions => HandshakeOptionsInternal;
+
         public ICommand RefreshPortsCommand { get; }
 
         public string PortName
@@ -34,31 +46,67 @@ namespace VisualMaster.Communication.UI.ViewModels
         public string BaudRate
         {
             get => _baudRate;
-            set { if (SetField(ref _baudRate, value)) Notify(); }
+            set
+            {
+                var normalized = NormalizeOption(value, BaudRateOptionsInternal, "9600");
+                if (SetField(ref _baudRate, normalized)) Notify();
+            }
         }
 
         public string DataBits
         {
             get => _dataBits;
-            set { if (SetField(ref _dataBits, value)) Notify(); }
+            set
+            {
+                var normalized = NormalizeOption(value, DataBitsOptionsInternal, "8");
+                if (!SetField(ref _dataBits, normalized))
+                    return;
+
+                if (!string.Equals(_dataBits, "5", StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(_stopBits, "OnePointFive", StringComparison.OrdinalIgnoreCase))
+                {
+                    _stopBits = "One";
+                    OnPropertyChanged(nameof(StopBits));
+                }
+
+                Notify();
+            }
         }
 
         public string Parity
         {
             get => _parity;
-            set { if (SetField(ref _parity, value)) Notify(); }
+            set
+            {
+                var normalized = NormalizeOption(value, ParityOptionsInternal, "None");
+                if (SetField(ref _parity, normalized)) Notify();
+            }
         }
 
         public string StopBits
         {
             get => _stopBits;
-            set { if (SetField(ref _stopBits, value)) Notify(); }
+            set
+            {
+                var normalized = NormalizeOption(value, StopBitsOptionsInternal, "One");
+                if (string.Equals(normalized, "OnePointFive", StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(_dataBits, "5", StringComparison.OrdinalIgnoreCase))
+                {
+                    normalized = "One";
+                }
+
+                if (SetField(ref _stopBits, normalized)) Notify();
+            }
         }
 
         public string Handshake
         {
             get => _handshake;
-            set { if (SetField(ref _handshake, value)) Notify(); }
+            set
+            {
+                var normalized = NormalizeOption(value, HandshakeOptionsInternal, "None");
+                if (SetField(ref _handshake, normalized)) Notify();
+            }
         }
 
         public string BlockName
@@ -79,11 +127,16 @@ namespace VisualMaster.Communication.UI.ViewModels
 
             var settings = config.DriverSettings ?? new Dictionary<string, string>();
             _portName  = GetSetting(settings, "PortName", "COM1");
-            _baudRate  = GetSetting(settings, "BaudRate", "9600");
-            _dataBits  = GetSetting(settings, "DataBits", "8");
-            _parity    = GetSetting(settings, "Parity", "None");
-            _stopBits  = GetSetting(settings, "StopBits", "One");
-            _handshake = GetSetting(settings, "Handshake", "None");
+            _baudRate  = NormalizeOption(GetSetting(settings, "BaudRate", "9600"), BaudRateOptionsInternal, "9600");
+            _dataBits  = NormalizeOption(GetSetting(settings, "DataBits", "8"), DataBitsOptionsInternal, "8");
+            _parity    = NormalizeOption(GetSetting(settings, "Parity", "None"), ParityOptionsInternal, "None");
+            _stopBits  = NormalizeOption(GetSetting(settings, "StopBits", "One"), StopBitsOptionsInternal, "One");
+            _handshake = NormalizeOption(GetSetting(settings, "Handshake", "None"), HandshakeOptionsInternal, "None");
+            if (!string.Equals(_dataBits, "5", StringComparison.OrdinalIgnoreCase)
+                && string.Equals(_stopBits, "OnePointFive", StringComparison.OrdinalIgnoreCase))
+            {
+                _stopBits = "One";
+            }
             _blockName = config.Blocks?.FirstOrDefault()?.Name ?? "串口数据";
 
             ExecuteRefreshPorts();
@@ -125,6 +178,18 @@ namespace VisualMaster.Communication.UI.ViewModels
             return settings.TryGetValue(key, out var value) && !string.IsNullOrWhiteSpace(value)
                 ? value
                 : fallback;
+        }
+
+        private static string NormalizeOption(string value, IReadOnlyList<string> options, string fallback)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                var match = options.FirstOrDefault(option => string.Equals(option, value, StringComparison.OrdinalIgnoreCase));
+                if (!string.IsNullOrWhiteSpace(match))
+                    return match;
+            }
+
+            return fallback;
         }
     }
 }

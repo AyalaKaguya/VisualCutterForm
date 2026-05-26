@@ -44,6 +44,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+    <Reference Include="System.Web.Extensions" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.IO.Ports" Version="8.0.0" />
@@ -57,6 +58,7 @@
     <Compile Include="Api\CommunicationSystemConfig.cs" />
     <Compile Include="Api\DriverContracts.cs" />
     <Compile Include="Api\InputOutputEventConfigs.cs" />
+    <Compile Include="Config\JsonConfigStore.cs" />
     <Compile Include="Core\CommunicationDataConverter.cs" />
     <Compile Include="Core\CommunicationDeviceRuntime.cs" />
     <Compile Include="Core\CommunicationInputEvaluator.cs" />
@@ -163,6 +165,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\VisualMaster.Config.Abstractions\VisualMaster.Config.Abstractions.csproj">
+      <Project>{e1f2a3b4-5c6d-7e8f-9a0b-1c2d3e4f5a6b}</Project>
+      <Name>VisualMaster.Config.Abstractions</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
