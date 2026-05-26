@@ -1,12 +1,13 @@
-using VisualMaster.Api;
+using VisualMaster.CameraLink.Api;
 using VisualMaster.CameraLink;
+using VisualMaster.CameraLink.Core;
 using VisualMaster.CameraLink.UI;
 using System;
 using System.IO;
 using System.Linq;
 using System.Windows;
 
-namespace VisualMaster.CameraLink.App
+namespace VisualMaster.CameraLink.TestApp
 {
     public partial class App : Application
     {
@@ -42,7 +43,7 @@ namespace VisualMaster.CameraLink.App
             };
 
             // 初始化相机管理器
-            _manager = new VisualMaster.CameraLink.Core.CameraManager();
+            _manager = new Core.CameraManager();
             _manager.Initialize();
             _manager.LoadConfig(sysConfig);
 

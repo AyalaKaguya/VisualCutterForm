@@ -1,4 +1,4 @@
-using VisualMaster.Api;
+using VisualMaster.CameraLink.Api;
 using VisualMaster.CameraLink.UI.ViewModels;
 using System;
 using System.Windows;

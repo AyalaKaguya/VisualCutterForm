@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using VisualMaster.Api;
+using VisualMaster.CameraLink.Api;
 
 namespace VisualMaster.CameraLink.API
 {

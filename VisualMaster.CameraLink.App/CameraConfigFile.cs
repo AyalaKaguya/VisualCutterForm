@@ -1,11 +1,11 @@
-using VisualMaster.Api;
+using VisualMaster.CameraLink.Api;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Web.Script.Serialization;
 
-namespace VisualMaster.CameraLink.App
+namespace VisualMaster.CameraLink.TestApp
 {
     /// <summary>
     /// 相机管理独立应用的配置文件模型（JSON 格式）。

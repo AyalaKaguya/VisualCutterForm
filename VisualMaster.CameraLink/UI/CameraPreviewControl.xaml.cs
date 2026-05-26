@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Controls;
 using System.Windows.Threading;
-using VisualMaster.Api;
+using VisualMaster.CameraLink.Api;
 
 namespace VisualMaster.CameraLink.UI
 {

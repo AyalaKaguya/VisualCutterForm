@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using VisualMaster.Api;
+using VisualMaster.CameraLink.Api;
 using VisualMaster.CameraLink.Adapter;
 using VisualMaster.CameraLink.API;
 

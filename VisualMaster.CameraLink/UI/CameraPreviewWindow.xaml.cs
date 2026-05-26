@@ -1,6 +1,6 @@
 using System;
 using System.Windows;
-using VisualMaster.Api;
+using VisualMaster.CameraLink.Api;
 
 namespace VisualMaster.CameraLink.UI
 {

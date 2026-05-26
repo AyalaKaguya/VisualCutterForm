@@ -51,10 +51,22 @@
   </ItemGroup>
   <ItemGroup>
     <!-- API 层 -->
+    <Compile Include="API\CameraDeviceConfig.cs" />
+    <Compile Include="API\CameraDeviceStatus.cs" />
+    <Compile Include="API\CameraFrameBuffer.cs" />
+    <Compile Include="API\CameraFrameSnapshot.cs" />
+    <Compile Include="API\CameraInfo.cs" />
+    <Compile Include="API\CameraSettings.cs" />
+    <Compile Include="API\CameraSystemConfig.cs" />
     <Compile Include="API\DiscoveredCamera.cs" />
     <Compile Include="API\FrameAcquiredEventArgs.cs" />
     <Compile Include="API\ICameraAdapter.cs" />
     <Compile Include="API\ICameraDeviceDriver.cs" />
+    <Compile Include="API\ICameraManager.cs" />
+    <Compile Include="API\ImageFifo.cs" />
+    <Compile Include="API\RuntimeDiagnosticsHub.cs" />
+    <Compile Include="API\RuntimeDiagnosticEvent.cs" />
+    <Compile Include="API\TriggerModeEnum.cs" />
     <!-- Adapter 层 -->
     <Compile Include="Adapter\HikrobotAdapter.cs" />
     <Compile Include="Adapter\HikrobotDevice.cs" />

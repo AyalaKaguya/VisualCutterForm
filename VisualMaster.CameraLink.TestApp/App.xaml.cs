@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using VisualMaster.CameraLink.UI;
 
-namespace VisualMaster.CameraLink.TestApp
+namespace VisualMaster.CameraLink.TestApp.Viewer
 {
     public partial class App : Application
     {

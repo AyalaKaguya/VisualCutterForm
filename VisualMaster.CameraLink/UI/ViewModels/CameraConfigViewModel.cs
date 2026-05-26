@@ -1,4 +1,4 @@
-using VisualMaster.Api;
+using VisualMaster.CameraLink.Api;
 using System;
 
 namespace VisualMaster.CameraLink.UI.ViewModels
