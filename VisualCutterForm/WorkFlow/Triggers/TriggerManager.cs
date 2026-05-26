@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using CameraFrameSnapshot = VisualMaster.CameraLink.Api.CameraFrameSnapshot;
 using VisualMaster.WorkFlow.Data;
 
 namespace VisualMaster.WorkFlow.Triggers

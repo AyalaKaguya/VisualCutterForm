@@ -15,6 +15,8 @@ namespace VisualMaster.Communication.UI.ViewModels
     {
         private readonly CommunicationManager _manager;
         private readonly CommunicationSystemConfig _config;
+        private readonly Dictionary<string, ICommunicationDriverConfigurationViewFactory> _configurationViewFactories =
+            new Dictionary<string, ICommunicationDriverConfigurationViewFactory>(StringComparer.OrdinalIgnoreCase);
 
         private CommunicationDeviceItemViewModel _selectedDevice;
         private bool _isBusy;
@@ -63,6 +65,9 @@ namespace VisualMaster.Communication.UI.ViewModels
         {
             _manager = manager ?? throw new ArgumentNullException(nameof(manager));
             _config  = config  ?? throw new ArgumentNullException(nameof(config));
+
+            RegisterConfigurationViewFactory(new UartDriverConfigurationViewFactory());
+            RegisterConfigurationViewFactory(new TcpDriverConfigurationViewFactory());
 
             _manager.LoadConfig(_config);
 
@@ -315,9 +320,15 @@ namespace VisualMaster.Communication.UI.ViewModels
         {
             var config = _config?.GetDevice(deviceId);
             if (config == null) return null;
-            var factory = _manager.DriverFactories.FirstOrDefault(f =>
-                string.Equals(f.DriverName, config.DriverName, StringComparison.OrdinalIgnoreCase));
-            return (factory as ICommunicationDriverConfigurationViewFactory)?.CreateConfigurationView(config);
+            return _configurationViewFactories.TryGetValue(config.DriverName, out var factory)
+                ? factory.CreateConfigurationView(config)
+                : null;
+        }
+
+        public void RegisterConfigurationViewFactory(ICommunicationDriverConfigurationViewFactory factory)
+        {
+            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            _configurationViewFactories[factory.DriverName] = factory;
         }
 
         public ICommunicationBlock FindBlock(string deviceId, string blockId)

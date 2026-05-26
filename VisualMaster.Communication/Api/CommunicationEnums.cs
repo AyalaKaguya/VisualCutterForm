@@ -39,6 +39,24 @@ namespace VisualMaster.Communication.Api
         FallingEdge,
     }
 
+    public enum CommunicationInputSourceKind
+    {
+        CommunicationBlock,
+    }
+
+    public enum CommunicationInputPayloadKind
+    {
+        Bytes,
+        Text,
+        Json,
+    }
+
+    public enum CommunicationInputMatchMode
+    {
+        AllConditions,
+        AnyCondition,
+    }
+
     public enum CommunicationOutputSegmentKind
     {
         Constant,

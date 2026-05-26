@@ -54,22 +54,33 @@ namespace VisualMaster.CameraLink.Core
             Driver.FrameAcquired  += OnFrameAcquired;
             Driver.Disconnected   += OnDisconnected;
 
-            Driver.Open();
-
-            // 首次连接时从相机侧读取原始参数（如果配置是空的），再应用保存的配置
-            var saved = Config.Settings;
-            if (saved.Width == 0 && saved.Height == 0)
+            try
             {
-                var fromDevice = Driver.ReadSettingsFromDevice();
-                fromDevice.TriggerMode    = saved.TriggerMode;
-                fromDevice.FifoCapacity   = saved.FifoCapacity;
-                fromDevice.MonochromeOutput = saved.MonochromeOutput;
-                Config.Settings = fromDevice;
-            }
-            Driver.ApplySettings(Config.Settings);
+                Driver.Open();
 
-            LastKnownInfo = Driver.ToCameraInfo();
-            Config.AssignedSerial = driver.UniqueHardwareId;
+                // 首次连接时从相机侧读取原始参数（如果配置是空的），再应用保存的配置
+                var saved = Config.Settings;
+                if (saved.Width == 0 && saved.Height == 0)
+                {
+                    var fromDevice = Driver.ReadSettingsFromDevice();
+                    fromDevice.TriggerMode      = saved.TriggerMode;
+                    fromDevice.FifoCapacity     = saved.FifoCapacity;
+                    fromDevice.MonochromeOutput = saved.MonochromeOutput;
+                    Config.Settings = fromDevice;
+                }
+                Driver.ApplySettings(Config.Settings);
+
+                LastKnownInfo = Driver.ToCameraInfo();
+                Config.AssignedSerial = driver.UniqueHardwareId;
+            }
+            catch
+            {
+                Driver.FrameAcquired -= OnFrameAcquired;
+                Driver.Disconnected  -= OnDisconnected;
+                Driver    = null;
+                Discovery = null;
+                throw;
+            }
         }
 
         /// <summary>分离 SDK 驱动（不释放 Driver 对象本身，由外部管理）。</summary>
@@ -128,10 +139,11 @@ namespace VisualMaster.CameraLink.Core
         public void ApplySettings(CameraSettings settings)
         {
             if (settings == null) return;
-            Config.Settings = settings.Clone();
+            // 先尝试应用到设备，成功后再更新本地配置，避免设备失败时本地已脏
+            Driver?.ApplySettings(settings);
+            Config.Settings      = settings.Clone();
             FrameBuffer.Capacity = settings.FifoCapacity;
             Fifo.Capacity        = settings.FifoCapacity;
-            Driver?.ApplySettings(settings);
         }
 
         // ── 状态快照 ──────────────────────────────────────────────
@@ -150,20 +162,26 @@ namespace VisualMaster.CameraLink.Core
 
         private void OnFrameAcquired(object sender, FrameAcquiredEventArgs e)
         {
+            Bitmap grayscale = null;
             try
             {
                 Bitmap toPublish = e.Frame;
 
-                // 如启用黑白模式，额外转换
+                // 如启用黑白模式，额外转换（Fifo 内部会克隆，转换后的临时图可安全释放）
                 if (Config.Settings?.MonochromeOutput == true)
-                    toPublish = ConvertToGrayscale(e.Frame);
+                {
+                    grayscale  = ConvertToGrayscale(e.Frame);
+                    toPublish  = grayscale;
+                }
 
                 Fifo.Enqueue(toPublish, Config.DeviceId);
-
-                if (toPublish != e.Frame)
-                    toPublish?.Dispose();
             }
             catch { }
+            finally
+            {
+                // Fifo.Enqueue 内部为 _latestFrame 保留克隆，调用方负责释放灰度转换副本
+                grayscale?.Dispose();
+            }
         }
 
         private void OnDisconnected(object sender, EventArgs e)
@@ -191,6 +209,8 @@ namespace VisualMaster.CameraLink.Core
             if (source == null) return null;
             var gray = new Bitmap(source.Width, source.Height,
                 System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            try
+            {
             using (var g = System.Drawing.Graphics.FromImage(gray))
             {
                 var cm = new System.Drawing.Imaging.ColorMatrix(new float[][]
@@ -209,6 +229,12 @@ namespace VisualMaster.CameraLink.Core
                     System.Drawing.GraphicsUnit.Pixel, ia);
             }
             return gray;
+            }
+            catch
+            {
+                gray.Dispose();
+                throw;
+            }
         }
 
         public void Dispose()

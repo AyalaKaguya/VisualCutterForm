@@ -1,6 +1,7 @@
 using System.Linq;
 using VisualMaster.Api;
 using VisualMaster.WorkFlow;
+using CameraDeviceConfig = VisualMaster.CameraLink.Api.CameraDeviceConfig;
 
 namespace VisualMaster.Forms
 {

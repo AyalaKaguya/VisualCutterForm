@@ -45,7 +45,8 @@ namespace VisualMaster.CameraLink.Api
             _buffer.Publish(frame, deviceId, correlationId);
             var queueClone = (Bitmap)frame.Clone();
             _queue.Enqueue(queueClone);
-            lock (_lock) { _latestFrame?.Dispose(); _latestFrame = frame; }
+            // 克隆一份专供 PeekLatest 使用，使所有权与外部 frame 解耦
+            lock (_lock) { _latestFrame?.Dispose(); _latestFrame = (Bitmap)frame.Clone(); }
             TrimToCapacity();
             lock (_lock) { Monitor.PulseAll(_lock); }
             FrameEnqueued?.Invoke(this, queueClone);

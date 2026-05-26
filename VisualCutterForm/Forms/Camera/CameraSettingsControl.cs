@@ -1,6 +1,8 @@
-using VisualMaster.Api;
+using VisualMaster.CameraLink.Api;
 using System;
 using System.Windows.Forms;
+using CameraSettings = VisualMaster.CameraLink.Api.CameraSettings;
+using TriggerModeEnum = VisualMaster.CameraLink.Api.TriggerModeEnum;
 
 namespace VisualMaster.Forms.Camera
 {

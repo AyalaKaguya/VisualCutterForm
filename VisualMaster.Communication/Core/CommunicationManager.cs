@@ -12,12 +12,8 @@ namespace VisualMaster.Communication.Core
     {
         private readonly Dictionary<string, ICommunicationDriverFactory> _factories =
             new Dictionary<string, ICommunicationDriverFactory>(StringComparer.OrdinalIgnoreCase);
-        private readonly Dictionary<string, ICommunicationDriver> _drivers =
-            new Dictionary<string, ICommunicationDriver>();
-        private readonly Dictionary<string, CancellationTokenSource> _pollers =
-            new Dictionary<string, CancellationTokenSource>();
-        private readonly Dictionary<string, CommunicationDeviceStatus> _statuses =
-            new Dictionary<string, CommunicationDeviceStatus>();
+        private readonly Dictionary<string, CommunicationDeviceRuntime> _runtimes =
+            new Dictionary<string, CommunicationDeviceRuntime>();
         private readonly Dictionary<string, byte[]> _previousValues =
             new Dictionary<string, byte[]>();
         private readonly CommunicationInputEvaluator _inputEvaluator = new CommunicationInputEvaluator();
@@ -31,8 +27,11 @@ namespace VisualMaster.Communication.Core
         }
 
         public IReadOnlyList<ICommunicationDriverFactory> DriverFactories => _factories.Values.ToList();
-        public IReadOnlyList<ICommunicationDriver> Drivers => _drivers.Values.ToList();
-        public IReadOnlyList<CommunicationDeviceStatus> DeviceStatuses => _statuses.Values.ToList();
+        public IReadOnlyList<ICommunicationDriver> Drivers => _runtimes.Values.Select(r => r.Driver).ToList();
+        public IReadOnlyList<CommunicationDeviceStatus> DeviceStatuses => _runtimes.Values
+            .Select(r => r.Status)
+            .Where(s => s != null)
+            .ToList();
 
         public event EventHandler<CommunicationInputEventConfig> InputEventTriggered;
         public event EventHandler<string> StatusChanged;
@@ -69,7 +68,7 @@ namespace VisualMaster.Communication.Core
             if (!_factories.TryGetValue(driverName, out var factory))
                 throw new InvalidOperationException($"Driver is not registered: {driverName}");
 
-            var existing = _drivers.Values.ToList();
+            var existing = Drivers.ToList();
             var config = factory.CreateDefaultConfig(existing as IReadOnlyList<ICommunicationDriver>);
             if (_config != null)
             {
@@ -79,7 +78,7 @@ namespace VisualMaster.Communication.Core
             }
             else
             {
-                CreateOrUpdateDriver(config);
+                CreateOrUpdateRuntime(config);
             }
 
             return config.Clone();
@@ -87,42 +86,34 @@ namespace VisualMaster.Communication.Core
 
         public async Task StartDeviceAsync(string deviceId, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (!_drivers.TryGetValue(deviceId, out var driver) || !driver.IsEnabled)
+            if (!_runtimes.TryGetValue(deviceId, out var runtime) || !runtime.Driver.IsEnabled)
             {
-                if (_drivers.TryGetValue(deviceId, out var disabledDriver))
-                    SetStatus(disabledDriver, CommunicationDeviceRuntimeState.Disabled, false, null);
                 return;
             }
 
             try
             {
-                SetStatus(driver, CommunicationDeviceRuntimeState.Connecting, false, null);
-                await StartDriverAsync(driver, cancellationToken).ConfigureAwait(false);
-                SetStatus(driver, CommunicationDeviceRuntimeState.Connected, true, null);
+                await runtime.StartAsync(cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch
             {
-                StopPolling(deviceId);
-                try { await driver.CloseAsync().ConfigureAwait(false); } catch { }
-                driver.IsEnabled = false;
-                var failedConfig = _config?.GetDevice(deviceId);
+                var failedConfig = runtime.Config?.Clone() ?? _config?.GetDevice(deviceId);
                 if (failedConfig != null)
                 {
                     failedConfig.IsEnabled = false;
                     _config.UpdateDevice(failedConfig);
                 }
-                SetStatus(driver, CommunicationDeviceRuntimeState.Faulted, false, ex.Message, failedConfig);
                 throw;
             }
         }
 
         public async Task StartAllAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            foreach (var driver in _drivers.Values.Where(d => d.IsEnabled))
+            foreach (var runtime in _runtimes.Values.Where(r => r.Driver.IsEnabled).ToList())
             {
                 try
                 {
-                    await StartDeviceAsync(driver.DeviceId, cancellationToken).ConfigureAwait(false);
+                    await StartDeviceAsync(runtime.Driver.DeviceId, cancellationToken).ConfigureAwait(false);
                 }
                 catch
                 {
@@ -132,20 +123,13 @@ namespace VisualMaster.Communication.Core
 
         public async Task StopDeviceAsync(string deviceId)
         {
-            StopPolling(deviceId);
-            if (_drivers.TryGetValue(deviceId, out var driver))
-            {
-                SetStatus(driver, CommunicationDeviceRuntimeState.Disconnecting, false, null);
-                await driver.CloseAsync().ConfigureAwait(false);
-                SetStatus(driver, driver.IsEnabled
-                    ? CommunicationDeviceRuntimeState.Disconnected
-                    : CommunicationDeviceRuntimeState.Disabled, false, null);
-            }
+            if (_runtimes.TryGetValue(deviceId, out var runtime))
+                await runtime.StopAsync().ConfigureAwait(false);
         }
 
         public async Task StopAllAsync()
         {
-            foreach (var id in _drivers.Keys.ToList())
+            foreach (var id in _runtimes.Keys.ToList())
                 await StopDeviceAsync(id).ConfigureAwait(false);
         }
 
@@ -175,8 +159,8 @@ namespace VisualMaster.Communication.Core
 
         public ICommunicationBlock FindBlock(string deviceId, string blockId)
         {
-            return _drivers.TryGetValue(deviceId, out var driver)
-                ? driver.Blocks.FirstOrDefault(b => b.Config.BlockId == blockId)
+            return _runtimes.TryGetValue(deviceId, out var runtime)
+                ? runtime.FindBlock(blockId)
                 : null;
         }
 
@@ -185,9 +169,9 @@ namespace VisualMaster.Communication.Core
             get
             {
                 var dict = new Dictionary<(string, string), ICommunicationBlock>();
-                foreach (var driver in _drivers.Values)
-                foreach (var block in driver.Blocks)
-                    dict[(driver.DeviceId, block.Config.BlockId)] = block;
+                foreach (var runtime in _runtimes.Values)
+                foreach (var block in runtime.Driver.Blocks)
+                    dict[(runtime.Driver.DeviceId, block.Config.BlockId)] = block;
                 return dict;
             }
         }
@@ -200,104 +184,69 @@ namespace VisualMaster.Communication.Core
         public CommunicationDeviceStatus GetDeviceStatus(string deviceId)
         {
             if (string.IsNullOrEmpty(deviceId)) return null;
-            return _statuses.TryGetValue(deviceId, out var status) ? status : null;
-        }
-
-        private async Task StartDriverAsync(ICommunicationDriver driver, CancellationToken cancellationToken)
-        {
-            await driver.ConnectAsync(cancellationToken).ConfigureAwait(false);
-            StartPolling(driver);
+            return _runtimes.TryGetValue(deviceId, out var runtime) ? runtime.Status : null;
         }
 
         private void SyncFromConfig()
         {
             var ids = new HashSet<string>(_config.Devices.Select(d => d.DeviceId));
-            foreach (var id in _drivers.Keys.ToList())
+            foreach (var id in _runtimes.Keys.ToList())
             {
                 if (!ids.Contains(id))
-                    RemoveDriver(id);
+                    RemoveRuntime(id);
             }
 
             foreach (var device in _config.Devices)
-                CreateOrUpdateDriver(device);
+                CreateOrUpdateRuntime(device);
         }
 
-        private void CreateOrUpdateDriver(CommunicationDeviceConfig config)
+        private void CreateOrUpdateRuntime(CommunicationDeviceConfig config)
         {
             if (!_factories.TryGetValue(config.DriverName, out var factory))
                 return;
 
-            if (_drivers.TryGetValue(config.DeviceId, out var existing))
+            if (_runtimes.TryGetValue(config.DeviceId, out var existing))
             {
-                foreach (var oldBlock in existing.Blocks)
-                    oldBlock.Updated -= OnBlockForInputEvents;
-
-                existing.Initialize(config);
-
-                foreach (var newBlock in existing.Blocks)
-                    newBlock.Updated += OnBlockForInputEvents;
-                SyncStatusFromDriver(existing, config);
-                return;
+                if (!string.Equals(existing.Driver.DriverName, config.DriverName, StringComparison.OrdinalIgnoreCase))
+                {
+                    RemoveRuntime(config.DeviceId);
+                }
+                else
+                {
+                    existing.UpdateConfig(config);
+                    return;
+                }
             }
 
             var driver = factory.CreateDriver();
-            driver.Initialize(config);
-
-            foreach (var block in driver.Blocks)
-                block.Updated += OnBlockForInputEvents;
-
-            _drivers[config.DeviceId] = driver;
-            SyncStatusFromDriver(driver, config);
+            var runtime = new CommunicationDeviceRuntime(driver, config);
+            runtime.BlockUpdated += OnBlockForInputEvents;
+            runtime.StatusChanged += OnRuntimeStatusChanged;
+            _runtimes[config.DeviceId] = runtime;
         }
 
-        private void RemoveDriver(string deviceId)
+        private void RemoveRuntime(string deviceId)
         {
-            StopPolling(deviceId);
-            if (!_drivers.TryGetValue(deviceId, out var driver)) return;
+            if (!_runtimes.TryGetValue(deviceId, out var runtime)) return;
+            runtime.BlockUpdated -= OnBlockForInputEvents;
+            runtime.StatusChanged -= OnRuntimeStatusChanged;
+            runtime.Dispose();
+            _runtimes.Remove(deviceId);
+        }
 
-            foreach (var block in driver.Blocks)
-                block.Updated -= OnBlockForInputEvents;
+        private void OnRuntimeStatusChanged(object sender, CommunicationDeviceStatusChangedEventArgs e)
+        {
+            DeviceStatusChanged?.Invoke(this, e);
 
-            driver.Dispose();
-            _drivers.Remove(deviceId);
-            _statuses.Remove(deviceId);
+            if (!string.IsNullOrEmpty(e.Status.LastError))
+                StatusChanged?.Invoke(this, $"{e.Status.DriverName} {e.Status.State}: {e.Status.LastError}");
+            else
+                StatusChanged?.Invoke(this, $"{e.Status.DriverName} {e.Status.State}.");
         }
 
         private void OnBlockForInputEvents(object sender, CommunicationBlockUpdatedEventArgs e)
         {
             ProcessInputEvents(e);
-        }
-
-        private void StartPolling(ICommunicationDriver driver)
-        {
-            StopPolling(driver.DeviceId);
-            if (!driver.Blocks.Any(b => b.Config.PollingEnabled)) return;
-
-            var cts = new CancellationTokenSource();
-            _pollers[driver.DeviceId] = cts;
-            Task.Run(async () =>
-            {
-                while (!cts.IsCancellationRequested)
-                {
-                    var interval = driver.Blocks.Where(b => b.Config.PollingEnabled)
-                        .Select(b => Math.Max(50, b.Config.PollingIntervalMs))
-                        .DefaultIfEmpty(500)
-                        .Min();
-
-                    try { await driver.PollAsync(cts.Token).ConfigureAwait(false); }
-                    catch (Exception ex) { SetStatus(driver, CommunicationDeviceRuntimeState.Faulted, false, ex.Message); }
-                    try { await Task.Delay(interval, cts.Token).ConfigureAwait(false); }
-                    catch { }
-                }
-            }, cts.Token);
-        }
-
-        private void StopPolling(string deviceId)
-        {
-            if (!_pollers.TryGetValue(deviceId, out var cts)) return;
-            cts.Cancel();
-            cts.Dispose();
-            _pollers.Remove(deviceId);
         }
 
         private void ProcessInputEvents(CommunicationBlockUpdatedEventArgs e)
@@ -306,7 +255,10 @@ namespace VisualMaster.Communication.Core
             string key = $"{e.DeviceId}|{e.BlockId}";
             _previousValues.TryGetValue(key, out var previous);
 
-            foreach (var input in _config.InputEvents.Where(i => i.DeviceId == e.DeviceId && i.BlockId == e.BlockId))
+            foreach (var input in _config.InputEvents.Where(i =>
+                i.Source?.SourceKind == CommunicationInputSourceKind.CommunicationBlock
+                && i.Source.DeviceId == e.DeviceId
+                && i.Source.BlockId == e.BlockId))
             {
                 if (!_inputEvaluator.Matches(input, e.Data, previous))
                     continue;
@@ -327,71 +279,24 @@ namespace VisualMaster.Communication.Core
             if (!string.Equals(heartbeat.InputEventId, input.EventId, StringComparison.OrdinalIgnoreCase))
                 return false;
 
-            if (string.IsNullOrWhiteSpace(heartbeat.InputRuleId))
-                return true;
-
-            return input.Rules != null && input.Rules.Any(rule =>
-                string.Equals(rule.RuleId, heartbeat.InputRuleId, StringComparison.OrdinalIgnoreCase));
+            return true;
         }
 
-        private void OnDeviceAdded(object sender, CommunicationDeviceConfig e) => CreateOrUpdateDriver(e);
-        private void OnDeviceUpdated(object sender, CommunicationDeviceConfig e) => CreateOrUpdateDriver(e);
-        private void OnDeviceRemoved(object sender, string e) => RemoveDriver(e);
+        private void OnDeviceAdded(object sender, CommunicationDeviceConfig e) => CreateOrUpdateRuntime(e);
+        private void OnDeviceUpdated(object sender, CommunicationDeviceConfig e) => CreateOrUpdateRuntime(e);
+        private void OnDeviceRemoved(object sender, string e) => RemoveRuntime(e);
         private void OnConfigReset(object sender, EventArgs e) => SyncFromConfig();
-
-        private void SyncStatusFromDriver(ICommunicationDriver driver, CommunicationDeviceConfig config)
-        {
-            if (driver == null || config == null) return;
-
-            var state = !config.IsEnabled
-                ? CommunicationDeviceRuntimeState.Disabled
-                : driver.IsConnected
-                    ? CommunicationDeviceRuntimeState.Connected
-                    : CommunicationDeviceRuntimeState.Disconnected;
-
-            SetStatus(driver, state, driver.IsConnected && config.IsEnabled, null, config);
-        }
-
-        private void SetStatus(
-            ICommunicationDriver driver,
-            CommunicationDeviceRuntimeState state,
-            bool isConnected,
-            string lastError,
-            CommunicationDeviceConfig config = null)
-        {
-            if (driver == null || string.IsNullOrEmpty(driver.DeviceId)) return;
-
-            config = config ?? _config?.GetDevice(driver.DeviceId);
-            var status = new CommunicationDeviceStatus(
-                driver.DeviceId,
-                config?.DriverName ?? driver.DriverName,
-                config?.DisplayName,
-                config?.IsEnabled ?? driver.IsEnabled,
-                isConnected,
-                state,
-                lastError,
-                DateTime.Now);
-
-            _statuses[driver.DeviceId] = status;
-            DeviceStatusChanged?.Invoke(this, new CommunicationDeviceStatusChangedEventArgs(status));
-
-            if (!string.IsNullOrEmpty(lastError))
-                StatusChanged?.Invoke(this, $"{driver.DriverName} {state}: {lastError}");
-            else
-                StatusChanged?.Invoke(this, $"{driver.DriverName} {state}.");
-        }
 
         public void Dispose()
         {
             StopAllAsync().GetAwaiter().GetResult();
-            foreach (var driver in _drivers.Values)
+            foreach (var runtime in _runtimes.Values)
             {
-                foreach (var block in driver.Blocks)
-                    block.Updated -= OnBlockForInputEvents;
-                driver.Dispose();
+                runtime.BlockUpdated -= OnBlockForInputEvents;
+                runtime.StatusChanged -= OnRuntimeStatusChanged;
+                runtime.Dispose();
             }
-            _drivers.Clear();
-            _statuses.Clear();
+            _runtimes.Clear();
         }
     }
 }

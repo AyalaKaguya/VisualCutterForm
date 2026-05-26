@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Windows.Controls;
 using VisualMaster.Communication.Api;
-using VisualMaster.Communication.UI;
-using VisualMaster.Communication.UI.ViewModels;
 
 namespace VisualMaster.Communication.Driver
 {
-    public sealed class UartDriverFactory : ICommunicationDriverFactory, ICommunicationDriverConfigurationViewFactory
+    public sealed class UartDriverFactory : ICommunicationDriverFactory
     {
         public string DriverName => "UART";
         public string DisplayName => "UART 串口";
@@ -47,11 +44,6 @@ namespace VisualMaster.Communication.Driver
         public ICommunicationDriver CreateDriver()
         {
             return new UartDriver();
-        }
-
-        public UserControl CreateConfigurationView(CommunicationDeviceConfig config)
-        {
-            return new UartDriverConfigControl(new UartDriverConfigViewModel(config));
         }
     }
 }

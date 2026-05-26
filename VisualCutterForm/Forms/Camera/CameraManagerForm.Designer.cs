@@ -46,7 +46,7 @@ namespace VisualMaster.Forms.Camera
 
         private void InitializeComponent()
         {
-            VisualMaster.Api.CameraSettings cameraSettings1 = new VisualMaster.Api.CameraSettings();
+            VisualMaster.CameraLink.Api.CameraSettings cameraSettings1 = new VisualMaster.CameraLink.Api.CameraSettings();
             this._tabControl = new System.Windows.Forms.TabControl();
             this._tabDeviceList = new System.Windows.Forms.TabPage();
             this._discoveryControl = new CameraDiscoveryControl();

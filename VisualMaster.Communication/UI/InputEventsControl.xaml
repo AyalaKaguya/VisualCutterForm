@@ -40,7 +40,7 @@
                             <TextBlock FontSize="10" Foreground="#999999" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"
                                        Text="{Binding BindingInfo}"/>
                             <TextBlock FontSize="10" Foreground="#777777" Margin="0,1,0,0"
-                                       Text="{Binding Rules.Count, StringFormat=规则: \{0\} 条}"/>
+                                       Text="{Binding ConditionCount, StringFormat=条件: \{0\} 条}"/>
                         </StackPanel>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
@@ -67,12 +67,11 @@
                     <TextBlock Text="数据块" Width="96" VerticalAlignment="Center" Margin="0,0,12,0"/>
                     <ComboBox x:Name="BlockCombo" MinWidth="240" SelectionChanged="OnBlockComboChanged" HorizontalAlignment="Left"/>
                 </DockPanel>
-
                 <Border Height="1" Background="#303030" Margin="0,14,0,12"/>
 
                 <TextBlock Text="基本配置" FontWeight="SemiBold" Margin="0,0,0,6"/>
                 <DockPanel Margin="0,0,0,8">
-                    <TextBlock Text="字节长度比较" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <TextBlock Text="载荷长度比较" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
                     <ToggleButton x:Name="LengthCheckToggle" Style="{StaticResource DeviceToggle}"
                                   Checked="OnLengthCheckChanged" Unchecked="OnLengthCheckChanged" HorizontalAlignment="Left"/>
                 </DockPanel>
@@ -109,7 +108,7 @@
                         </DockPanel>
                     </DockPanel>
                     <DockPanel>
-                        <TextBlock Text="按ASCII字符计算" Width="130" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <TextBlock Text="文本长度模式" Width="130" VerticalAlignment="Center" Margin="0,0,12,0"/>
                         <ToggleButton x:Name="AsciiToggle" Style="{StaticResource DeviceToggle}"
                                       Checked="OnAsciiToggleChanged" Unchecked="OnAsciiToggleChanged" HorizontalAlignment="Left"/>
                     </DockPanel>
@@ -117,7 +116,7 @@
 
                 <Border Height="1" Background="#303030" Margin="0,14,0,12"/>
 
-                <TextBlock Text="规则配置" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                <TextBlock Text="触发条件" FontWeight="SemiBold" Margin="0,0,0,6"/>
                 <Grid Margin="0,0,0,4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="36"/>
@@ -134,7 +133,7 @@
                     <TextBlock Grid.Column="2" Text="起止位置" FontSize="13" Foreground="#AAAAAA" Margin="4,0,0,0"/>
                     <TextBlock Grid.Column="3" Text="类型" FontSize="13" Foreground="#AAAAAA" Margin="4,0,0,0"/>
                     <TextBlock Grid.Column="4" Text="字节序" FontSize="13" Foreground="#AAAAAA" Margin="4,0,0,0"/>
-                    <TextBlock Grid.Column="5" Text="规则" FontSize="13" Foreground="#AAAAAA" Margin="4,0,0,0"/>
+                    <TextBlock Grid.Column="5" Text="条件" FontSize="13" Foreground="#AAAAAA" Margin="4,0,0,0"/>
                     <TextBlock Grid.Column="6" Text="参数" FontSize="13" Foreground="#AAAAAA" Margin="4,0,0,0"/>
                 </Grid>
                 <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="320">
@@ -214,7 +213,7 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
-                <Button Content="+ 添加规则" Click="OnAddRuleClick" Height="32" FontSize="13"
+                <Button Content="+ 添加条件" Click="OnAddRuleClick" Height="32" FontSize="13"
                         Background="#2A2A2A" BorderBrush="#444444" Foreground="#999999"
                         Margin="0,6,0,0" HorizontalAlignment="Left" Width="110"/>
             </StackPanel>

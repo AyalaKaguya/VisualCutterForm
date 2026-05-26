@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using VisualMaster.Communication.Api;
 
 namespace VisualMaster.Communication.Core
@@ -10,35 +11,77 @@ namespace VisualMaster.Communication.Core
         public bool Matches(CommunicationInputEventConfig config, byte[] current, byte[] previous)
         {
             if (config == null || current == null) return false;
+            var currentPayload = CommunicationInputPayload.FromBytes(config.Payload, config.Source, current);
+            var previousPayload = CommunicationInputPayload.FromBytes(config.Payload, config.Source, previous);
+            return Matches(config, currentPayload, previousPayload);
+        }
+
+        public bool Matches(
+            CommunicationInputEventConfig config,
+            CommunicationInputPayload current,
+            CommunicationInputPayload previous)
+        {
+            if (config == null || current == null) return false;
 
             if (config.LengthCheckEnabled)
             {
-                int charSize = config.TreatAsAscii ? 2 : 1;
+                int length = current.Length;
                 if (config.MinLengthEnabled && config.MinimumLength > 0
-                    && current.Length < config.MinimumLength * charSize)
+                    && length < config.MinimumLength)
                     return false;
                 if (config.ExactLengthEnabled && config.ExactLength > 0
-                    && current.Length != config.ExactLength * charSize)
+                    && length != config.ExactLength)
                     return false;
             }
 
-            if (config.Rules == null || config.Rules.Count == 0) return true;
+            var conditions = GetConditions(config).ToList();
+            if (conditions.Count == 0) return true;
 
-            foreach (var rule in config.Rules.OrderBy(r => r.Order))
+            if (config.MatchMode == CommunicationInputMatchMode.AnyCondition)
             {
-                if (!MatchesRule(rule, current, previous))
+                foreach (var condition in conditions)
+                {
+                    if (MatchesCondition(condition, current, previous))
+                        return true;
+                }
+                return false;
+            }
+
+            foreach (var condition in conditions)
+            {
+                if (!MatchesCondition(condition, current, previous))
                     return false;
             }
+
             return true;
         }
 
-        private static bool MatchesRule(CommunicationInputMatchRule rule, byte[] current, byte[] previous)
+        private static IQueryable<CommunicationInputConditionConfig> GetConditions(CommunicationInputEventConfig config)
         {
-            var currentSlice = Slice(current, rule.StartIndex, rule.Length);
-            var previousSlice = Slice(previous, rule.StartIndex, rule.Length);
+            var conditions = config.Conditions != null && config.Conditions.Count > 0
+                ? config.Conditions
+                : config.Rules?.Select(CommunicationInputConditionConfig.FromRule).Where(c => c != null).ToList();
+
+            return (conditions ?? Enumerable.Empty<CommunicationInputConditionConfig>())
+                .OrderBy(r => r.Order)
+                .AsQueryable();
+        }
+
+        private static bool MatchesCondition(CommunicationInputConditionConfig condition, CommunicationInputPayload current, CommunicationInputPayload previous)
+        {
+            return MatchesRule(condition.ToRule(), current, previous);
+        }
+
+        private static bool MatchesRule(CommunicationInputMatchRule rule, CommunicationInputPayload current, CommunicationInputPayload previous)
+        {
+            var currentSlice = Slice(current.RawBytes, rule.StartIndex, rule.Length);
+            var previousSlice = Slice(previous?.RawBytes, rule.StartIndex, rule.Length);
 
             if (rule.Operator == CommunicationMatchOperator.LengthAtLeast)
-                return current?.Length >= ParseDouble(rule.MatchValue);
+                return current.Length >= ParseDouble(rule.MatchValue);
+
+            if (current.PayloadKind != CommunicationInputPayloadKind.Bytes)
+                return MatchesTextRule(rule, current, previous);
 
             if (rule.Operator == CommunicationMatchOperator.RisingEdge)
             {
@@ -83,6 +126,32 @@ namespace VisualMaster.Communication.Core
             }
         }
 
+        private static bool MatchesTextRule(
+            CommunicationInputMatchRule rule,
+            CommunicationInputPayload current,
+            CommunicationInputPayload previous)
+        {
+            string currentText = current.Text ?? string.Empty;
+            string previousText = previous?.Text ?? string.Empty;
+            string target = rule.MatchValue ?? string.Empty;
+
+            switch (rule.Operator)
+            {
+                case CommunicationMatchOperator.Equals:
+                    return string.Equals(currentText, target, StringComparison.Ordinal);
+                case CommunicationMatchOperator.Contains:
+                    return currentText.Contains(target);
+                case CommunicationMatchOperator.ChangedTo:
+                    return !string.Equals(previousText, target, StringComparison.Ordinal)
+                        && string.Equals(currentText, target, StringComparison.Ordinal);
+                case CommunicationMatchOperator.ChangedFrom:
+                    return string.Equals(previousText, target, StringComparison.Ordinal)
+                        && !string.Equals(currentText, target, StringComparison.Ordinal);
+                default:
+                    return MatchesRule(rule, new CommunicationInputPayload(CommunicationInputPayloadKind.Bytes, current.RawBytes, null), new CommunicationInputPayload(CommunicationInputPayloadKind.Bytes, previous?.RawBytes, null));
+            }
+        }
+
         private static byte[] Slice(byte[] data, int start, int length)
         {
             if (data == null || start < 0 || length <= 0 || start >= data.Length) return new byte[0];
@@ -109,6 +178,46 @@ namespace VisualMaster.Communication.Core
         private static double ParseDouble(string value)
         {
             return double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed) ? parsed : 0;
+        }
+    }
+
+    public sealed class CommunicationInputPayload
+    {
+        public CommunicationInputPayload(CommunicationInputPayloadKind payloadKind, byte[] rawBytes, string text)
+        {
+            PayloadKind = payloadKind;
+            RawBytes = rawBytes != null ? (byte[])rawBytes.Clone() : new byte[0];
+            Text = text;
+        }
+
+        public CommunicationInputPayloadKind PayloadKind { get; }
+        public byte[] RawBytes { get; }
+        public string Text { get; }
+        public int Length => PayloadKind == CommunicationInputPayloadKind.Bytes
+            ? RawBytes.Length
+            : (Text ?? string.Empty).Length;
+
+        public static CommunicationInputPayload FromBytes(
+            CommunicationInputPayloadConfig payload,
+            CommunicationInputSourceConfig source,
+            byte[] data)
+        {
+            var kind = payload?.PayloadKind ?? source?.PayloadKind ?? CommunicationInputPayloadKind.Bytes;
+            var bytes = data != null ? (byte[])data.Clone() : new byte[0];
+            if (kind == CommunicationInputPayloadKind.Bytes)
+                return new CommunicationInputPayload(kind, bytes, null);
+
+            var encoding = ResolveEncoding(payload?.EncodingName ?? source?.EncodingName);
+            return new CommunicationInputPayload(kind, bytes, encoding.GetString(bytes));
+        }
+
+        private static Encoding ResolveEncoding(string encodingName)
+        {
+            if (string.IsNullOrWhiteSpace(encodingName))
+                return Encoding.UTF8;
+
+            try { return Encoding.GetEncoding(encodingName); }
+            catch { return Encoding.UTF8; }
         }
     }
 }

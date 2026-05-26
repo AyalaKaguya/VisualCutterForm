@@ -4,6 +4,7 @@ using System.Linq;
 using VisualMaster.Api;
 using VisualMaster.WorkFlow.Triggers;
 using VisualCutterForm.Legacy;
+using CameraDeviceConfig = VisualMaster.CameraLink.Api.CameraDeviceConfig;
 
 namespace VisualMaster.WorkFlow
 {
@@ -90,7 +91,7 @@ namespace VisualMaster.WorkFlow
                     SlotId = device.DeviceId,
                     SlotName = device.DisplayName,
                     AssignedSerial = device.AssignedSerial,
-                    Settings = device.Settings?.Clone() ?? new CameraSettings(),
+                    Settings = null,
                 })
                 .ToList();
         }

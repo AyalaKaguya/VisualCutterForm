@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using VisualMaster.Api;
 using VisualMaster.WorkFlow.Triggers;
+using CameraFrameSnapshot = VisualMaster.CameraLink.Api.CameraFrameSnapshot;
 
 namespace VisualMaster.WorkFlow.Data
 {

@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using OpenCvSharp;
 using VisualMaster.Api;
+using CameraFrameSnapshot = VisualMaster.CameraLink.Api.CameraFrameSnapshot;
 using VisualMaster.WorkFlow.Data;
 
 namespace VisualMaster.WorkFlow.Nodes

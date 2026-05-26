@@ -27,16 +27,14 @@ namespace VisualMaster.Communication.UI
             public string OutputInfo { get; set; }
         }
 
-        public sealed class InputRuleEntry
+        public sealed class InputEventEntry
         {
             public string EventId { get; }
-            public string RuleId { get; }
             public string Display { get; }
 
-            public InputRuleEntry(string eventId, string ruleId, string display)
+            public InputEventEntry(string eventId, string display)
             {
                 EventId = eventId;
-                RuleId = ruleId;
                 Display = display;
             }
 
@@ -144,13 +142,13 @@ namespace VisualMaster.Communication.UI
 
         private void OnAddClick(object sender, RoutedEventArgs e)
         {
-            var firstRule = GetInputRuleEntries().FirstOrDefault();
+            var firstInput = GetInputEventEntries().FirstOrDefault();
             var firstOutput = _config?.OutputEvents.FirstOrDefault();
             var item = new CommunicationHeartbeatConfig
             {
                 Name = $"心跳{Heartbeats.Count + 1}",
-                InputEventId = firstRule?.EventId,
-                InputRuleId = firstRule?.RuleId,
+                InputEventId = firstInput?.EventId,
+                InputRuleId = null,
                 OutputEventId = firstOutput?.EventId,
                 IsEnabled = true,
                 VariableValues = CreateDefaultVariableValues(firstOutput),
@@ -239,11 +237,10 @@ namespace VisualMaster.Communication.UI
             try
             {
                 InputRuleCombo.ItemsSource = null;
-                var entries = GetInputRuleEntries();
+                var entries = GetInputEventEntries();
                 InputRuleCombo.ItemsSource = entries;
                 InputRuleCombo.SelectedItem = entries.FirstOrDefault(e =>
-                    string.Equals(e.EventId, _selected?.InputEventId, StringComparison.OrdinalIgnoreCase) &&
-                    string.Equals(e.RuleId ?? "", _selected?.InputRuleId ?? "", StringComparison.OrdinalIgnoreCase));
+                    string.Equals(e.EventId, _selected?.InputEventId, StringComparison.OrdinalIgnoreCase));
             }
             finally
             {
@@ -271,27 +268,15 @@ namespace VisualMaster.Communication.UI
             }
         }
 
-        private List<InputRuleEntry> GetInputRuleEntries()
+        private List<InputEventEntry> GetInputEventEntries()
         {
-            var result = new List<InputRuleEntry>();
+            var result = new List<InputEventEntry>();
             if (_config == null) return result;
 
             foreach (var input in _config.InputEvents)
             {
                 var eventName = string.IsNullOrWhiteSpace(input.Name) ? input.EventId : input.Name;
-                if (input.Rules == null || input.Rules.Count == 0)
-                {
-                    result.Add(new InputRuleEntry(input.EventId, "", $"{eventName} / 全部匹配"));
-                    continue;
-                }
-
-                foreach (var rule in input.Rules.OrderBy(r => r.Order))
-                {
-                    if (string.IsNullOrWhiteSpace(rule.RuleId))
-                        rule.RuleId = Guid.NewGuid().ToString("N");
-                    var ruleName = string.IsNullOrWhiteSpace(rule.TriggerName) ? $"规则{rule.Order}" : rule.TriggerName;
-                    result.Add(new InputRuleEntry(input.EventId, rule.RuleId, $"{eventName} / {ruleName}"));
-                }
+                result.Add(new InputEventEntry(input.EventId, eventName));
             }
 
             return result;
@@ -300,9 +285,9 @@ namespace VisualMaster.Communication.UI
         private void OnInputRuleChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_suppress || _selected == null) return;
-            var entry = InputRuleCombo.SelectedItem as InputRuleEntry;
+            var entry = InputRuleCombo.SelectedItem as InputEventEntry;
             _selected.InputEventId = entry?.EventId;
-            _selected.InputRuleId = entry?.RuleId;
+            _selected.InputRuleId = null;
             RefreshDisplayItem();
             Sync();
         }
@@ -376,15 +361,12 @@ namespace VisualMaster.Communication.UI
         {
             var input = _config?.InputEvents.FirstOrDefault(e => e.EventId == cfg.InputEventId);
             var inputName = input?.Name ?? cfg.InputEventId;
-            var ruleName = input?.Rules?.FirstOrDefault(r => r.RuleId == cfg.InputRuleId)?.TriggerName;
-            if (string.IsNullOrWhiteSpace(ruleName))
-                ruleName = string.IsNullOrWhiteSpace(cfg.InputRuleId) ? "全部匹配" : cfg.InputRuleId;
             var output = _config?.OutputEvents.FirstOrDefault(e => e.EventId == cfg.OutputEventId);
 
             return new HeartbeatDisplayItem
             {
                 Config = cfg,
-                BindingInfo = $"输入: {inputName} / {ruleName}",
+                BindingInfo = $"输入: {inputName}",
                 OutputInfo = $"输出: {output?.Name ?? cfg.OutputEventId}",
             };
         }

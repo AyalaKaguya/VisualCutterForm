@@ -63,7 +63,7 @@
             <StackPanel x:Name="EditorPanel" Grid.Row="1" Margin="0,8,0,0" Visibility="Collapsed">
                 <TextBlock Text="绑定" FontWeight="SemiBold" Margin="0,10,0,6"/>
                 <DockPanel Margin="0,0,0,8">
-                    <TextBlock Text="输入触发器" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <TextBlock Text="输入事件" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
                     <ComboBox x:Name="InputRuleCombo" MinWidth="280" SelectionChanged="OnInputRuleChanged"
                               HorizontalAlignment="Left" Style="{StaticResource LightComboBox}"/>
                 </DockPanel>

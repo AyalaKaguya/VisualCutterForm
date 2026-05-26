@@ -1,5 +1,6 @@
 using VisualMaster.Api;
 using VisualMaster.CameraLink;
+using VisualMaster.CameraLink.Api;
 using VisualMaster.Communication;
 using VisualMaster.WorkFlow;
 using VisualMaster.WorkFlow.Data;
@@ -9,6 +10,16 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
+using CameraManager = VisualMaster.CameraLink.Core.CameraManager;
+using CameraInfo = VisualMaster.CameraLink.Api.CameraInfo;
+using CameraSettings = VisualMaster.CameraLink.Api.CameraSettings;
+using CameraDeviceConfig = VisualMaster.CameraLink.Api.CameraDeviceConfig;
+using CameraDeviceStatus = VisualMaster.CameraLink.Api.CameraDeviceStatus;
+using CameraFrameSnapshot = VisualMaster.CameraLink.Api.CameraFrameSnapshot;
+using ImageFifo = VisualMaster.CameraLink.Api.ImageFifo;
+using RuntimeDiagnosticsHub = VisualMaster.Api.RuntimeDiagnosticsHub;
+using RuntimeDiagnosticEvent = VisualMaster.Api.RuntimeDiagnosticEvent;
+using RuntimeDiagnosticEventType = VisualMaster.Api.RuntimeDiagnosticEventType;
 
 namespace VisualMaster.Forms
 {
@@ -16,6 +27,8 @@ namespace VisualMaster.Forms
     {
         private readonly VisionCameraRuntime _cameraRuntime;
         private readonly VisionSerialRuntime _serialRuntime;
+        // 相机库自包封的诊断 Hub，事件会桥接到主 Hub
+        private readonly VisualMaster.CameraLink.Api.RuntimeDiagnosticsHub _cameraDiagnosticsHub;
         private volatile bool _disposed;
 
         public CameraManager CameraManager => _cameraRuntime.CameraManager;
@@ -29,9 +42,14 @@ namespace VisualMaster.Forms
         public VisionController()
         {
             RuntimeDiagnostics = new RuntimeDiagnosticsHub();
+
+            // 创建相机诊断 Hub，并模拟转发事件到主 Hub
+            _cameraDiagnosticsHub = new VisualMaster.CameraLink.Api.RuntimeDiagnosticsHub();
+            _cameraDiagnosticsHub.EventsChanged += OnCameraDiagnosticsChanged;
+
             _cameraRuntime = new VisionCameraRuntime(new CameraManager());
             _serialRuntime = new VisionSerialRuntime(ex => ErrorOccurred?.Invoke(this, ex));
-            _cameraRuntime.CameraManager.Diagnostics = RuntimeDiagnostics;
+            _cameraRuntime.CameraManager.Diagnostics = _cameraDiagnosticsHub;
         }
 
         public ISerialPort SerialPort => _serialRuntime.SerialPort;
@@ -349,6 +367,27 @@ namespace VisualMaster.Forms
         private void NotifyStatus(string message)
         {
             StatusChanged?.Invoke(this, message);
+        }
+
+        /// <summary>
+        /// 将相机库内部诊断事件模拟转发到主诊断 Hub。
+        /// 两个 <see cref="RuntimeDiagnosticEvent"/> 类型结构完全相同，仅命名空间不同。
+        /// </summary>
+        private void OnCameraDiagnosticsChanged(object sender, EventArgs e)
+        {
+            var latest = _cameraDiagnosticsHub.GetRecentEvents(1);
+            if (latest.Count == 0) return;
+            var ce = latest[0];
+            RuntimeDiagnostics.Record(new RuntimeDiagnosticEvent
+            {
+                EventType        = (RuntimeDiagnosticEventType)(int)ce.EventType,
+                OccurredAt       = ce.OccurredAt,
+                CorrelationId    = ce.CorrelationId,
+                DeviceId         = ce.DeviceId,
+                SnapshotId       = ce.SnapshotId,
+                SnapshotSequence = ce.SnapshotSequence,
+                Message          = ce.Message,
+            });
         }
     }
 }

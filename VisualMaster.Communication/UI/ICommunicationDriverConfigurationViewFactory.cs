@@ -5,6 +5,7 @@ namespace VisualMaster.Communication.UI
 {
     public interface ICommunicationDriverConfigurationViewFactory
     {
+        string DriverName { get; }
         UserControl CreateConfigurationView(CommunicationDeviceConfig config);
     }
 }

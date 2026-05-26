@@ -1,7 +1,9 @@
-using VisualMaster.Api;
+using VisualMaster.CameraLink.Api;
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using ICameraManager = VisualMaster.CameraLink.Api.ICameraManager;
+using CameraInfo = VisualMaster.CameraLink.Api.CameraInfo;
 
 namespace VisualMaster.Forms.Camera
 {

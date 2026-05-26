@@ -20,6 +20,7 @@ namespace VisualMaster.CameraLink.Adapter
         private volatile bool _disposed;
         private int _consecutiveFailures;
         private const int MaxConsecutiveFailures = 3;
+        private const uint ImageNodeCount = 5;
 
         public string UniqueHardwareId => _discovered.SerialNumber;
         public bool IsOpen => _device != null;
@@ -42,20 +43,29 @@ namespace VisualMaster.CameraLink.Adapter
             var devInfo = _discovered.RawInfo as IDeviceInfo
                 ?? throw new InvalidOperationException("DiscoveredCamera 缺少 SDK DeviceInfo。");
 
-            _device = DeviceFactory.CreateDevice(devInfo);
-            _device.Open();
-
-            _device.Parameters.SetEnumValueByString("AcquisitionMode", "Continuous");
-            _device.Parameters.SetEnumValueByString("TriggerMode", "Off");
-
-            if (_device is IGigEDevice gigeDev)
+            try
             {
-                gigeDev.GetOptimalPacketSize(out int packetSize);
-                _device.Parameters.SetIntValue("GevSCPSPacketSize", (long)packetSize);
-            }
+                _device = DeviceFactory.CreateDevice(devInfo);
+                _device.Open();
 
-            _device.StreamGrabber.FrameGrabedEvent += OnFrameGrabbed;
-            _consecutiveFailures = 0;
+                _device.Parameters.SetEnumValueByString("AcquisitionMode", "Continuous");
+                _device.Parameters.SetEnumValueByString("TriggerMode", "Off");
+
+                if (_device is IGigEDevice gigeDev)
+                {
+                    gigeDev.GetOptimalPacketSize(out int packetSize);
+                    _device.Parameters.SetIntValue("GevSCPSPacketSize", (long)packetSize);
+                }
+
+                _device.StreamGrabber.FrameGrabedEvent += OnFrameGrabbed;
+                _consecutiveFailures = 0;
+            }
+            catch
+            {
+                try { _device?.Dispose(); } catch { }
+                _device = null;
+                throw;
+            }
         }
 
         public void Close()
@@ -74,7 +84,7 @@ namespace VisualMaster.CameraLink.Adapter
         public void StartGrabbing()
         {
             if (_device == null || _isGrabbing) return;
-            _device.StreamGrabber.SetImageNodeNum(5u);
+            _device.StreamGrabber.SetImageNodeNum(ImageNodeCount);
             _device.StreamGrabber.StartGrabbing();
             _isGrabbing = true;
         }

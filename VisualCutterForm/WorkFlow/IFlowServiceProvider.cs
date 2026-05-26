@@ -1,4 +1,5 @@
 using VisualMaster.Api;
+// RuntimeDiagnosticsHub here refers to VisualMaster.Api.RuntimeDiagnosticsHub (used for serial/workflow diagnostics)
 
 namespace VisualMaster.WorkFlow
 {

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using VisualMaster.Api;
 using VisualMaster.WorkFlow.Data;
+using CameraFrameSnapshot = VisualMaster.CameraLink.Api.CameraFrameSnapshot;
 
 namespace VisualMaster.WorkFlow
 {

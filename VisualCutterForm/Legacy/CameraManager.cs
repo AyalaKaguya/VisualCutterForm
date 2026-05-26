@@ -43,8 +43,16 @@ namespace VisualCutterForm.Legacy
         public bool TryGrabImage(string deviceId, out Bitmap bitmap, int timeoutMs) { bitmap = null; return false; }
         public string[] GetAvailablePixelFormats(string deviceId) => new string[0];
         public string[] GetAvailableTriggerSources(string deviceId) => new string[0];
-        public void AddDeviceWithId(CameraDeviceConfig config) { }
-        public void CloseAllDevices() { }
+        public void AddDeviceWithId(CameraDeviceConfig config)
+        {
+            throw new NotSupportedException(
+                "Legacy CameraManager 是空实现占位符，请改用 VisualMaster.CameraLink.Core.CameraManager。");
+        }
+        public void CloseAllDevices()
+        {
+            throw new NotSupportedException(
+                "Legacy CameraManager 是空实现占位符，请改用 VisualMaster.CameraLink.Core.CameraManager。");
+        }
         public void Dispose() { }
     }
 }

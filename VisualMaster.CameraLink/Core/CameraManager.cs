@@ -14,16 +14,25 @@ namespace VisualMaster.CameraLink.Core
     {
         private readonly List<ICameraAdapter> _adapters = new List<ICameraAdapter>();
         private readonly List<ManagedCamera> _devices = new List<ManagedCamera>();
+        private readonly Dictionary<string, ManagedCamera> _deviceIndex =
+            new Dictionary<string, ManagedCamera>(StringComparer.OrdinalIgnoreCase);
         private readonly List<CameraInfo> _enumeratedCameras = new List<CameraInfo>();
         private readonly Dictionary<string, DiscoveredCamera> _discoveries =
             new Dictionary<string, DiscoveredCamera>(StringComparer.OrdinalIgnoreCase);
 
+        // 所有集合访问统一由此锁保护
+        private readonly object _lock = new object();
         private CameraSystemConfig _systemConfig;
         private volatile bool _disposed;
 
-        public IReadOnlyList<CameraInfo> Cameras => _enumeratedCameras.AsReadOnly();
-        public IReadOnlyList<CameraDeviceConfig> CameraDevices =>
-            _devices.Select(d => d.Config.Clone()).ToList().AsReadOnly();
+        public IReadOnlyList<CameraInfo> Cameras
+        {
+            get { lock (_lock) return _enumeratedCameras.ToList().AsReadOnly(); }
+        }
+        public IReadOnlyList<CameraDeviceConfig> CameraDevices
+        {
+            get { lock (_lock) return _devices.Select(d => d.Config.Clone()).ToList().AsReadOnly(); }
+        }
 
         public bool IsInitialized { get; private set; }
         public RuntimeDiagnosticsHub Diagnostics { get; set; }
@@ -40,18 +49,31 @@ namespace VisualMaster.CameraLink.Core
         {
             if (IsInitialized) return;
 
+            var failures = new List<string>();
+            bool anySuccess = false;
+
             foreach (var adapter in _adapters.Where(a => a.IsAvailable))
             {
                 try
                 {
                     adapter.InitializeSdk();
+                    anySuccess = true;
                 }
                 catch (Exception ex)
                 {
-                    throw new InvalidOperationException(
-                        $"无法初始化相机适配器 {adapter.AdapterName}，请确认驱动已正确安装。\n{ex.Message}", ex);
+                    failures.Add($"{adapter.AdapterName}: {ex.Message}");
+                    Diagnostics?.Record(new RuntimeDiagnosticEvent
+                    {
+                        EventType = RuntimeDiagnosticEventType.FlowFailed,
+                        Message   = $"相机适配器初始化失败 ({adapter.AdapterName})：{ex.Message}",
+                    });
                 }
             }
+
+            // 所有已安装的适配器全部失败才抛出异常
+            if (!anySuccess && failures.Count > 0)
+                throw new InvalidOperationException(
+                    $"无法初始化任何相机适配器，请确认驱动已正确安装。\n{string.Join("\n", failures)}");
 
             IsInitialized = true;
         }
@@ -65,7 +87,10 @@ namespace VisualMaster.CameraLink.Core
 
         private async Task AutoConnectEnabledDevicesAsync()
         {
-            foreach (var entry in _devices.ToList())
+            List<ManagedCamera> snapshot;
+            lock (_lock) snapshot = _devices.ToList();
+
+            foreach (var entry in snapshot)
             {
                 if (!entry.Config.IsEnabled || entry.IsConnected)
                     continue;
@@ -74,8 +99,10 @@ namespace VisualMaster.CameraLink.Core
                 if (string.IsNullOrWhiteSpace(serial))
                     continue;
 
-                var info = _enumeratedCameras.FirstOrDefault(c =>
-                    string.Equals(c.SerialNumber, serial, StringComparison.OrdinalIgnoreCase));
+                CameraInfo info;
+                lock (_lock)
+                    info = _enumeratedCameras.FirstOrDefault(c =>
+                        string.Equals(c.SerialNumber, serial, StringComparison.OrdinalIgnoreCase));
                 if (info == null)
                     continue;
 
@@ -86,8 +113,12 @@ namespace VisualMaster.CameraLink.Core
                 catch (Exception ex)
                 {
                     entry.Config.IsEnabled = false;
-                    System.Diagnostics.Debug.WriteLine(
-                        $"[CameraManager] 自动连接失败，已禁用: {entry.Config.DisplayName} (SN: {serial})\n{ex.Message}");
+                    Diagnostics?.Record(new RuntimeDiagnosticEvent
+                    {
+                        EventType = RuntimeDiagnosticEventType.FlowFailed,
+                        DeviceId  = entry.DeviceId,
+                        Message   = $"相机自动连接失败，已禁用: {entry.Config.DisplayName} (SN: {serial}) \u2014 {ex.Message}",
+                    });
                 }
             }
         }
@@ -117,29 +148,46 @@ namespace VisualMaster.CameraLink.Core
         {
             if (!IsInitialized) Initialize();
 
-            _enumeratedCameras.Clear();
-            _discoveries.Clear();
-
             cancellationToken.ThrowIfCancellationRequested();
 
-            var adapters = _adapters.Where(a => a.IsAvailable).ToList();
+            List<ICameraAdapter> adapters;
+            lock (_lock) adapters = _adapters.Where(a => a.IsAvailable).ToList();
+
             var tasks = adapters.Select(adapter =>
                 Task.Run(() => ScanAdapter(adapter, cancellationToken), cancellationToken)).ToArray();
 
-            var results = await Task.WhenAll(tasks).ConfigureAwait(false);
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            foreach (var discoveredList in results)
+            // 增加 30 秒安全超时，防止扫描卡死让调用者永久等待
+            using (var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
             {
-                foreach (var discovered in discoveredList)
+                timeoutCts.CancelAfter(TimeSpan.FromSeconds(30));
+                try
                 {
-                    _discoveries[MakeDiscoveryKey(discovered.AdapterName, discovered.SerialNumber)] = discovered;
-                    _enumeratedCameras.Add(ToCameraInfo(discovered));
+                    await Task.WhenAll(tasks).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+                {
+                    // 是超时而非调用方取消，继续处理已完成的部分结果
                 }
             }
 
-            return _enumeratedCameras.ToList();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            lock (_lock)
+            {
+                _enumeratedCameras.Clear();
+                _discoveries.Clear();
+
+                foreach (var task in tasks.Where(t => t.Status == TaskStatus.RanToCompletion))
+                {
+                    foreach (var discovered in task.Result)
+                    {
+                        _discoveries[MakeDiscoveryKey(discovered.AdapterName, discovered.SerialNumber)] = discovered;
+                        _enumeratedCameras.Add(ToCameraInfo(discovered));
+                    }
+                }
+
+                return _enumeratedCameras.ToList();
+            }
         }
 
         public List<CameraInfo> EnumerateCameras()
@@ -149,16 +197,31 @@ namespace VisualMaster.CameraLink.Core
 
         public void ApplyConfiguredDevices()
         {
-            if (_enumeratedCameras.Count == 0)
-                EnumerateCameras();
+            List<CameraInfo> cameras;
+            List<ManagedCamera> snapshot;
+            lock (_lock)
+            {
+                cameras  = _enumeratedCameras.ToList();
+                snapshot = _devices.ToList();
+            }
 
-            foreach (var entry in _devices.ToList())
+            if (cameras.Count == 0)
+            {
+                EnumerateCameras();
+                lock (_lock)
+                {
+                    cameras  = _enumeratedCameras.ToList();
+                    snapshot = _devices.ToList();
+                }
+            }
+
+            foreach (var entry in snapshot)
             {
                 var serial = entry.Config.AssignedSerial;
                 if (string.IsNullOrWhiteSpace(serial) || entry.IsConnected)
                     continue;
 
-                var info = _enumeratedCameras.FirstOrDefault(c =>
+                var info = cameras.FirstOrDefault(c =>
                     string.Equals(c.SerialNumber, serial, StringComparison.OrdinalIgnoreCase));
                 if (info == null)
                     continue;
@@ -220,7 +283,7 @@ namespace VisualMaster.CameraLink.Core
 
         public IReadOnlyList<CameraDeviceStatus> GetDeviceStatuses()
         {
-            return _devices.Select(d => d.ToStatus()).ToList().AsReadOnly();
+            lock (_lock) return _devices.Select(d => d.ToStatus()).ToList().AsReadOnly();
         }
 
         public CameraDeviceStatus GetDeviceStatus(string deviceId)
@@ -230,15 +293,19 @@ namespace VisualMaster.CameraLink.Core
 
         public void OpenDevice(string deviceId, CameraInfo info)
         {
-            var entry = FindEntry(deviceId);
+            ManagedCamera entry = FindEntry(deviceId);
             if (entry == null)
                 throw new InvalidOperationException($"Device {deviceId} not found.");
 
             if (entry.IsConnected)
                 CloseDevice(deviceId);
 
-            var discovery = ResolveDiscovery(info);
-            var adapter = _adapters.FirstOrDefault(a => a.IsAvailable && a.CanHandle(discovery));
+            DiscoveredCamera discovery;
+            lock (_lock) discovery = ResolveDiscovery(info);
+
+            ICameraAdapter adapter;
+            lock (_lock)
+                adapter = _adapters.FirstOrDefault(a => a.IsAvailable && a.CanHandle(discovery));
             if (adapter == null)
                 throw new InvalidOperationException($"No camera adapter can open {info}.");
 
@@ -246,12 +313,15 @@ namespace VisualMaster.CameraLink.Core
             entry.Attach(driver, discovery);
             entry.Diagnostics = Diagnostics;
 
-            if (_systemConfig?.GetDevice(deviceId) != null)
+            lock (_lock)
             {
+                if (_systemConfig?.GetDevice(deviceId) != null)
+                {
                 var cfg = _systemConfig.GetDevice(deviceId);
-                cfg.AssignedSerial = driver.UniqueHardwareId;
-                cfg.Settings = entry.Config.Settings.Clone();
-                _systemConfig.UpdateDevice(cfg);
+                    cfg.AssignedSerial = driver.UniqueHardwareId;
+                    cfg.Settings = entry.Config.Settings.Clone();
+                    _systemConfig.UpdateDevice(cfg);
+                }
             }
 
             DeviceOpened?.Invoke(this, entry.Config.Clone());
@@ -333,7 +403,9 @@ namespace VisualMaster.CameraLink.Core
 
         public void CloseAllDevices()
         {
-            foreach (var entry in _devices.ToList())
+            List<ManagedCamera> snapshot;
+            lock (_lock) snapshot = _devices.ToList();
+            foreach (var entry in snapshot)
                 CloseDevice(entry.DeviceId);
         }
 
@@ -361,7 +433,10 @@ namespace VisualMaster.CameraLink.Core
         private void SyncDevicesFromConfig(CameraSystemConfig config)
         {
             var configIds = new HashSet<string>(config.Devices.Select(d => d.DeviceId));
-            foreach (var entry in _devices.ToList())
+            List<ManagedCamera> snapshot;
+            lock (_lock) snapshot = _devices.ToList();
+
+            foreach (var entry in snapshot)
             {
                 if (!configIds.Contains(entry.DeviceId))
                     RemoveDeviceEntry(entry.DeviceId);
@@ -402,13 +477,18 @@ namespace VisualMaster.CameraLink.Core
         private ManagedCamera FindEntry(string deviceId)
         {
             if (string.IsNullOrEmpty(deviceId)) return null;
-            return _devices.Find(d => d.DeviceId == deviceId);
+            lock (_lock)
+                return _deviceIndex.TryGetValue(deviceId, out var entry) ? entry : null;
         }
 
         private void AddDeviceEntry(CameraDeviceConfig config)
         {
             var entry = new ManagedCamera(config) { Diagnostics = Diagnostics };
-            _devices.Add(entry);
+            lock (_lock)
+            {
+                _devices.Add(entry);
+                _deviceIndex[config.DeviceId] = entry;
+            }
         }
 
         private void RemoveDeviceEntry(string deviceId)
@@ -416,7 +496,11 @@ namespace VisualMaster.CameraLink.Core
             var entry = FindEntry(deviceId);
             if (entry == null) return;
             entry.Dispose();
-            _devices.Remove(entry);
+            lock (_lock)
+            {
+                _devices.Remove(entry);
+                _deviceIndex.Remove(deviceId);
+            }
         }
 
         private void ApplyDeviceConfig(CameraDeviceConfig config)
@@ -444,6 +528,7 @@ namespace VisualMaster.CameraLink.Core
             if (info == null) throw new ArgumentNullException(nameof(info));
 
             var key = MakeDiscoveryKey(info.AdapterName, info.SerialNumber);
+            // 调用方负责在锁内调用此方法
             if (_discoveries.TryGetValue(key, out var discovered))
                 return discovered;
 

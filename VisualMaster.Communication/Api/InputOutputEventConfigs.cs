@@ -8,8 +8,19 @@ namespace VisualMaster.Communication.Api
     {
         public string EventId { get; set; } = Guid.NewGuid().ToString("N");
         public string Name { get; set; }
-        public string DeviceId { get; set; }
-        public string BlockId { get; set; }
+        public CommunicationInputSourceConfig Source { get; set; } = new CommunicationInputSourceConfig();
+        public CommunicationInputPayloadConfig Payload { get; set; } = new CommunicationInputPayloadConfig();
+        public CommunicationInputMatchMode MatchMode { get; set; } = CommunicationInputMatchMode.AllConditions;
+        public string DeviceId
+        {
+            get => Source?.DeviceId;
+            set => EnsureSource().DeviceId = value;
+        }
+        public string BlockId
+        {
+            get => Source?.BlockId;
+            set => EnsureSource().BlockId = value;
+        }
         public bool LengthCheckEnabled { get; set; }
         public bool MinLengthEnabled { get; set; }
         public int MinimumLength { get; set; }
@@ -17,6 +28,7 @@ namespace VisualMaster.Communication.Api
         public int ExactLength { get; set; }
         public bool TreatAsAscii { get; set; }
         public List<CommunicationInputMatchRule> Rules { get; set; } = new List<CommunicationInputMatchRule>();
+        public List<CommunicationInputConditionConfig> Conditions { get; set; } = new List<CommunicationInputConditionConfig>();
 
         public CommunicationInputEventConfig Clone()
         {
@@ -24,8 +36,9 @@ namespace VisualMaster.Communication.Api
             {
                 EventId = EventId,
                 Name = Name,
-                DeviceId = DeviceId,
-                BlockId = BlockId,
+                Source = Source?.Clone() ?? new CommunicationInputSourceConfig(),
+                Payload = Payload?.Clone() ?? CreatePayloadFromLegacySource(Source),
+                MatchMode = MatchMode,
                 LengthCheckEnabled = LengthCheckEnabled,
                 MinLengthEnabled = MinLengthEnabled,
                 MinimumLength = MinimumLength,
@@ -33,6 +46,131 @@ namespace VisualMaster.Communication.Api
                 ExactLength = ExactLength,
                 TreatAsAscii = TreatAsAscii,
                 Rules = Rules?.Select(r => r.Clone()).ToList() ?? new List<CommunicationInputMatchRule>(),
+                Conditions = Conditions?.Select(r => r.Clone()).ToList() ?? new List<CommunicationInputConditionConfig>(),
+            };
+        }
+
+        private CommunicationInputSourceConfig EnsureSource()
+        {
+            return Source ?? (Source = new CommunicationInputSourceConfig());
+        }
+
+        private static CommunicationInputPayloadConfig CreatePayloadFromLegacySource(CommunicationInputSourceConfig source)
+        {
+            return new CommunicationInputPayloadConfig
+            {
+                PayloadKind = source?.PayloadKind ?? CommunicationInputPayloadKind.Bytes,
+                EncodingName = string.IsNullOrWhiteSpace(source?.EncodingName) ? "UTF-8" : source.EncodingName,
+            };
+        }
+    }
+
+    public sealed class CommunicationInputSourceConfig
+    {
+        public CommunicationInputSourceKind SourceKind { get; set; } = CommunicationInputSourceKind.CommunicationBlock;
+        public CommunicationInputPayloadKind PayloadKind { get; set; } = CommunicationInputPayloadKind.Bytes;
+        public string DeviceId { get; set; }
+        public string BlockId { get; set; }
+        public string EncodingName { get; set; } = "UTF-8";
+
+        public CommunicationInputSourceConfig Clone()
+        {
+            return new CommunicationInputSourceConfig
+            {
+                SourceKind = SourceKind,
+                PayloadKind = PayloadKind,
+                DeviceId = DeviceId,
+                BlockId = BlockId,
+                EncodingName = EncodingName,
+            };
+        }
+    }
+
+    public sealed class CommunicationInputPayloadConfig
+    {
+        public CommunicationInputPayloadKind PayloadKind { get; set; } = CommunicationInputPayloadKind.Bytes;
+        public string EncodingName { get; set; } = "UTF-8";
+        public string JsonPathMode { get; set; }
+
+        public CommunicationInputPayloadConfig Clone()
+        {
+            return new CommunicationInputPayloadConfig
+            {
+                PayloadKind = PayloadKind,
+                EncodingName = EncodingName,
+                JsonPathMode = JsonPathMode,
+            };
+        }
+    }
+
+    public sealed class CommunicationInputConditionConfig
+    {
+        public string ConditionId { get; set; } = Guid.NewGuid().ToString("N");
+        public int Order { get; set; }
+        public string Name { get; set; }
+        public string TargetPath { get; set; }
+        public int StartIndex { get; set; }
+        public int Length { get; set; } = 1;
+        public CommunicationBlockDataType ValueType { get; set; } = CommunicationBlockDataType.Bytes;
+        public CommunicationByteOrder ByteOrder { get; set; } = CommunicationByteOrder.BigEndian;
+        public CommunicationMatchOperator Operator { get; set; } = CommunicationMatchOperator.Equals;
+        public string ExpectedValue { get; set; }
+        public string BeforeValue { get; set; }
+        public string AfterValue { get; set; }
+
+        public CommunicationInputConditionConfig Clone()
+        {
+            return new CommunicationInputConditionConfig
+            {
+                ConditionId = ConditionId,
+                Order = Order,
+                Name = Name,
+                TargetPath = TargetPath,
+                StartIndex = StartIndex,
+                Length = Length,
+                ValueType = ValueType,
+                ByteOrder = ByteOrder,
+                Operator = Operator,
+                ExpectedValue = ExpectedValue,
+                BeforeValue = BeforeValue,
+                AfterValue = AfterValue,
+            };
+        }
+
+        public static CommunicationInputConditionConfig FromRule(CommunicationInputMatchRule rule)
+        {
+            if (rule == null) return null;
+            return new CommunicationInputConditionConfig
+            {
+                ConditionId = string.IsNullOrWhiteSpace(rule.RuleId) ? Guid.NewGuid().ToString("N") : rule.RuleId,
+                Order = rule.Order,
+                Name = rule.TriggerName,
+                StartIndex = rule.StartIndex,
+                Length = rule.Length,
+                ValueType = rule.DataType,
+                ByteOrder = rule.ByteOrder,
+                Operator = rule.Operator,
+                ExpectedValue = rule.MatchValue,
+                BeforeValue = rule.BeforeValue,
+                AfterValue = rule.AfterValue,
+            };
+        }
+
+        public CommunicationInputMatchRule ToRule()
+        {
+            return new CommunicationInputMatchRule
+            {
+                RuleId = ConditionId,
+                Order = Order,
+                TriggerName = Name,
+                StartIndex = StartIndex,
+                Length = Length,
+                DataType = ValueType,
+                ByteOrder = ByteOrder,
+                Operator = Operator,
+                MatchValue = ExpectedValue,
+                BeforeValue = BeforeValue,
+                AfterValue = AfterValue,
             };
         }
     }

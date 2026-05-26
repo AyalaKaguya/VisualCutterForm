@@ -30,11 +30,13 @@ namespace VisualMaster.CameraLink.Api
 
         public CameraFrameSnapshot AddRef()
         {
+            var spin = new SpinWait();
             while (true)
             {
                 var current = Volatile.Read(ref _referenceCount);
                 if (current <= 0) throw new ObjectDisposedException(nameof(CameraFrameSnapshot));
                 if (Interlocked.CompareExchange(ref _referenceCount, current + 1, current) == current) return this;
+                spin.SpinOnce();
             }
         }
 

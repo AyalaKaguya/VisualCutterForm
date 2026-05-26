@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Windows.Controls;
 using VisualMaster.Communication.Api;
-using VisualMaster.Communication.UI;
-using VisualMaster.Communication.UI.ViewModels;
 
 namespace VisualMaster.Communication.Driver
 {
-    public sealed class TcpDriverFactory : ICommunicationDriverFactory, ICommunicationDriverConfigurationViewFactory
+    public sealed class TcpDriverFactory : ICommunicationDriverFactory
     {
         public string DriverName => "TCP";
         public string DisplayName => "TCP 网络";
@@ -43,11 +40,6 @@ namespace VisualMaster.Communication.Driver
         public ICommunicationDriver CreateDriver()
         {
             return new TcpDriver();
-        }
-
-        public UserControl CreateConfigurationView(CommunicationDeviceConfig config)
-        {
-            return new TcpDriverConfigControl(new TcpDriverConfigViewModel(config));
         }
     }
 }

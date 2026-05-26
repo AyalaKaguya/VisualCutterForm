@@ -1,5 +1,8 @@
 using System.Drawing;
 using VisualMaster.Api;
+using CameraSettings = VisualMaster.CameraLink.Api.CameraSettings;
+using CameraFrameSnapshot = VisualMaster.CameraLink.Api.CameraFrameSnapshot;
+using ImageFifo = VisualMaster.CameraLink.Api.ImageFifo;
 
 namespace VisualMaster.WorkFlow
 {

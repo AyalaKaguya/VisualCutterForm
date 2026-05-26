@@ -58,6 +58,7 @@
     <Compile Include="Api\DriverContracts.cs" />
     <Compile Include="Api\InputOutputEventConfigs.cs" />
     <Compile Include="Core\CommunicationDataConverter.cs" />
+    <Compile Include="Core\CommunicationDeviceRuntime.cs" />
     <Compile Include="Core\CommunicationInputEvaluator.cs" />
     <Compile Include="Core\CommunicationManager.cs" />
     <Compile Include="Core\CommunicationOutputBuilder.cs" />
@@ -112,6 +113,8 @@
     <Compile Include="UI\ViewModels\RuleItemViewModel.cs" />
     <Compile Include="UI\Converters\BoolToVisibilityConverter.cs" />
     <Compile Include="UI\ICommunicationDriverConfigurationViewFactory.cs" />
+    <Compile Include="UI\TcpDriverConfigurationViewFactory.cs" />
+    <Compile Include="UI\UartDriverConfigurationViewFactory.cs" />
     <Compile Include="UI\ViewModels\CommunicationManagerViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

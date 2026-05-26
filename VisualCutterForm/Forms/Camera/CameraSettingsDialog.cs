@@ -1,8 +1,10 @@
 using VisualMaster.Forms;
-using VisualMaster.Api;
 using VisualMaster.CameraLink;
+using VisualMaster.CameraLink.Api;
 using System;
 using System.Drawing;
+using CameraSettings = VisualMaster.CameraLink.Api.CameraSettings;
+using CameraDeviceConfig = VisualMaster.CameraLink.Api.CameraDeviceConfig;
 using System.IO;
 using System.Windows.Forms;
 

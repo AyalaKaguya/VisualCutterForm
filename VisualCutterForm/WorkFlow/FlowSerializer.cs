@@ -7,6 +7,8 @@ using VisualMaster.Api;
 using VisualMaster.WorkFlow.Nodes;
 using VisualMaster.WorkFlow.Triggers;
 using VisualCutterForm.Legacy;
+using CameraDeviceConfig = VisualMaster.CameraLink.Api.CameraDeviceConfig;
+using CameraSettings = VisualMaster.CameraLink.Api.CameraSettings;
 
 namespace VisualMaster.WorkFlow
 {
@@ -401,7 +403,7 @@ namespace VisualMaster.WorkFlow
                 SlotId = slot.SlotId,
                 SlotName = slot.SlotName,
                 AssignedSerial = slot.AssignedSerial,
-                Settings = slot.Settings,
+                Settings = null,
             };
         }
 

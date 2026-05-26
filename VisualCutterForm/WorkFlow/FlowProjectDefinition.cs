@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using VisualMaster.Api;
 using VisualMaster.WorkFlow.Triggers;
+using CameraDeviceConfig = VisualMaster.CameraLink.Api.CameraDeviceConfig;
 
 namespace VisualMaster.WorkFlow
 {

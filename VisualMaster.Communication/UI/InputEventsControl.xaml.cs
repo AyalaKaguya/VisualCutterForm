@@ -19,6 +19,7 @@ namespace VisualMaster.Communication.UI
             public string Name => Config.Name;
             public string BindingInfo { get; set; }
             public List<CommunicationInputMatchRule> Rules => Config.Rules;
+            public int ConditionCount => Config.Conditions?.Count > 0 ? Config.Conditions.Count : Config.Rules?.Count ?? 0;
             public object EventId => Config.EventId;
         }
 
@@ -118,10 +119,11 @@ namespace VisualMaster.Communication.UI
             var dev = _config?.Devices.FirstOrDefault(d => d.DeviceId == cfg.DeviceId);
             if (dev != null)
                 blkName = dev.Blocks?.FirstOrDefault(b => b.BlockId == cfg.BlockId)?.Name;
+            var payloadKind = GetPayloadKind(cfg);
             return new InputEventDisplayItem
             {
                 Config = cfg,
-                BindingInfo = $"设备: {devName}    块: {blkName ?? cfg.BlockId}",
+                BindingInfo = $"设备: {devName}    块: {blkName ?? cfg.BlockId}    载荷: {payloadKind}",
             };
         }
 
@@ -136,6 +138,8 @@ namespace VisualMaster.Communication.UI
                 BlockId = firstBlock?.BlockId,
                 MinimumLength = 1,
             };
+            item.Payload.PayloadKind = CommunicationInputPayloadKind.Bytes;
+            item.Source.PayloadKind = CommunicationInputPayloadKind.Bytes;
             Events.Add(CreateDisplayItem(item));
             EventList.SelectedIndex = Events.Count - 1;
             Sync();
@@ -382,9 +386,13 @@ namespace VisualMaster.Communication.UI
                     vm.Changed -= OnRuleChanged;
                 _ruleViewModels.Clear();
 
-                if (_selected.Rules != null)
+                var rules = _selected.Rules != null && _selected.Rules.Count > 0
+                    ? _selected.Rules
+                    : _selected.Conditions?.Select(c => c.ToRule()).ToList();
+
+                if (rules != null)
                 {
-                    foreach (var rule in _selected.Rules)
+                    foreach (var rule in rules)
                     {
                         var vm = new RuleItemViewModel(rule);
                         vm.Changed += OnRuleChanged;
@@ -405,7 +413,7 @@ namespace VisualMaster.Communication.UI
         private void OnRuleChanged(RuleItemViewModel vm)
         {
             if (_ruleSuppress || _selected == null) return;
-            _selected.Rules = _ruleViewModels.Select(r => r.Rule.Clone()).ToList();
+            SyncSelectedConditionsFromRuleViewModels();
             Sync();
         }
 
@@ -416,7 +424,7 @@ namespace VisualMaster.Communication.UI
             var rule = new CommunicationInputMatchRule
             {
                 Order = _ruleViewModels.Count + 1,
-                TriggerName = $"{namePrefix}-{_ruleViewModels.Count + 1}",
+                TriggerName = $"{namePrefix}-条件{_ruleViewModels.Count + 1}",
                 Length = 1,
                 DataType = CommunicationBlockDataType.Bytes,
                 ByteOrder = CommunicationByteOrder.BigEndian,
@@ -426,7 +434,7 @@ namespace VisualMaster.Communication.UI
             vm.Changed += OnRuleChanged;
             _ruleViewModels.Add(vm);
             RebuildRuleIndices();
-            _selected.Rules = _ruleViewModels.Select(r => r.Rule.Clone()).ToList();
+            SyncSelectedConditionsFromRuleViewModels();
             Sync();
         }
 
@@ -436,8 +444,32 @@ namespace VisualMaster.Communication.UI
             vm.Changed -= OnRuleChanged;
             _ruleViewModels.Remove(vm);
             RebuildRuleIndices();
-            _selected.Rules = _ruleViewModels.Select(r => r.Rule.Clone()).ToList();
+            SyncSelectedConditionsFromRuleViewModels();
             Sync();
+        }
+
+        private void SyncSelectedConditionsFromRuleViewModels()
+        {
+            if (_selected == null) return;
+            _selected.MatchMode = CommunicationInputMatchMode.AllConditions;
+            _selected.Rules = _ruleViewModels.Select(r => r.Rule.Clone()).ToList();
+            _selected.Conditions = _selected.Rules
+                .Select(CommunicationInputConditionConfig.FromRule)
+                .Where(c => c != null)
+                .ToList();
+            RefreshDisplayItem();
+        }
+
+        private static CommunicationInputPayloadConfig EnsurePayload(CommunicationInputEventConfig config)
+        {
+            return config.Payload ?? (config.Payload = new CommunicationInputPayloadConfig());
+        }
+
+        private static CommunicationInputPayloadKind GetPayloadKind(CommunicationInputEventConfig config)
+        {
+            return config?.Payload?.PayloadKind
+                ?? config?.Source?.PayloadKind
+                ?? CommunicationInputPayloadKind.Bytes;
         }
 
         private void OnRuleNumericPreviewTextInput(object sender, TextCompositionEventArgs e)

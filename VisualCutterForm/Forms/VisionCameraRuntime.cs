@@ -1,9 +1,17 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using VisualMaster.Api;
 using VisualMaster.CameraLink;
 using VisualCutterForm.Legacy;
+using CameraManager = VisualMaster.CameraLink.Core.CameraManager;
+using CameraInfo = VisualMaster.CameraLink.Api.CameraInfo;
+using CameraSettings = VisualMaster.CameraLink.Api.CameraSettings;
+using CameraDeviceConfig = VisualMaster.CameraLink.Api.CameraDeviceConfig;
+using CameraDeviceStatus = VisualMaster.CameraLink.Api.CameraDeviceStatus;
+using CameraFrameBuffer = VisualMaster.CameraLink.Api.CameraFrameBuffer;
+using CameraFrameSnapshot = VisualMaster.CameraLink.Api.CameraFrameSnapshot;
+using CameraSystemConfig = VisualMaster.CameraLink.Api.CameraSystemConfig;
+using ImageFifo = VisualMaster.CameraLink.Api.ImageFifo;
 
 namespace VisualMaster.Forms
 {
@@ -248,7 +256,7 @@ namespace VisualMaster.Forms
             {
                 SlotId = config.DeviceId,
                 SlotName = config.DisplayName,
-                Settings = config.Settings,
+                Settings = null,
                 AssignedSerial = config.AssignedSerial,
             } : null;
         }
@@ -264,7 +272,7 @@ namespace VisualMaster.Forms
                 {
                     SlotId = s.DeviceId,
                     SlotName = s.DisplayName,
-                    Settings = _cameraManager.GetCameraDevice(s.DeviceId)?.Settings,
+                    Settings = null,
                     AssignedSerial = s.AssignedSerial,
                 }).ToList().AsReadOnly();
         }
@@ -278,7 +286,7 @@ namespace VisualMaster.Forms
             {
                 SlotId = status.DeviceId,
                 SlotName = status.DisplayName,
-                Settings = _cameraManager.GetCameraDevice(slotId)?.Settings,
+                Settings = null,
                 AssignedSerial = status.AssignedSerial,
             };
         }
