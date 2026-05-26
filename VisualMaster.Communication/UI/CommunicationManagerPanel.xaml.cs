@@ -19,7 +19,7 @@ namespace VisualMaster.Communication.UI
 
         private static readonly SolidColorBrush ActiveBg = new SolidColorBrush(Color.FromRgb(0x33, 0x33, 0x33));
         private static readonly SolidColorBrush ActiveBorder = new SolidColorBrush(Color.FromRgb(0x2E, 0xAA, 0x5F));
-        private static readonly SolidColorBrush InactiveBg = new SolidColorBrush(Color.FromRgb(0x25, 0x25, 0x25));
+        private static readonly SolidColorBrush InactiveBg = new SolidColorBrush(Color.FromRgb(0x20, 0x20, 0x20));
         private static readonly SolidColorBrush InactiveBorder = new SolidColorBrush(Color.FromRgb(0x30, 0x30, 0x30));
 
         public CommunicationManagerPanel()

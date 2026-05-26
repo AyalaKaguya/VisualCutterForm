@@ -93,7 +93,7 @@
             <ComboBoxItem>RequestToSendXOnXOff</ComboBoxItem>
         </ComboBox>
 
-        <Border Grid.Row="5" Grid.ColumnSpan="4" Background="#242424" BorderBrush="#444444" BorderThickness="1" Padding="10" Margin="0,14,0,8">
+        <Border Grid.Row="5" Grid.ColumnSpan="4" Background="{DynamicResource ColorSurface}" BorderBrush="{DynamicResource ColorButtonBorder}" BorderThickness="1" Padding="10" Margin="0,14,0,8">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="128"/>

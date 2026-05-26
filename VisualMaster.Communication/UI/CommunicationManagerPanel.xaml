@@ -15,26 +15,26 @@
             <ColumnDefinition Width="70"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <StackPanel Background="#252525">
-            <Button x:Name="BtnDevices" Style="{StaticResource NavButton}" Click="OnDevicesPage" ToolTip="设备管理">
+        <StackPanel Background="{DynamicResource ColorNavBg}">
+            <Button x:Name="BtnDevices" Style="{StaticResource IconButton}" Click="OnDevicesPage" ToolTip="设备管理">
                 <StackPanel>
                     <TextBlock Text="&#xE8B7;" Style="{StaticResource NavIconText}"/>
                     <TextBlock Text="设备管理" Style="{StaticResource NavLabelText}"/>
                 </StackPanel>
             </Button>
-            <Button x:Name="BtnInput" Style="{StaticResource NavButton}" Click="OnInputPage" ToolTip="输入事件">
+            <Button x:Name="BtnInput" Style="{StaticResource IconButton}" Click="OnInputPage" ToolTip="输入事件">
                 <StackPanel>
                     <TextBlock Text="&#xE8A5;" Style="{StaticResource NavIconText}"/>
                     <TextBlock Text="输入事件" Style="{StaticResource NavLabelText}"/>
                 </StackPanel>
             </Button>
-            <Button x:Name="BtnOutput" Style="{StaticResource NavButton}" Click="OnOutputPage" ToolTip="输出事件">
+            <Button x:Name="BtnOutput" Style="{StaticResource IconButton}" Click="OnOutputPage" ToolTip="输出事件">
                 <StackPanel>
                     <TextBlock Text="&#xE8A7;" Style="{StaticResource NavIconText}"/>
                     <TextBlock Text="输出事件" Style="{StaticResource NavLabelText}"/>
                 </StackPanel>
             </Button>
-            <Button x:Name="BtnHeartbeat" Style="{StaticResource NavButton}" Click="OnHeartbeatPage" ToolTip="心跳">
+            <Button x:Name="BtnHeartbeat" Style="{StaticResource IconButton}" Click="OnHeartbeatPage" ToolTip="心跳">
                 <StackPanel>
                     <TextBlock Text="&#xE95E;" Style="{StaticResource NavIconText}"/>
                     <TextBlock Text="心跳" Style="{StaticResource NavLabelText}"/>

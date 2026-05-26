@@ -28,7 +28,7 @@
         </StackPanel>
         <TextBox x:Name="ValueBox"
                  Margin="8,4,8,4"
-                 Background="#101010"
+                 Background="{DynamicResource ColorConsoleBg}"
                  Foreground="#E6E6E6"
                  FontFamily="Consolas"
                  TextWrapping="Wrap"

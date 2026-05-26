@@ -5,14 +5,19 @@
     <SolidColorBrush x:Key="ColorRootBg" Color="#1E1E1E"/>
     <SolidColorBrush x:Key="ColorSidePanel" Color="#202020"/>
     <SolidColorBrush x:Key="ColorSurface" Color="#242424"/>
+    <SolidColorBrush x:Key="ColorNavBg" Color="#202020"/>
+    <SolidColorBrush x:Key="ColorConsoleBg" Color="#101010"/>
     <SolidColorBrush x:Key="ColorButtonBg" Color="#333333"/>
     <SolidColorBrush x:Key="ColorButtonBorder" Color="#555555"/>
+    <SolidColorBrush x:Key="ColorSurfaceBorder" Color="#3A3A3A"/>
     <SolidColorBrush x:Key="ColorTextBoxBg" Color="#2B2B2B"/>
     <SolidColorBrush x:Key="ColorListBoxBg" Color="#151515"/>
     <SolidColorBrush x:Key="ColorGridLine" Color="#333333"/>
     <SolidColorBrush x:Key="ColorHeaderRow" Color="#303030"/>
     <SolidColorBrush x:Key="ColorTextPrimary" Color="White"/>
     <SolidColorBrush x:Key="ColorTextDim" Color="#CCCCCC"/>
+    <SolidColorBrush x:Key="ColorSwitchOffBg" Color="#4A4A4A"/>
+    <SolidColorBrush x:Key="ColorSwitchOnBg" Color="#2EAA5F"/>
 
     <!-- ===== Implicit Button ===== -->
     <Style TargetType="Button">
@@ -27,14 +32,16 @@
         <Setter Property="Background" Value="#252525"/>
     </Style>
 
-    <Style x:Key="NavButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-        <Setter Property="Background" Value="#252525"/>
+    <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Background" Value="{StaticResource ColorNavBg}"/>
         <Setter Property="Foreground" Value="{StaticResource ColorTextPrimary}"/>
-        <Setter Property="BorderBrush" Value="#303030"/>
+        <Setter Property="BorderBrush" Value="{StaticResource ColorGridLine}"/>
         <Setter Property="Height" Value="70"/>
         <Setter Property="Padding" Value="8,5"/>
         <Setter Property="Margin" Value="0"/>
     </Style>
+
+    <Style x:Key="NavButton" TargetType="Button" BasedOn="{StaticResource IconButton}"/>
 
     <Style x:Key="NavIconText" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource ColorTextPrimary}"/>
@@ -50,6 +57,24 @@
         <Setter Property="FontSize" Value="12"/>
         <Setter Property="HorizontalAlignment" Value="Center"/>
         <Setter Property="Margin" Value="0,4,0,0"/>
+    </Style>
+
+    <Style x:Key="SectionSubtitle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Margin" Value="0,10,0,6"/>
+        <Setter Property="Foreground" Value="{StaticResource ColorTextPrimary}"/>
+    </Style>
+
+    <Style x:Key="ConfigFieldRow" TargetType="DockPanel">
+        <Setter Property="Margin" Value="0,0,0,8"/>
+        <Setter Property="HorizontalAlignment" Value="Left"/>
+    </Style>
+
+    <Style x:Key="ConfigFieldLabel" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+        <Setter Property="Width" Value="110"/>
+        <Setter Property="Margin" Value="0,0,12,0"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Foreground" Value="{StaticResource ColorTextDim}"/>
     </Style>
 
     <!-- ===== Implicit TextBox ===== -->
@@ -128,8 +153,13 @@
         </Setter>
     </Style>
 
-    <Style x:Key="DeviceToggle" TargetType="ToggleButton">
-        <Setter Property="Background" Value="#4A4A4A"/>
+    <Style x:Key="BindingSelectorCombo" TargetType="ComboBox" BasedOn="{StaticResource LightComboBox}">
+        <Setter Property="MinWidth" Value="280"/>
+        <Setter Property="HorizontalAlignment" Value="Left"/>
+    </Style>
+
+    <Style x:Key="SwitchButton" TargetType="ToggleButton">
+        <Setter Property="Background" Value="{StaticResource ColorSwitchOffBg}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ToggleButton">
@@ -138,7 +168,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="Track" Property="Background" Value="#2EAA5F"/>
+                            <Setter TargetName="Track" Property="Background" Value="{StaticResource ColorSwitchOnBg}"/>
                             <Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Right"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -146,6 +176,8 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <Style x:Key="DeviceToggle" TargetType="ToggleButton" BasedOn="{StaticResource SwitchButton}"/>
 
     <!-- ===== Implicit CheckBox / RadioButton ===== -->
     <Style TargetType="CheckBox">

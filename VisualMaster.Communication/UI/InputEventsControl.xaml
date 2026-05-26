@@ -21,12 +21,11 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <DockPanel Background="#202020">
+        <DockPanel Background="{DynamicResource ColorSidePanel}">
             <DockPanel DockPanel.Dock="Top" Margin="8">
                 <TextBlock Text="输入事件" FontWeight="SemiBold"/>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button Content="+" Width="30" Click="OnAddClick"/>
-                    <Button Content="-" Width="30" Click="OnRemoveClick"/>
                 </StackPanel>
             </DockPanel>
             <ListBox x:Name="EventList"
@@ -58,28 +57,28 @@
                        Text="请从左侧选择或添加一个输入事件。"
                        Foreground="Gray" FontSize="14" Margin="0,12,0,0" HorizontalAlignment="Center"/>
             <StackPanel x:Name="EditorPanel" Grid.Row="1" Margin="0,8,0,0" Visibility="Collapsed">
-                <TextBlock Text="绑定" FontWeight="SemiBold" Margin="0,10,0,6"/>
-                <DockPanel Margin="0,0,0,6">
-                    <TextBlock Text="通信设备" Width="96" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                    <ComboBox x:Name="DeviceCombo" MinWidth="240" SelectionChanged="OnDeviceComboChanged" HorizontalAlignment="Left"/>
+                <TextBlock Text="绑定" Style="{StaticResource SectionSubtitle}"/>
+                <DockPanel Style="{StaticResource ConfigFieldRow}">
+                    <TextBlock Text="通信设备" Style="{StaticResource ConfigFieldLabel}"/>
+                    <ComboBox x:Name="DeviceCombo" SelectionChanged="OnDeviceComboChanged" Style="{StaticResource BindingSelectorCombo}"/>
                 </DockPanel>
-                <DockPanel Margin="0,0,0,6">
-                    <TextBlock Text="数据块" Width="96" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                    <ComboBox x:Name="BlockCombo" MinWidth="240" SelectionChanged="OnBlockComboChanged" HorizontalAlignment="Left"/>
+                <DockPanel Style="{StaticResource ConfigFieldRow}">
+                    <TextBlock Text="数据块" Style="{StaticResource ConfigFieldLabel}"/>
+                    <ComboBox x:Name="BlockCombo" SelectionChanged="OnBlockComboChanged" Style="{StaticResource BindingSelectorCombo}"/>
                 </DockPanel>
                 <Border Height="1" Background="#303030" Margin="0,14,0,12"/>
 
                 <TextBlock Text="基本配置" FontWeight="SemiBold" Margin="0,0,0,6"/>
                 <DockPanel Margin="0,0,0,8">
                     <TextBlock Text="载荷长度比较" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                    <ToggleButton x:Name="LengthCheckToggle" Style="{StaticResource DeviceToggle}"
+                    <ToggleButton x:Name="LengthCheckToggle" Style="{StaticResource SwitchButton}"
                                   Checked="OnLengthCheckChanged" Unchecked="OnLengthCheckChanged" HorizontalAlignment="Left"/>
                 </DockPanel>
 
                 <StackPanel x:Name="LengthCheckPanel" Visibility="Collapsed" Margin="48,0,0,0">
                     <DockPanel Margin="0,0,0,6" HorizontalAlignment="Left">
                         <TextBlock Text="最少字符数" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                        <ToggleButton x:Name="MinLengthToggle" Style="{StaticResource DeviceToggle}"
+                        <ToggleButton x:Name="MinLengthToggle" Style="{StaticResource SwitchButton}"
                                       Checked="OnMinLengthToggleChanged" Unchecked="OnMinLengthToggleChanged"/>
                         <DockPanel Width="90" Margin="12,0,0,0">
                             <StackPanel DockPanel.Dock="Right" Width="20">
@@ -94,7 +93,7 @@
                     </DockPanel>
                     <DockPanel Margin="0,0,0,6">
                         <TextBlock Text="等于字符数" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                        <ToggleButton x:Name="ExactLengthToggle" Style="{StaticResource DeviceToggle}"
+                        <ToggleButton x:Name="ExactLengthToggle" Style="{StaticResource SwitchButton}"
                                       Checked="OnExactLengthToggleChanged" Unchecked="OnExactLengthToggleChanged"/>
                         <DockPanel Width="90" Margin="12,0,0,0" HorizontalAlignment="Left">
                             <StackPanel DockPanel.Dock="Right" Width="20">
@@ -109,7 +108,7 @@
                     </DockPanel>
                     <DockPanel>
                         <TextBlock Text="文本长度模式" Width="130" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                        <ToggleButton x:Name="AsciiToggle" Style="{StaticResource DeviceToggle}"
+                        <ToggleButton x:Name="AsciiToggle" Style="{StaticResource SwitchButton}"
                                       Checked="OnAsciiToggleChanged" Unchecked="OnAsciiToggleChanged" HorizontalAlignment="Left"/>
                     </DockPanel>
                 </StackPanel>
@@ -140,7 +139,7 @@
                     <ItemsControl x:Name="RuleListControl">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Background="#242424" BorderBrush="#3A3A3A" BorderThickness="0,0,0,1" Padding="2,4">
+                                <Border Background="{DynamicResource ColorSurface}" BorderBrush="{DynamicResource ColorSurfaceBorder}" BorderThickness="0,0,0,1" Padding="2,4">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="36"/>

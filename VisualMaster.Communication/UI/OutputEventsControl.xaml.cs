@@ -219,6 +219,7 @@ namespace VisualMaster.Communication.UI
             {
                 _config.DeviceAdded -= OnConfigDeviceChanged;
                 _config.DeviceRemoved -= OnConfigDeviceChanged;
+                _config.DeviceUpdated -= OnConfigDeviceUpdated;
             }
 
             _config = config;
@@ -230,6 +231,7 @@ namespace VisualMaster.Communication.UI
 
                 _config.DeviceAdded += OnConfigDeviceChanged;
                 _config.DeviceRemoved += OnConfigDeviceChanged;
+                _config.DeviceUpdated += OnConfigDeviceUpdated;
             }
             EventList.SelectedIndex = Events.Count > 0 ? 0 : -1;
         }
@@ -240,11 +242,33 @@ namespace VisualMaster.Communication.UI
             {
                 RefreshDisplayItems();
                 if (_selected != null)
-                {
-                    RefreshDeviceCombo();
-                    RefreshBlockCombo();
-                }
+                    RefreshBindingSelectors();
             }));
+        }
+
+        private void OnConfigDeviceUpdated(object sender, CommunicationDeviceConfig e)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                RefreshDisplayItems();
+                if (_selected != null)
+                    RefreshBindingSelectors();
+            }));
+        }
+
+        private void RefreshBindingSelectors()
+        {
+            var wasSuppressing = _suppress;
+            _suppress = true;
+            try
+            {
+                RefreshDeviceCombo();
+                RefreshBlockCombo();
+            }
+            finally
+            {
+                _suppress = wasSuppressing;
+            }
         }
 
         private void OnAddClick(object sender, RoutedEventArgs e)

@@ -17,12 +17,11 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <DockPanel Background="#202020">
+        <DockPanel Background="{DynamicResource ColorSidePanel}">
             <DockPanel DockPanel.Dock="Top" Margin="8">
                 <TextBlock Text="心跳" FontWeight="SemiBold"/>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button Content="+" Width="30" Click="OnAddClick"/>
-                    <Button Content="-" Width="30" Click="OnRemoveClick"/>
                 </StackPanel>
             </DockPanel>
             <ListBox x:Name="HeartbeatList" Margin="8" SelectionChanged="OnHeartbeatSelected"
@@ -32,7 +31,7 @@
                         <StackPanel Margin="4,6">
                             <DockPanel>
                                 <ToggleButton DockPanel.Dock="Right"
-                                              Style="{StaticResource DeviceToggle}"
+                                              Style="{StaticResource SwitchButton}"
                                               IsChecked="{Binding IsEnabled}"
                                               Click="OnListToggleClick"
                                               Tag="{Binding}"
@@ -61,16 +60,16 @@
                        Text="请从左侧选择或添加一个心跳。"
                        Foreground="Gray" FontSize="14" TextAlignment="Center" Margin="0,12,0,0"/>
             <StackPanel x:Name="EditorPanel" Grid.Row="1" Margin="0,8,0,0" Visibility="Collapsed">
-                <TextBlock Text="绑定" FontWeight="SemiBold" Margin="0,10,0,6"/>
-                <DockPanel Margin="0,0,0,8">
-                    <TextBlock Text="输入事件" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                    <ComboBox x:Name="InputRuleCombo" MinWidth="280" SelectionChanged="OnInputRuleChanged"
-                              HorizontalAlignment="Left" Style="{StaticResource LightComboBox}"/>
+                <TextBlock Text="绑定" Style="{StaticResource SectionSubtitle}"/>
+                <DockPanel Style="{StaticResource ConfigFieldRow}">
+                    <TextBlock Text="输入事件" Style="{StaticResource ConfigFieldLabel}"/>
+                    <ComboBox x:Name="InputRuleCombo" SelectionChanged="OnInputRuleChanged"
+                              Style="{StaticResource BindingSelectorCombo}"/>
                 </DockPanel>
-                <DockPanel Margin="0,0,0,8">
-                    <TextBlock Text="输出事件" Width="110" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                    <ComboBox x:Name="OutputEventCombo" MinWidth="280" SelectionChanged="OnOutputEventChanged"
-                              HorizontalAlignment="Left" Style="{StaticResource LightComboBox}"/>
+                <DockPanel Style="{StaticResource ConfigFieldRow}">
+                    <TextBlock Text="输出事件" Style="{StaticResource ConfigFieldLabel}"/>
+                    <ComboBox x:Name="OutputEventCombo" SelectionChanged="OnOutputEventChanged"
+                              Style="{StaticResource BindingSelectorCombo}"/>
                 </DockPanel>
 
                 <Border Height="1" Background="#303030" Margin="0,14,0,12"/>
@@ -89,7 +88,7 @@
                 <ItemsControl x:Name="VariableListControl">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Background="#242424" BorderBrush="#3A3A3A" BorderThickness="0,0,0,1" Padding="2,4">
+                            <Border Background="{DynamicResource ColorSurface}" BorderBrush="{DynamicResource ColorSurfaceBorder}" BorderThickness="0,0,0,1" Padding="2,4">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="180"/>
