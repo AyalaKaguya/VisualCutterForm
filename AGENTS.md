@@ -1,199 +1,102 @@
 # AGENTS.md
 
-## Architecture
-- WinForms C# desktop app, .NET Framework 4.8, C# 7.3
-- Solution uses `.slnx` format (VS 2022+)
-- 6 projects, layered:
-  ```
-  VisualCutterForm (app shell) → VisualMaster.Forms (UI) → VisualMaster.WorkFlow (engine)
-                                                  ↘ VisualMaster.Communication (serial)
-                                                  ↘ VisualMaster.CameraLink (cameras) ← WPF
-  ← All depend on VisualMaster.Api (interfaces + data types)
-  ```
-- `VisualMaster.Forms` is the UI library (ImageViewer, VisionController, AppConfig, Camera/* forms, FlowEditor/* forms, TriggerEditor/*, CodeEditor/*) — all reusable WinForms controls live here
-  - `VisualMaster.CameraLink` is a **WPF** project — contains camera HW abstractions, MVS SDK adapter, and WPF camera UI (CameraManagerWindow, CameraImageViewer, CameraPreviewControl). Has its own ViewModels with MVVM pattern.
-  - `VisualMaster.Communication` is a **WPF** project — contains serial/UART HW abstraction, driver-based architecture, and WPF communication UI (CommunicationManagerWindow, DeviceManagementControl, Input/Output/Heartbeat editors). Built on `ICommunicationDriver` plugin model.
-  - `VisualCutterForm` only has shell forms: `Form1.cs`, `LoginForm.cs`, `DefaultLoginForm.cs`, `Program.cs`
+## Scope
 
-## Dev Environment
-VS Developer Command Prompt (Insiders):
-```
-C:\Program Files\Microsoft Visual Studio\18\Insiders\Common7\Tools\VsDevCmd.bat
-```
-PowerShell:
-```powershell
-& "C:\Program Files\Microsoft Visual Studio\18\Insiders\Common7\Tools\Launch-VsDevShell.ps1"
-```
+This file helps AI coding agents work productively in this repository after the recent structure refactor.
 
-## Build & Run
-```bash
-msbuild VisualCutterForm.slnx /p:Configuration=Debug
-VisualCutterForm\bin\Debug\VisualCutterForm.exe
-```
+For deep architecture diagrams and node-level flow details, prefer linking to `README.md` instead of duplicating content.
 
-## Testing
-- No test project.
+## Project Boundary Rule (Critical)
 
-## Dependencies
-- **OpenCvSharp4.Windows** (NuGet) — `VisualMaster.WorkFlow` + `VisualMaster.Forms`
-- **MvCameraControl.Net** — Hikrobot MVS SDK, external ref at `C:\Program Files (x86)\MVS\`
-- **System.IO.Ports** (NuGet) — `VisualMaster.Communication` + `VisualMaster.Forms`
-- **Microsoft.CodeAnalysis.CSharp** 4.8 (NuGet) — `VisualMaster.WorkFlow` (ComputationNode Roslyn compilation)
-- **Newtonsoft.Json** 13.0 (NuGet) — `VisualMaster.WorkFlow` (FlowSerializer)
-- **FCTB** 2.16.24 (NuGet) — `VisualMaster.Forms` (CodeEditor)
-- **NuGet.Protocol** 6.12 (NuGet) — `VisualMaster.Forms` (CodeEditor NuGet package resolution)
-- Project uses `PackageReference` format (not `packages.config`)
+- Do not mix `VisualCutterForm` and `VisualMaster` as if they are the same project.
+- `VisualCutterForm` refers to the solution/repository identity and the main executable app project (`VisualCutterForm/VisualCutterForm.csproj`).
+- `VisualMaster.*` refers to component/library namespaces and project names (for example camera and communication libraries).
+- When describing architecture, always state whether a path/class belongs to:
+  - Main app project (`VisualCutterForm/...`)
+  - VisualMaster library projects (`VisualMaster.CameraLink/...`, `VisualMaster.Communication/...`)
+- Never say "VisualMaster project" to mean the whole solution.
 
-## Critical Constraints
+## Current Solution Structure
 
-### .csproj format
-**ALL 6 projects** use old-style `.csproj` with explicit `<Compile Include="...">` entries. Every new `.cs` file must be manually added or it won't compile.
+- Tech stack: C# 7.3, .NET Framework 4.8, WinForms + WPF, solution format `.slnx`.
+- Projects contained in solution `VisualCutterForm.slnx`:
+  - `VisualCutterForm/VisualCutterForm.csproj` (main app shell + workflow + reusable WinForms controls)
+  - `VisualMaster.CameraLink/VisualMaster.CameraLink.csproj` (WPF camera library)
+  - `VisualMaster.Communication/VisualMaster.Communication.csproj` (WPF communication library)
+  - `VisualMaster.CameraLink.App/VisualMaster.CameraLink.TestApp.csproj` (camera sample app)
+  - `VisualMaster.CameraLink.TestApp/VisualMaster.CameraLink.TestApp.Viewer.csproj` (camera viewer sample)
+  - `VisualMaster.Communication.TestApp/VisualMaster.Communication.TestApp.csproj` (communication sample app)
+  - `SetupVisualCutter/SetupVisualCutter.vdproj` (installer)
 
-### Designer files
-- `<DependentUpon>` paths use **filename only** (no subfolder prefix) — resolves relative to file's directory:
-  ```xml
-  <!-- Correct -->
-  <Compile Include="TriggerEditor\TriggerEditorForm.Designer.cs">
-    <DependentUpon>TriggerEditorForm.cs</DependentUpon>
-  </Compile>
-  <!-- Wrong: <DependentUpon>TriggerEditor\TriggerEditorForm.cs</DependentUpon> -->
-  ```
-- Do NOT hand-edit auto-generated files: `Form1.Designer.cs`, `Properties/Resources.Designer.cs`, `Properties/Settings.Designer.cs`
+## Important Refactor Reality (What Changed)
 
-### Programmatic UI layout
-When building WinForms controls in code (not Designer), you **must** call `SuspendLayout()`/`ResumeLayout()` on every container Panel. If controls use `Dock.Top` and `Dock.Fill` together, without SuspendLayout the Dock order is sensitive to `Controls.Add()` order and causes overlapping. Prefer Designer files over programmatic construction for forms with multiple nested panels.
+- There is no separate `VisualMaster.Forms` or `VisualMaster.WorkFlow` project anymore.
+- `Api/`, `WorkFlow/`, `Forms/`, and `Legacy/` are now source folders inside `VisualCutterForm/VisualCutterForm.csproj`.
+- Main app still references only two external project libraries:
+  - `VisualMaster.CameraLink`
+  - `VisualMaster.Communication`
 
-### Trigger system (post-refactor)
-- `SubGraphTrigger` enum has been **deleted**. Do not reference it.
-- Triggers are now `TriggerEntry` objects in `FlowGraph.Triggers` list, persisted to `.flow` JSON.
-- `TriggerSourceType`: `Manual`, `CameraFrame`, `Timer`, `SerialMatch`
-- `TriggerManager` handles activation/deactivation in `FlowExecutor.Start()`/`Stop()`
-- `FlowExecutor` constructor takes `IFlowServiceProvider` (NOT `dynamic`). `VisionController` implements it (11→6 methods after pruning).
-- `TriggerEditorForm` accessible from `FlowEditorForm → 输入输出 → 触发器编辑器...`
-- Manual triggers have a toolbar dropdown: `▶ 手动触发 ▾` in FlowEditorForm
-- `FlowSubGraph` no longer has a `Trigger` property
-- Backward compat for old `.flow` files is intentionally NOT supported
+## Build and Run
 
-### Communication refactoring — critical changes
+- Build all projects:
+  - `msbuild VisualCutterForm.slnx /p:Configuration=Debug`
+- Run main app:
+  - `VisualCutterForm\bin\Debug\VisualCutterForm.exe`
+- If build fails with file lock (`MSB3021`), stop `VisualCutterForm.exe` first.
 
-#### Driver-based architecture
-`VisualMaster.Communication` has been rebuilt around an `ICommunicationDriver` plugin model:
-```
-CommunicationSystemConfig → CommunicationManager → ICommunicationDriver (UartDriver)
-                                                      └─ ICommunicationBlock[]
-```
-- `ICommunicationDriver` — abstract device interface (UART, future: TCP/Modbus/PLC)
-- `ICommunicationBlock` — addressable byte data block with read/write/poll lifecycle
-- `ICommunicationDriverFactory` — creates drivers from config
-- `UartDriver` / `UartDriverFactory` — the only current driver implementation (SerialPort)
-- `CommunicationManager` — manages drivers lifecycle, registers factories, bridges events
+## Testing Status
 
-#### VisionSerialRuntime bridge (in VisualMaster.Forms)
-The actual serial runtime is `VisionSerialRuntime` in `VisualMaster.Forms`, NOT `SerialPortAdapter`. It bridges the old `ISerialPort` API to `CommunicationManager → UartDriver → CommunicationBlock` pipeline. `VisionController` creates it internally.
+- No unit/integration test project.
+- Existing "TestApp" projects are manual verification apps, not automated tests.
 
-#### SerialSlot is obsolete
-`SerialSlot` is marked `[Obsolete]`. Use `SerialDeviceConfig` instead. `VisionController.GetSerialSlot` creates `SerialSlot` on-the-fly for backward compat but all internal state uses `SerialDeviceConfig`.
+## Hard Constraints for Code Changes
 
-#### SerialPortAdapter.cs is NOT compiled
-The file `SerialPortAdapter.cs` (direct `System.IO.Ports.SerialPort` wrapper) exists on disk but is **NOT included in `.csproj`**. It is dead/stale code — do not reference it.
+- All major projects use old-style `.csproj` with explicit `<Compile Include="...">` entries.
+  - Any new `.cs` file must be manually added to the corresponding `.csproj`.
+- For WinForms/WPF designer code-behind entries, keep `<DependentUpon>` as filename only.
+  - Example: `TriggerEditorForm.cs` (not `TriggerEditor\TriggerEditorForm.cs`).
+- Do not hand-edit auto-generated designer/resource files.
 
-#### Communication UI (WPF)
-WPF controls under `UI/`:
-- `CommunicationManagerWindow` / `CommunicationManagerPanel` — main shell
-- `DeviceManagementControl` — add/remove/enable devices per driver type 
-- `UartDriverConfigControl` — UART port/baud/parity settings
-- `CommunicationBlockListControl` — per-device block management
-- `InputEventsControl` / `OutputEventsControl` / `HeartbeatControl` — event config editors
-- `RawBytesMonitorWindow` — live hex monitor for a block
-- `TextInputDialog` — simple text input dialog
+## Runtime/Architecture Notes Agents Must Respect
 
-#### CommunicationSystemConfig / CommunicationDeviceConfig
-Snapshot-based config with `TakeSnapshot()` / `RevertChanges()` pattern (like `CameraSystemConfig`). Device config uses string-keyed `DriverSettings` dictionary to pass type-specific settings to drivers.
+### Trigger System
 
-#### Communication enums
-```
-CommunicationBlockDataType: Bytes, AsciiString, Int16, UInt16, Int32, UInt32, Single, Double
-CommunicationByteOrder: BigEndian, LittleEndian
-CommunicationUpdateMode: Passive, Polling
-CommunicationMatchOperator: Equals, GreaterThan, ..., ChangedTo, ChangedFrom, LengthAtLeast, Contains
-CommunicationOutputSegmentKind: Constant, Variable
-```
+- `SubGraphTrigger` is removed.
+- Triggers are `TriggerEntry` entries in `FlowGraph.Triggers`.
+- `TriggerSourceType`: `Manual`, `CameraFrame`, `Timer`, `SerialMatch`.
+- Trigger activation/deactivation is handled by `TriggerManager` from `FlowExecutor.Start()` / `Stop()`.
+- Backward compatibility for legacy `.flow` trigger model is intentionally not provided.
 
-### CameraLink refactoring — critical changes
+### Communication (VisualMaster.Communication)
 
-#### CameraSlot is obsolete
-`CameraSlot` is marked `[Obsolete]`. Use `CameraDeviceConfig` / `CameraDeviceStatus` instead. The old slot-based API (`Slots`, `AddSlot`, `RemoveSlot`, `OpenSlot`, `CloseSlot`, `IsSlotOpen`) on `ICameraManager` is `[Obsolete]`. New API uses `Device`-based naming:
-- `CameraDevices` / `AddDevice` / `RemoveDevice` / `OpenDevice` / `CloseDevice` / `IsDeviceOpen`
+- Driver-based model: `CommunicationManager` + `ICommunicationDriver` + `ICommunicationBlock`.
+- Current drivers include both UART and TCP (`UartDriver`, `TcpDriver`).
+- In the main app, serial runtime bridge is `Forms/VisionSerialRuntime.cs`.
+- `VisualMaster.Communication/SerialPortAdapter.cs` exists on disk but is not included in its `.csproj` (treat as stale/dead code).
 
-#### Two parallel camera access paths
-1. **Legacy path**: `MvsCamera` implements `ICamera` directly — uses `CameraInfo.RawInfo` as `IDeviceInfo`. Has `GetLatestFrame()`, internal `_latestFrame` cache, and `TriggerSoftware()` that reconfigures TriggerMode before commanding.
-2. **New path**: `HikrobotDevice` (implements `ICameraDeviceDriver`) → wrapped by `ManagedCamera` (aggregates driver + `CameraDeviceConfig` + `CameraFrameBuffer`) → managed by `CameraManager` (implements `ICameraManager`). Uses `HikrobotAdapter` for discovery.
+### Camera (VisualMaster.CameraLink)
 
-#### CameraFrameBuffer / CameraFrameSnapshot
-New thread-safe frame queue with `Publish()`, `PeekLatestSnapshot()`, `WaitForNextSnapshot()`. Snapshots are **ref-counted** — call `Dispose()` or use `CloneFrame()` for a standalone Bitmap. `ImageFifo` now has a `CameraFrameBuffer`-backed constructor overload.
+- Old slot APIs are obsolete; prefer `CameraDeviceConfig`/`CameraDeviceStatus` and device-based manager methods.
+- Two access paths coexist:
+  - Legacy: `MvsCamera` (`ICamera` style)
+  - New: `HikrobotDevice` -> `ManagedCamera` -> `CameraManager`
+- `CameraFrameBuffer`/`CameraFrameSnapshot` are ref-counted; dispose snapshots or clone before long-lived usage.
 
-#### CameraSettings additions
-- `PixelFormat` (string) — camera pixel format, applied via `SetEnumValueByString("PixelFormat", ...)`
-- `MonochromeOutput` (bool, default false) — if true, `ManagedCamera.OnFrameAcquired` converts color frames to grayscale via ColorMatrix before publishing
+## Key Paths for Fast Navigation
 
-#### GetAvailablePixelFormats()
-Available on `ICamera`, `ICameraDeviceDriver`, `ManagedCamera`, `CameraManager`. Queries camera hardware via MVS SDK:
-```csharp
-_device.Parameters.GetEnumValue("PixelFormat", out IEnumValue enumValue);
-enumValue.SupportEnumEntries.Select(e => e.Symbolic).ToArray();
-```
+- Main app shell: `VisualCutterForm/Form1.cs`
+- App orchestrator/runtime bridge: `VisualCutterForm/Forms/VisionController.cs`
+- Flow execution: `VisualCutterForm/WorkFlow/FlowExecutor.cs`
+- Trigger models/runtime: `VisualCutterForm/WorkFlow/Triggers/`
+- Camera library: `VisualMaster.CameraLink/`
+- Communication library: `VisualMaster.Communication/`
 
-#### RuntimeDiagnosticsHub
-Thread-safe diagnostic event ring buffer on `ICameraManager.Diagnostics` and `ManagedCamera.Diagnostics`. Events: `SnapshotPublished`, `TriggerDispatched`, `FlowStarted/Completed/Failed`. Inject into `RuntimeDiagnosticEvent` with device/flow/trigger correlation IDs.
+## External Dependencies (Operational)
 
-#### MVS SDK calling conventions (HikrobotDevice / MvsCamera)
-```
-SetEnumValueByString("ParameterName", "EnumEntry")
-SetFloatValue("ExposureTime", ...) / SetFloatValue("Gain", ...)
-SetIntValue("Width"/"Height"/"OffsetX"/"OffsetY")
-SetCommandValue("TriggerSoftware")
-GetEnumValue("PixelFormat", out IEnumValue)
-GetFloatValue("ExposureTime", out IFloatValue) → ev.CurValue
-GetIntValue("Width", out IIntValue) → w.CurValue
-StreamGrabber.SetImageNodeNum(5u); StreamGrabber.StartGrabbing()
-StreamGrabber.GetImageBuffer(timeoutMs, out IFrameOut); frame.Image.ToBitmap()
-StreamGrabber.FrameGrabedEvent += OnFrameGrabbed
-```
+- Hikrobot MVS .NET SDK: `MvCameraControl.Net` expected at:
+  - `C:\Program Files (x86)\MVS\Development\DotNet\AnyCpu\MvCameraControl.Net.dll`
+- NuGet package style: `PackageReference`.
 
-### Namespace structure
-```
-VisualMaster.Forms              — VisionController, AppConfig, DarkTheme, DisplayItem, ImageViewer
-VisualMaster.Forms.Camera       — CameraDiscoveryControl, CameraSettingsControl, CameraManagerForm, etc.
-VisualMaster.Forms.FlowEditor   — FlowEditorForm, FlowCanvas, FlowPropertyInspector, FlowToolbox
-VisualMaster.Forms.CodeEditor   — CodeEditorForm, ReferenceManager
-VisualMaster.Forms.TriggerEditor — TriggerEditorForm
-VisualMaster.WorkFlow           — FlowGraph, FlowExecutor, FlowSerializer, FlowNode, etc.
-VisualMaster.WorkFlow.Nodes     — All node types
-VisualMaster.WorkFlow.Triggers  — TriggerEntry, TriggerManager
-VisualMaster.WorkFlow.Data      — AcquisitionResult, SerialTriggerRule
-VisualMaster.CameraLink         — CameraManager, MvsCamera (legacy), HikrobotAdapter, HikrobotDevice
-VisualMaster.CameraLink.API     — ICameraAdapter, ICameraDeviceDriver, DiscoveredCamera
-VisualMaster.CameraLink.Core    — ManagedCamera
-VisualMaster.CameraLink.Adapter — HikrobotAdapter, HikrobotDevice
-VisualMaster.CameraLink.UI      — CameraManagerWindow, CameraManagerPanel, CameraImageViewer
-VisualMaster.CameraLink.UI.ViewModels — CameraManagerViewModel, CameraItemViewModel, etc.
-VisualMaster.Communication       — LogRingBuffer
-VisualMaster.Communication.Api   — ICommunicationDriver, ICommunicationBlock, CommunicationDeviceConfig, CommunicationSystemConfig
-VisualMaster.Communication.Core  — CommunicationManager, CommunicationDataConverter, CommunicationInputEvaluator, CommunicationOutputBuilder
-VisualMaster.Communication.Driver — UartDriver, UartDriverFactory, CommunicationBlock, CommunicationDriverBase
-VisualMaster.Communication.UI    — CommunicationManagerWindow, DeviceManagementControl, etc.
-```
+## Additional Reference
 
-### Shared helpers
-- `DarkTheme` — static colors, fonts, factory methods (Label, Button, ComboBox, TextBox)
-- `DisplayItem` — replaces per-form SlotEntry/ComboItem/SlotDisplayItem patterns. Has `Id`, `Display`, `Tag`, `ToString()`.
-
-### Slot-based HW pattern
-Both camera and serial use device/slot-ID-based configuration persisted in `FlowGraph` and serialized to `.flow` JSON. Runtime connections restored by serial/port name matching via `VisionController.SyncToGraph`/`SyncFromGraph`.
-
-### Known gotchas
-- `FlowCanvas.OnPaint` draws connections BEFORE nodes (z-order: connections behind). Pin locations are pre-computed in `RebuildViews` via `ComputePinLocations`.
-- `FlowEditorForm` has NO subgraph-level trigger dropdown. All trigger config is in `TriggerEditorForm`.
-- Running process locks `VisualMaster.Forms.dll` copy — kill `VisualCutterForm.exe` before building when getting `MSB3021` errors.
-- `VisualMaster.CameraLink` is a WPF project — VS Designer for XAML requires WPF workload installed.
-- `VisualMaster.Communication` is a WPF project — same XAML/WPF workload requirement.
+- Detailed architecture and execution flow diagrams: `README.md`
