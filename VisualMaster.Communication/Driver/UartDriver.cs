@@ -4,10 +4,7 @@ using System.IO.Ports;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Controls;
 using VisualMaster.Communication.Api;
-using VisualMaster.Communication.UI;
-using VisualMaster.Communication.UI.ViewModels;
 
 namespace VisualMaster.Communication.Driver
 {
@@ -88,11 +85,6 @@ namespace VisualMaster.Communication.Driver
                 IsConnected = false;
             }
             return Task.CompletedTask;
-        }
-
-        public override UserControl CreateConfigurationView()
-        {
-            return new UartDriverConfigControl(new UartDriverConfigViewModel(_config));
         }
 
         protected override ICommunicationBlock CreateDriverBlock(CommunicationBlockConfig config)

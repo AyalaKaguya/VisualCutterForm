@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="Api\CommunicationBlockConfig.cs" />
     <Compile Include="Api\CommunicationDeviceConfig.cs" />
+    <Compile Include="Api\CommunicationDeviceStatus.cs" />
     <Compile Include="Api\CommunicationEnums.cs" />
     <Compile Include="Api\CommunicationEvents.cs" />
     <Compile Include="Api\CommunicationSystemConfig.cs" />
@@ -110,6 +111,7 @@
     <Compile Include="UI\ViewModels\TcpDriverConfigViewModel.cs" />
     <Compile Include="UI\ViewModels\RuleItemViewModel.cs" />
     <Compile Include="UI\Converters\BoolToVisibilityConverter.cs" />
+    <Compile Include="UI\ICommunicationDriverConfigurationViewFactory.cs" />
     <Compile Include="UI\ViewModels\CommunicationManagerViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Controls;
 using VisualMaster.Communication.Api;
 
 namespace VisualMaster.Communication.Driver
@@ -75,11 +74,6 @@ namespace VisualMaster.Communication.Driver
             var block = _blocks.FirstOrDefault(b => b.Config.BlockId == blockId);
             if (block == null) return;
             _blocks.Remove(block);
-        }
-
-        public virtual UserControl CreateConfigurationView()
-        {
-            return new UserControl();
         }
 
         protected abstract ICommunicationBlock CreateDriverBlock(CommunicationBlockConfig config);

@@ -7,7 +7,7 @@ using VisualMaster.Communication.UI.ViewModels;
 
 namespace VisualMaster.Communication.Driver
 {
-    public sealed class UartDriverFactory : ICommunicationDriverFactory
+    public sealed class UartDriverFactory : ICommunicationDriverFactory, ICommunicationDriverConfigurationViewFactory
     {
         public string DriverName => "UART";
         public string DisplayName => "UART 串口";

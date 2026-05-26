@@ -3,10 +3,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Controls;
 using VisualMaster.Communication.Api;
-using VisualMaster.Communication.UI;
-using VisualMaster.Communication.UI.ViewModels;
 
 namespace VisualMaster.Communication.Driver
 {
@@ -64,11 +61,6 @@ namespace VisualMaster.Communication.Driver
             _client = null;
             IsConnected = false;
             return Task.CompletedTask;
-        }
-
-        public override UserControl CreateConfigurationView()
-        {
-            return new TcpDriverConfigControl(new TcpDriverConfigViewModel(_config));
         }
 
         protected override ICommunicationBlock CreateDriverBlock(CommunicationBlockConfig config)

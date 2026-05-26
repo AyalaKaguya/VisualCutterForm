@@ -23,6 +23,7 @@ For deep architecture diagrams and node-level flow details, prefer linking to `R
   - `VisualCutterForm/VisualCutterForm.csproj` (main app shell + workflow + reusable WinForms controls)
   - `VisualMaster.CameraLink/VisualMaster.CameraLink.csproj` (WPF camera library)
   - `VisualMaster.Communication/VisualMaster.Communication.csproj` (WPF communication library)
+  - `VisualMaster.UI.Basic/VisualMaster.UI.Basic.csproj` (shared WPF base theme library)
   - `VisualMaster.CameraLink.App/VisualMaster.CameraLink.TestApp.csproj` (camera sample app)
   - `VisualMaster.CameraLink.TestApp/VisualMaster.CameraLink.TestApp.Viewer.csproj` (camera viewer sample)
   - `VisualMaster.Communication.TestApp/VisualMaster.Communication.TestApp.csproj` (communication sample app)
@@ -67,12 +68,20 @@ For deep architecture diagrams and node-level flow details, prefer linking to `R
 - Trigger activation/deactivation is handled by `TriggerManager` from `FlowExecutor.Start()` / `Stop()`.
 - Backward compatibility for legacy `.flow` trigger model is intentionally not provided.
 
+### VisualMaster.UI.Basic (shared WPF base theme)
+- Pure XAML resource library, no C# code. Only dependency: WPF framework assemblies.
+- Provides unified color tokens (`VMColor*`) and named styles — see `VisualMaster.UI.Basic/Themes/VisualMasterDarkTheme.xaml`.
+- Key named styles: `VMDarkButton`, `VMIconButton`, `VMDarkTextBox`, `VMDarkComboBox` (dark bg + white text), `VMDarkListBox`, `VMToggle` (40×22 pill toggle), `VMNavButton`, `VMSectionLabel`, `VMFieldLabel`, `VMStatusText`, `VMDarkDataGrid*`, `VMDarkCheckBox`, `VMDarkRadioButton`.
+- Contains NO implicit styles (bare `TargetType` without `x:Key`) — each module's theme file manages its own implicit styles.
+- Reference via pack URI: `pack://application:,,,/VisualMaster.UI.Basic;component/Themes/VisualMasterDarkTheme.xaml`.
+
 ### Communication (VisualMaster.Communication)
 
 - Driver-based model: `CommunicationManager` + `ICommunicationDriver` + `ICommunicationBlock`.
 - Current drivers include both UART and TCP (`UartDriver`, `TcpDriver`).
 - In the main app, serial runtime bridge is `Forms/VisionSerialRuntime.cs`.
 - `VisualMaster.Communication/SerialPortAdapter.cs` exists on disk but is not included in its `.csproj` (treat as stale/dead code).
+- Theme: `CommunicationDarkTheme.xaml` merges `VisualMasterDarkTheme.xaml`, exposes `Color*` aliases for backward compat, provides implicit styles for all controls, fixes ComboBox to dark bg.
 
 ### Camera (VisualMaster.CameraLink)
 
@@ -81,6 +90,7 @@ For deep architecture diagrams and node-level flow details, prefer linking to `R
   - Legacy: `MvsCamera` (`ICamera` style)
   - New: `HikrobotDevice` -> `ManagedCamera` -> `CameraManager`
 - `CameraFrameBuffer`/`CameraFrameSnapshot` are ref-counted; dispose snapshots or clone before long-lived usage.
+- Theme: `CameraDarkTheme.xaml` merges `VisualMasterDarkTheme.xaml`, exposes `CameraColor*` aliases for backward compat, adds Viewer-specific styles and DataTemplates.
 
 ## Key Paths for Fast Navigation
 

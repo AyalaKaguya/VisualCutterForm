@@ -19,4 +19,14 @@ namespace VisualMaster.Communication.Api
             Timestamp = DateTime.Now;
         }
     }
+
+    public sealed class CommunicationDeviceStatusChangedEventArgs : EventArgs
+    {
+        public CommunicationDeviceStatusChangedEventArgs(CommunicationDeviceStatus status)
+        {
+            Status = status ?? throw new ArgumentNullException(nameof(status));
+        }
+
+        public CommunicationDeviceStatus Status { get; }
+    }
 }

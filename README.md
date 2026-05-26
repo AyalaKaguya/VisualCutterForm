@@ -16,6 +16,8 @@ VisualCutterForm 是上层业务应用（WinForms 可执行程序），用于把
 graph LR
     A[VisualCutterForm 主应用<br/>WinForms EXE] --> B[VisualMaster.CameraLink<br/>相机能力库 WPF]
     A --> C[VisualMaster.Communication<br/>通信能力库 WPF]
+    B --> D[VisualMaster.UI.Basic<br/>基础主题库 WPF]
+    C --> D
 ```
 
 ## 解决方案结构（按 VisualMaster 视角）
@@ -23,6 +25,7 @@ graph LR
 | 类型 | 工程 | 说明 |
 |---|---|---|
 | 主应用 | `VisualCutterForm/VisualCutterForm.csproj` | 应用壳层、流程执行、WinForms 编辑器与运行时桥接 |
+| 基础库 | `VisualMaster.UI.Basic/VisualMaster.UI.Basic.csproj` | 统一深色主题 XAML（VMColor\* token + 命名样式），两个核心库共同依赖 |
 | 核心库 | `VisualMaster.CameraLink/VisualMaster.CameraLink.csproj` | 相机设备发现、连接、采集、预览、配置 |
 | 核心库 | `VisualMaster.Communication/VisualMaster.Communication.csproj` | UART/TCP 驱动抽象、数据块、输入输出事件、监控 |
 | 示例应用 | `VisualMaster.CameraLink.App/VisualMaster.CameraLink.TestApp.csproj` | CameraLink 示例应用 |

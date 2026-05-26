@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using VisualMaster.Communication.Api;
 using VisualMaster.Communication.Core;
+using VisualMaster.Communication.UI;
 
 namespace VisualMaster.Communication.UI.ViewModels
 {
@@ -76,6 +78,7 @@ namespace VisualMaster.Communication.UI.ViewModels
             _config.DeviceRemoved += OnConfigDeviceRemoved;
             _config.DeviceUpdated += OnConfigDeviceUpdated;
             _config.Reset         += OnConfigReset;
+            _manager.DeviceStatusChanged += OnDeviceStatusChanged;
 
             AutoConnectEnabledDevices();
         }
@@ -91,13 +94,7 @@ namespace VisualMaster.Communication.UI.ViewModels
                 }
                 catch
                 {
-                    devVm.IsEnabled = false;
-                    var device = _config.GetDevice(devVm.DeviceId);
-                    if (device != null)
-                    {
-                        device.IsEnabled = false;
-                        _config.UpdateDevice(device);
-                    }
+                    devVm.ApplyStatus(_manager.GetDeviceStatus(devVm.DeviceId));
                 }
             }
             RefreshStatuses();
@@ -114,8 +111,14 @@ namespace VisualMaster.Communication.UI.ViewModels
         {
             foreach (var devVm in Devices)
             {
-                var driver = _manager.Drivers.FirstOrDefault(d => d.DeviceId == devVm.DeviceId);
-                devVm.RefreshStatus(driver?.IsConnected == true);
+                var status = _manager.GetDeviceStatus(devVm.DeviceId);
+                if (status != null)
+                    devVm.ApplyStatus(status);
+                else
+                {
+                    var driver = _manager.Drivers.FirstOrDefault(d => d.DeviceId == devVm.DeviceId);
+                    devVm.RefreshStatus(driver?.IsConnected == true);
+                }
             }
         }
 
@@ -186,11 +189,7 @@ namespace VisualMaster.Communication.UI.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    try { await _manager.StopDeviceAsync(device.DeviceId); } catch { }
-                    device.IsEnabled = false;
-                    _config.UpdateDevice(device);
-                    _manager.LoadConfig(_config);
-                    SelectedDevice.IsEnabled = false;
+                    SelectedDevice.ApplyStatus(_manager.GetDeviceStatus(device.DeviceId));
                     StatusMessage = $"连接失败：{ex.Message}";
                     MessageBox.Show(Application.Current?.MainWindow, $"设备无法启用，已切换为关闭：{ex.Message}", "通信设备不可用",
                         MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -259,12 +258,30 @@ namespace VisualMaster.Communication.UI.ViewModels
             {
                 var vm = Devices.FirstOrDefault(d => d.DeviceId == cfg.DeviceId);
                 vm?.LoadConfig(cfg);
+                var status = _manager.GetDeviceStatus(cfg.DeviceId);
+                if (status != null)
+                    vm?.ApplyStatus(status);
             });
         }
 
         private void OnConfigReset(object sender, EventArgs e)
         {
-            InvokeOnUI(LoadFromConfig);
+            InvokeOnUI(() =>
+            {
+                LoadFromConfig();
+                RefreshStatuses();
+            });
+        }
+
+        private void OnDeviceStatusChanged(object sender, CommunicationDeviceStatusChangedEventArgs e)
+        {
+            InvokeOnUI(() =>
+            {
+                var vm = Devices.FirstOrDefault(d => d.DeviceId == e.Status.DeviceId);
+                vm?.ApplyStatus(e.Status);
+                if (SelectedDevice?.DeviceId == e.Status.DeviceId && !string.IsNullOrWhiteSpace(e.Status.LastError))
+                    StatusMessage = e.Status.LastError;
+            });
         }
 
         private void RefreshCommands()
@@ -294,6 +311,15 @@ namespace VisualMaster.Communication.UI.ViewModels
             return _manager.Drivers.FirstOrDefault(d => d.DeviceId == deviceId);
         }
 
+        public UserControl CreateConfigurationView(string deviceId)
+        {
+            var config = _config?.GetDevice(deviceId);
+            if (config == null) return null;
+            var factory = _manager.DriverFactories.FirstOrDefault(f =>
+                string.Equals(f.DriverName, config.DriverName, StringComparison.OrdinalIgnoreCase));
+            return (factory as ICommunicationDriverConfigurationViewFactory)?.CreateConfigurationView(config);
+        }
+
         public ICommunicationBlock FindBlock(string deviceId, string blockId)
         {
             return _manager.FindBlock(deviceId, blockId);
@@ -312,6 +338,7 @@ namespace VisualMaster.Communication.UI.ViewModels
             _config.DeviceRemoved -= OnConfigDeviceRemoved;
             _config.DeviceUpdated -= OnConfigDeviceUpdated;
             _config.Reset         -= OnConfigReset;
+            _manager.DeviceStatusChanged -= OnDeviceStatusChanged;
         }
     }
 }

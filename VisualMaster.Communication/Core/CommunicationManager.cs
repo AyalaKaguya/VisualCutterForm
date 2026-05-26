@@ -16,6 +16,8 @@ namespace VisualMaster.Communication.Core
             new Dictionary<string, ICommunicationDriver>();
         private readonly Dictionary<string, CancellationTokenSource> _pollers =
             new Dictionary<string, CancellationTokenSource>();
+        private readonly Dictionary<string, CommunicationDeviceStatus> _statuses =
+            new Dictionary<string, CommunicationDeviceStatus>();
         private readonly Dictionary<string, byte[]> _previousValues =
             new Dictionary<string, byte[]>();
         private readonly CommunicationInputEvaluator _inputEvaluator = new CommunicationInputEvaluator();
@@ -30,9 +32,11 @@ namespace VisualMaster.Communication.Core
 
         public IReadOnlyList<ICommunicationDriverFactory> DriverFactories => _factories.Values.ToList();
         public IReadOnlyList<ICommunicationDriver> Drivers => _drivers.Values.ToList();
+        public IReadOnlyList<CommunicationDeviceStatus> DeviceStatuses => _statuses.Values.ToList();
 
         public event EventHandler<CommunicationInputEventConfig> InputEventTriggered;
         public event EventHandler<string> StatusChanged;
+        public event EventHandler<CommunicationDeviceStatusChangedEventArgs> DeviceStatusChanged;
 
         public void RegisterDriver(ICommunicationDriverFactory factory)
         {
@@ -84,16 +88,30 @@ namespace VisualMaster.Communication.Core
         public async Task StartDeviceAsync(string deviceId, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (!_drivers.TryGetValue(deviceId, out var driver) || !driver.IsEnabled)
+            {
+                if (_drivers.TryGetValue(deviceId, out var disabledDriver))
+                    SetStatus(disabledDriver, CommunicationDeviceRuntimeState.Disabled, false, null);
                 return;
+            }
 
             try
             {
+                SetStatus(driver, CommunicationDeviceRuntimeState.Connecting, false, null);
                 await StartDriverAsync(driver, cancellationToken).ConfigureAwait(false);
+                SetStatus(driver, CommunicationDeviceRuntimeState.Connected, true, null);
             }
-            catch
+            catch (Exception ex)
             {
+                StopPolling(deviceId);
                 try { await driver.CloseAsync().ConfigureAwait(false); } catch { }
                 driver.IsEnabled = false;
+                var failedConfig = _config?.GetDevice(deviceId);
+                if (failedConfig != null)
+                {
+                    failedConfig.IsEnabled = false;
+                    _config.UpdateDevice(failedConfig);
+                }
+                SetStatus(driver, CommunicationDeviceRuntimeState.Faulted, false, ex.Message, failedConfig);
                 throw;
             }
         }
@@ -101,14 +119,28 @@ namespace VisualMaster.Communication.Core
         public async Task StartAllAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             foreach (var driver in _drivers.Values.Where(d => d.IsEnabled))
-                await StartDriverAsync(driver, cancellationToken).ConfigureAwait(false);
+            {
+                try
+                {
+                    await StartDeviceAsync(driver.DeviceId, cancellationToken).ConfigureAwait(false);
+                }
+                catch
+                {
+                }
+            }
         }
 
         public async Task StopDeviceAsync(string deviceId)
         {
             StopPolling(deviceId);
             if (_drivers.TryGetValue(deviceId, out var driver))
+            {
+                SetStatus(driver, CommunicationDeviceRuntimeState.Disconnecting, false, null);
                 await driver.CloseAsync().ConfigureAwait(false);
+                SetStatus(driver, driver.IsEnabled
+                    ? CommunicationDeviceRuntimeState.Disconnected
+                    : CommunicationDeviceRuntimeState.Disabled, false, null);
+            }
         }
 
         public async Task StopAllAsync()
@@ -165,11 +197,16 @@ namespace VisualMaster.Communication.Core
             return _config?.GetDevice(deviceId);
         }
 
+        public CommunicationDeviceStatus GetDeviceStatus(string deviceId)
+        {
+            if (string.IsNullOrEmpty(deviceId)) return null;
+            return _statuses.TryGetValue(deviceId, out var status) ? status : null;
+        }
+
         private async Task StartDriverAsync(ICommunicationDriver driver, CancellationToken cancellationToken)
         {
             await driver.ConnectAsync(cancellationToken).ConfigureAwait(false);
             StartPolling(driver);
-            StatusChanged?.Invoke(this, $"{driver.DriverName} connected.");
         }
 
         private void SyncFromConfig()
@@ -199,6 +236,7 @@ namespace VisualMaster.Communication.Core
 
                 foreach (var newBlock in existing.Blocks)
                     newBlock.Updated += OnBlockForInputEvents;
+                SyncStatusFromDriver(existing, config);
                 return;
             }
 
@@ -209,6 +247,7 @@ namespace VisualMaster.Communication.Core
                 block.Updated += OnBlockForInputEvents;
 
             _drivers[config.DeviceId] = driver;
+            SyncStatusFromDriver(driver, config);
         }
 
         private void RemoveDriver(string deviceId)
@@ -221,6 +260,7 @@ namespace VisualMaster.Communication.Core
 
             driver.Dispose();
             _drivers.Remove(deviceId);
+            _statuses.Remove(deviceId);
         }
 
         private void OnBlockForInputEvents(object sender, CommunicationBlockUpdatedEventArgs e)
@@ -245,7 +285,7 @@ namespace VisualMaster.Communication.Core
                         .Min();
 
                     try { await driver.PollAsync(cts.Token).ConfigureAwait(false); }
-                    catch { }
+                    catch (Exception ex) { SetStatus(driver, CommunicationDeviceRuntimeState.Faulted, false, ex.Message); }
                     try { await Task.Delay(interval, cts.Token).ConfigureAwait(false); }
                     catch { }
                 }
@@ -299,6 +339,48 @@ namespace VisualMaster.Communication.Core
         private void OnDeviceRemoved(object sender, string e) => RemoveDriver(e);
         private void OnConfigReset(object sender, EventArgs e) => SyncFromConfig();
 
+        private void SyncStatusFromDriver(ICommunicationDriver driver, CommunicationDeviceConfig config)
+        {
+            if (driver == null || config == null) return;
+
+            var state = !config.IsEnabled
+                ? CommunicationDeviceRuntimeState.Disabled
+                : driver.IsConnected
+                    ? CommunicationDeviceRuntimeState.Connected
+                    : CommunicationDeviceRuntimeState.Disconnected;
+
+            SetStatus(driver, state, driver.IsConnected && config.IsEnabled, null, config);
+        }
+
+        private void SetStatus(
+            ICommunicationDriver driver,
+            CommunicationDeviceRuntimeState state,
+            bool isConnected,
+            string lastError,
+            CommunicationDeviceConfig config = null)
+        {
+            if (driver == null || string.IsNullOrEmpty(driver.DeviceId)) return;
+
+            config = config ?? _config?.GetDevice(driver.DeviceId);
+            var status = new CommunicationDeviceStatus(
+                driver.DeviceId,
+                config?.DriverName ?? driver.DriverName,
+                config?.DisplayName,
+                config?.IsEnabled ?? driver.IsEnabled,
+                isConnected,
+                state,
+                lastError,
+                DateTime.Now);
+
+            _statuses[driver.DeviceId] = status;
+            DeviceStatusChanged?.Invoke(this, new CommunicationDeviceStatusChangedEventArgs(status));
+
+            if (!string.IsNullOrEmpty(lastError))
+                StatusChanged?.Invoke(this, $"{driver.DriverName} {state}: {lastError}");
+            else
+                StatusChanged?.Invoke(this, $"{driver.DriverName} {state}.");
+        }
+
         public void Dispose()
         {
             StopAllAsync().GetAwaiter().GetResult();
@@ -309,6 +391,7 @@ namespace VisualMaster.Communication.Core
                 driver.Dispose();
             }
             _drivers.Clear();
+            _statuses.Clear();
         }
     }
 }

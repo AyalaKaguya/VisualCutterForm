@@ -59,4 +59,14 @@ namespace VisualMaster.Communication.Api
         Short,
         Hex,
     }
+
+    public enum CommunicationDeviceRuntimeState
+    {
+        Disabled,
+        Disconnected,
+        Connecting,
+        Connected,
+        Disconnecting,
+        Faulted,
+    }
 }

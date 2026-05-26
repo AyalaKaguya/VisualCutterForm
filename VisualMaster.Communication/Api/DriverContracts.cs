@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Controls;
 
 namespace VisualMaster.Communication.Api
 {
@@ -32,7 +31,6 @@ namespace VisualMaster.Communication.Api
         ICommunicationBlock CreateBlock(CommunicationBlockConfig config);
         void UpdateBlock(CommunicationBlockConfig config);
         void RemoveBlock(string blockId);
-        UserControl CreateConfigurationView();
     }
 
     public interface ICommunicationDriverFactory
@@ -41,6 +39,5 @@ namespace VisualMaster.Communication.Api
         string DisplayName { get; }
         CommunicationDeviceConfig CreateDefaultConfig(IReadOnlyList<ICommunicationDriver> existingDevices);
         ICommunicationDriver CreateDriver();
-        UserControl CreateConfigurationView(CommunicationDeviceConfig config);
     }
 }

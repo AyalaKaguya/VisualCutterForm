@@ -7,7 +7,7 @@ using VisualMaster.Communication.UI.ViewModels;
 
 namespace VisualMaster.Communication.Driver
 {
-    public sealed class TcpDriverFactory : ICommunicationDriverFactory
+    public sealed class TcpDriverFactory : ICommunicationDriverFactory, ICommunicationDriverConfigurationViewFactory
     {
         public string DriverName => "TCP";
         public string DisplayName => "TCP 网络";

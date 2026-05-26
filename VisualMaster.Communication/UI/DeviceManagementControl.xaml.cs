@@ -89,8 +89,7 @@ namespace VisualMaster.Communication.UI
             }
             else
             {
-                var driver = _viewModel.GetDriver(deviceVm.DeviceId);
-                DriverConfigHost.Content = driver?.CreateConfigurationView();
+                DriverConfigHost.Content = _viewModel.CreateConfigurationView(deviceVm.DeviceId);
                 BlockList.Visibility = Visibility.Visible;
             }
         }
@@ -130,6 +129,7 @@ namespace VisualMaster.Communication.UI
             if (!(sender is System.Windows.Controls.Primitives.ToggleButton toggle)) return;
             var deviceVm = toggle.DataContext as CommunicationDeviceItemViewModel;
             if (deviceVm == null) return;
+            if (deviceVm.IsUpdatingFromStatus) return;
 
             _suppressDeviceToggle = true;
             try
