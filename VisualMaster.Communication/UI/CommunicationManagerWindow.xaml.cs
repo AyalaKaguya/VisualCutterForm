@@ -1,6 +1,7 @@
 using System;
 using System.Windows;
 using VisualMaster.Communication.Api;
+using VisualMaster.Communication.Config;
 using VisualMaster.Communication.Core;
 using VisualMaster.Communication.UI.ViewModels;
 
@@ -10,7 +11,7 @@ namespace VisualMaster.Communication.UI
     {
         private readonly CommunicationManagerViewModel _viewModel;
 
-        public CommunicationManagerWindow(CommunicationManager manager, CommunicationSystemConfig config)
+        public CommunicationManagerWindow(CommunicationManager manager, CommunicationConfigSection config)
         {
             _viewModel = new CommunicationManagerViewModel(manager, config);
             InitializeComponent();

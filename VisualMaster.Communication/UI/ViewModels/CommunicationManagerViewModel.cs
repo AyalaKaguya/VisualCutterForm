@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using VisualMaster.Communication.Api;
+using VisualMaster.Communication.Config;
 using VisualMaster.Communication.Core;
 using VisualMaster.Communication.UI;
 
@@ -14,7 +15,7 @@ namespace VisualMaster.Communication.UI.ViewModels
     public sealed class CommunicationManagerViewModel : NotifyBase, IDisposable
     {
         private readonly CommunicationManager _manager;
-        private readonly CommunicationSystemConfig _config;
+        private readonly CommunicationConfigSection _config;
         private readonly Dictionary<string, ICommunicationDriverConfigurationViewFactory> _configurationViewFactories =
             new Dictionary<string, ICommunicationDriverConfigurationViewFactory>(StringComparer.OrdinalIgnoreCase);
 
@@ -51,17 +52,15 @@ namespace VisualMaster.Communication.UI.ViewModels
             private set => SetField(ref _statusMessage, value);
         }
 
-        public CommunicationSystemConfig Config => _config;
+        public CommunicationConfigSection Config => _config;
 
         public IReadOnlyList<ICommunicationDriverFactory> DriverFactories => _manager.DriverFactories;
 
         public ICommand AddUartDeviceCommand   { get; }
         public ICommand RemoveDeviceCommand    { get; }
         public ICommand ToggleDeviceCommand    { get; }
-        public ICommand SaveCommand            { get; }
-        public ICommand RevertCommand          { get; }
 
-        public CommunicationManagerViewModel(CommunicationManager manager, CommunicationSystemConfig config)
+        public CommunicationManagerViewModel(CommunicationManager manager, CommunicationConfigSection config)
         {
             _manager = manager ?? throw new ArgumentNullException(nameof(manager));
             _config  = config  ?? throw new ArgumentNullException(nameof(config));
@@ -74,8 +73,6 @@ namespace VisualMaster.Communication.UI.ViewModels
             AddUartDeviceCommand = new RelayCommand(ExecuteAddUartDevice, () => !IsBusy);
             RemoveDeviceCommand  = new RelayCommand(ExecuteRemoveDevice,  () => !IsBusy && SelectedDevice != null);
             ToggleDeviceCommand  = new RelayCommand(ExecuteToggleDevice,  () => !IsBusy && SelectedDevice != null);
-            SaveCommand          = new RelayCommand(ExecuteSave,          () => !IsBusy);
-            RevertCommand        = new RelayCommand(ExecuteRevert,        () => !IsBusy);
 
             LoadFromConfig();
 
@@ -210,16 +207,6 @@ namespace VisualMaster.Communication.UI.ViewModels
             RefreshCommands();
         }
 
-        private void ExecuteSave()
-        {
-            StatusMessage = "配置已保存（ConfigSession 将在此接入）。";
-        }
-
-        private void ExecuteRevert()
-        {
-            StatusMessage = "还原功能将在 ConfigSession 接入后启用。";
-        }
-
         private void OnConfigDeviceAdded(object sender, CommunicationDeviceConfig cfg)
         {
             InvokeOnUI(() =>
@@ -276,8 +263,6 @@ namespace VisualMaster.Communication.UI.ViewModels
             (AddUartDeviceCommand as RelayCommand)?.RaiseCanExecuteChanged();
             (RemoveDeviceCommand  as RelayCommand)?.RaiseCanExecuteChanged();
             (ToggleDeviceCommand  as RelayCommand)?.RaiseCanExecuteChanged();
-            (SaveCommand          as RelayCommand)?.RaiseCanExecuteChanged();
-            (RevertCommand        as RelayCommand)?.RaiseCanExecuteChanged();
         }
 
         private static void InvokeOnUI(Action action)

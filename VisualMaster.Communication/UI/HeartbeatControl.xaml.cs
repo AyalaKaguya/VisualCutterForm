@@ -8,6 +8,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using VisualMaster.Communication.Api;
+using VisualMaster.Communication.Config;
 using VisualMaster.Communication.UI.ViewModels;
 
 namespace VisualMaster.Communication.UI
@@ -87,7 +88,7 @@ namespace VisualMaster.Communication.UI
             public event Action<VariableValueViewModel> Changed;
         }
 
-        private CommunicationSystemConfig _config;
+        private CommunicationConfigSection _config;
         private CommunicationHeartbeatConfig _selected;
         private bool _suppress;
         private bool _variableSuppress;
@@ -106,7 +107,7 @@ namespace VisualMaster.Communication.UI
             VariableListControl.ItemsSource = _variableViewModels;
         }
 
-        public void LoadConfig(CommunicationSystemConfig config)
+        public void LoadConfig(CommunicationConfigSection config)
         {
             if (_config != null)
                 _config.EventsUpdated -= OnConfigEventsUpdated;

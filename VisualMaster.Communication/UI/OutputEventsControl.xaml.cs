@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using VisualMaster.Communication.Api;
+using VisualMaster.Communication.Config;
 using VisualMaster.Communication.UI.ViewModels;
 
 namespace VisualMaster.Communication.UI
@@ -189,7 +190,7 @@ namespace VisualMaster.Communication.UI
             new CrcMethodEntry("CRC16 CCITT", CommunicationCrcMethod.Crc16Ccitt),
         };
 
-        private CommunicationSystemConfig _config;
+        private CommunicationConfigSection _config;
         private CommunicationOutputEventConfig _selected;
         private bool _suppress;
         private bool _listSuppress;
@@ -213,7 +214,7 @@ namespace VisualMaster.Communication.UI
             CrcByteOrderCombo.ItemsSource = RuleItemViewModel.ByteOrderOptions;
         }
 
-        public void LoadConfig(CommunicationSystemConfig config)
+        public void LoadConfig(CommunicationConfigSection config)
         {
             if (_config != null)
             {

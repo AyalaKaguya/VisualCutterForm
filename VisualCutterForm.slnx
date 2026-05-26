@@ -3,6 +3,9 @@
     <Build Solution="Release|*" />
   </Project>
   <Project Path="VisualCutterForm/VisualCutterForm.csproj" Id="eb7c9dc2-99ef-41fd-9fa8-1b86e0a77086" />
+  <Project Path="VisualMaster.Api/VisualMaster.Api.csproj" Id="a26d8f2a-6b61-4f73-ad55-a8e4c51f8d12" />
+  <Project Path="VisualMaster.Impl/VisualMaster.Impl.csproj" Id="79e351ea-ed7a-4c22-b24b-239aa1e37141" />
+  <Project Path="VisualMaster.UI/VisualMaster.UI.csproj" Id="4e02f57a-7245-45a7-a3be-9b8046f4db4c" />
   <Project Path="VisualMaster.Config.Abstractions/VisualMaster.Config.Abstractions.csproj" Id="e1f2a3b4-5c6d-7e8f-9a0b-1c2d3e4f5a6b" />
   <Project Path="VisualMaster.CameraLink/VisualMaster.CameraLink.csproj" Id="8ae7ebd1-875e-4868-9fa0-a6a89050ce98" />
   <Project Path="VisualMaster.Communication/VisualMaster.Communication.csproj" Id="dff219f5-74a2-416a-b51c-37a8929ac58d" />

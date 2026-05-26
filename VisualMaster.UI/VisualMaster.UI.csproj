@@ -4,11 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{D7E7769C-D01D-4E2D-A409-3F595FC8E403}</ProjectGuid>
-    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <OutputType>WinExe</OutputType>
-    <RootNamespace>VisualMaster.Communication.TestApp</RootNamespace>
-    <AssemblyName>VisualMaster.Communication.TestApp</AssemblyName>
+    <ProjectGuid>{4E02F57A-7245-45A7-A3BE-9B8046F4DB4C}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>VisualMaster.UI</RootNamespace>
+    <AssemblyName>VisualMaster.UI</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -33,34 +32,25 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System.Xaml" />
-    <Reference Include="System.Web.Extensions" />
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <ApplicationDefinition Include="App.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </ApplicationDefinition>
-    <Compile Include="App.xaml.cs">
-      <DependentUpon>App.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="CommunicationTestConfigFile.cs" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\VisualMaster.Communication\VisualMaster.Communication.csproj">
-      <Project>{dff219f5-74a2-416a-b51c-37a8929ac58d}</Project>
-      <Name>VisualMaster.Communication</Name>
+    <ProjectReference Include="..\VisualMaster.Api\VisualMaster.Api.csproj">
+      <Project>{A26D8F2A-6B61-4F73-AD55-A8E4C51F8D12}</Project>
+      <Name>VisualMaster.Api</Name>
     </ProjectReference>
-    <ProjectReference Include="..\VisualMaster.Config.Abstractions\VisualMaster.Config.Abstractions.csproj">
-      <Project>{e1f2a3b4-5c6d-7e8f-9a0b-1c2d3e4f5a6b}</Project>
-      <Name>VisualMaster.Config.Abstractions</Name>
+    <ProjectReference Include="..\VisualMaster.Impl\VisualMaster.Impl.csproj">
+      <Project>{79E351EA-ED7A-4C22-B24B-239AA1E37141}</Project>
+      <Name>VisualMaster.Impl</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

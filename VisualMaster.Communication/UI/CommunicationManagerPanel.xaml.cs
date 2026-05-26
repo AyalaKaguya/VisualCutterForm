@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using VisualMaster.Communication.Api;
+using VisualMaster.Communication.Config;
 using VisualMaster.Communication.Core;
 using VisualMaster.Communication.UI.ViewModels;
 
@@ -9,7 +10,7 @@ namespace VisualMaster.Communication.UI
 {
     public partial class CommunicationManagerPanel : UserControl
     {
-        private readonly CommunicationSystemConfig _config;
+        private readonly CommunicationConfigSection _config;
         private readonly CommunicationManagerViewModel _viewModel;
         private DeviceManagementControl _devicePage;
         private InputEventsControl _inputPage;
@@ -23,11 +24,11 @@ namespace VisualMaster.Communication.UI
         private static readonly SolidColorBrush InactiveBorder = new SolidColorBrush(Color.FromRgb(0x30, 0x30, 0x30));
 
         public CommunicationManagerPanel()
-            : this(new CommunicationManager(), new CommunicationSystemConfig())
+            : this(new CommunicationManager(), new CommunicationConfigSection())
         {
         }
 
-        public CommunicationManagerPanel(CommunicationManager manager, CommunicationSystemConfig config)
+        public CommunicationManagerPanel(CommunicationManager manager, CommunicationConfigSection config)
             : this(new CommunicationManagerViewModel(manager, config))
         {
             _config = config;

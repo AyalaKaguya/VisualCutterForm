@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using VisualMaster.Communication.Api;
 using VisualMaster.Config.Abstractions;
 
-namespace VisualMaster.Communication.Api
+namespace VisualMaster.Communication.Config
 {
-    public sealed class CommunicationSystemConfig : IConfigSection, ICloneable
+    public sealed class CommunicationConfigSection : IConfigSection, ICloneable
     {
         private readonly List<CommunicationDeviceConfig> _devices = new List<CommunicationDeviceConfig>();
         private readonly List<CommunicationInputEventConfig> _inputEvents = new List<CommunicationInputEventConfig>();
@@ -97,7 +98,7 @@ namespace VisualMaster.Communication.Api
 
         public object Clone()
         {
-            var clone = new CommunicationSystemConfig();
+            var clone = new CommunicationConfigSection();
             clone._devices.AddRange(_devices.Select(d => d.Clone()));
             clone._inputEvents.AddRange(_inputEvents.Select(e => e.Clone()));
             clone._outputEvents.AddRange(_outputEvents.Select(e => e.Clone()));

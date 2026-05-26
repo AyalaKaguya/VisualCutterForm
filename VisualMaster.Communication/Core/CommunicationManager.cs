@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using VisualMaster.Communication.Api;
+using VisualMaster.Communication.Config;
 using VisualMaster.Communication.Driver;
 
 namespace VisualMaster.Communication.Core
@@ -18,7 +19,7 @@ namespace VisualMaster.Communication.Core
             new Dictionary<string, byte[]>();
         private readonly CommunicationInputEvaluator _inputEvaluator = new CommunicationInputEvaluator();
         private readonly CommunicationOutputBuilder _outputBuilder = new CommunicationOutputBuilder();
-        private CommunicationSystemConfig _config;
+        private CommunicationConfigSection _config;
 
         public CommunicationManager()
         {
@@ -43,7 +44,7 @@ namespace VisualMaster.Communication.Core
             _factories[factory.DriverName] = factory;
         }
 
-        public void LoadConfig(CommunicationSystemConfig config)
+        public void LoadConfig(CommunicationConfigSection config)
         {
             if (_config != null)
             {

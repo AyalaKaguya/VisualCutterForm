@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using VisualMaster.Api;
 using VisualMaster.Communication.Api;
+using VisualMaster.Communication.Config;
 using VisualMaster.Communication.Core;
 using VisualCutterForm.Legacy;
 
@@ -14,7 +15,7 @@ namespace VisualMaster.Forms
         private readonly List<SerialDeviceConfig> _serialDevices;
         private readonly Dictionary<string, ISerialPort> _serialPorts;
         private readonly IReadOnlyDictionary<string, ISerialPort> _readOnlyPorts;
-        private readonly CommunicationSystemConfig _communicationConfig;
+        private readonly CommunicationConfigSection _communicationConfig;
         private readonly CommunicationManager _communicationManager;
         private readonly Action<Exception> _errorHandler;
 
@@ -23,7 +24,7 @@ namespace VisualMaster.Forms
             _serialDevices = new List<SerialDeviceConfig>();
             _serialPorts = new Dictionary<string, ISerialPort>(StringComparer.OrdinalIgnoreCase);
             _readOnlyPorts = new ReadOnlyDictionary<string, ISerialPort>(_serialPorts);
-            _communicationConfig = new CommunicationSystemConfig();
+            _communicationConfig = new CommunicationConfigSection();
             _communicationManager = new CommunicationManager();
             _communicationManager.LoadConfig(_communicationConfig);
             _errorHandler = errorHandler;

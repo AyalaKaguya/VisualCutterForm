@@ -39,6 +39,7 @@
     <Compile Include="IConfigSession.cs" />
     <Compile Include="ConfigSession.cs" />
     <Compile Include="ConfigRegistry.cs" />
+    <Compile Include="IConfigSerializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

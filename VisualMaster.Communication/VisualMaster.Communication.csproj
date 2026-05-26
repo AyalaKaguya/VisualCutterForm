@@ -11,6 +11,7 @@
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
+    <RuntimeIdentifiers>win</RuntimeIdentifiers>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -55,10 +56,12 @@
     <Compile Include="Api\CommunicationDeviceStatus.cs" />
     <Compile Include="Api\CommunicationEnums.cs" />
     <Compile Include="Api\CommunicationEvents.cs" />
-    <Compile Include="Api\CommunicationSystemConfig.cs" />
+    <Compile Include="Config\CommunicationConfigSection.cs" />
+    <Compile Include="Config\CommunicationConfigService.cs" />
+    <Compile Include="Config\CommunicationConfigViewModel.cs" />
+    <Compile Include="Config\JsonConfigStore.cs" />
     <Compile Include="Api\DriverContracts.cs" />
     <Compile Include="Api\InputOutputEventConfigs.cs" />
-    <Compile Include="Config\JsonConfigStore.cs" />
     <Compile Include="Core\CommunicationDataConverter.cs" />
     <Compile Include="Core\CommunicationDeviceRuntime.cs" />
     <Compile Include="Core\CommunicationInputEvaluator.cs" />

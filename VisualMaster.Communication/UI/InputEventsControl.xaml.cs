@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using VisualMaster.Communication.Api;
+using VisualMaster.Communication.Config;
 using VisualMaster.Communication.UI.ViewModels;
 
 namespace VisualMaster.Communication.UI
@@ -23,7 +24,7 @@ namespace VisualMaster.Communication.UI
             public object EventId => Config.EventId;
         }
 
-        private CommunicationSystemConfig _config;
+        private CommunicationConfigSection _config;
         private CommunicationInputEventConfig _selected;
         private bool _suppress;
         private bool _ruleSuppress;
@@ -41,7 +42,7 @@ namespace VisualMaster.Communication.UI
             RuleListControl.ItemsSource = _ruleViewModels;
         }
 
-        public void LoadConfig(CommunicationSystemConfig config)
+        public void LoadConfig(CommunicationConfigSection config)
         {
             if (_config != null)
             {
