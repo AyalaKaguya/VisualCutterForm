@@ -35,8 +35,15 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Application\IApplicationBootstrapContext.cs" />
+    <Compile Include="Application\IApplicationModule.cs" />
+    <Compile Include="Configuration\ApplicationBootstrapOptions.cs" />
+    <Compile Include="Configuration\ModuleOptions.cs" />
+    <Compile Include="Configuration\PathOptions.cs" />
+    <Compile Include="Configuration\StartupOptions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -3,6 +3,7 @@
     <Build Solution="Release|*" />
   </Project>
   <Project Path="VisualCutterForm/VisualCutterForm.csproj" Id="eb7c9dc2-99ef-41fd-9fa8-1b86e0a77086" />
+  <Project Path="VisualMaster.Application/VisualMaster.Application.csproj" Id="6c8d2f15-5e95-44c0-a1c8-62f94684b81d" />
   <Project Path="VisualMaster.Api/VisualMaster.Api.csproj" Id="a26d8f2a-6b61-4f73-ad55-a8e4c51f8d12" />
   <Project Path="VisualMaster.Impl/VisualMaster.Impl.csproj" Id="79e351ea-ed7a-4c22-b24b-239aa1e37141" />
   <Project Path="VisualMaster.UI/VisualMaster.UI.csproj" Id="4e02f57a-7245-45a7-a3be-9b8046f4db4c" />

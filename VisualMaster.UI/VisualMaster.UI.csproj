@@ -48,10 +48,6 @@
       <Project>{A26D8F2A-6B61-4F73-AD55-A8E4C51F8D12}</Project>
       <Name>VisualMaster.Api</Name>
     </ProjectReference>
-    <ProjectReference Include="..\VisualMaster.Impl\VisualMaster.Impl.csproj">
-      <Project>{79E351EA-ED7A-4C22-B24B-239AA1E37141}</Project>
-      <Name>VisualMaster.Impl</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

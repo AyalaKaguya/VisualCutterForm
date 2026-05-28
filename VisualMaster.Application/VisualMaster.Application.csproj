@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{79E351EA-ED7A-4C22-B24B-239AA1E37141}</ProjectGuid>
+    <ProjectGuid>{6C8D2F15-5E95-44C0-A1C8-62F94684B81D}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>VisualMaster.Impl</RootNamespace>
-    <AssemblyName>VisualMaster.Impl</AssemblyName>
+    <RootNamespace>VisualMaster.Application</RootNamespace>
+    <AssemblyName>VisualMaster.Application</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -34,19 +34,32 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Application\ApplicationBootstrapContext.cs" />
-    <Compile Include="DependencyInjection\ServiceCollectionExtensions.cs" />
+    <Compile Include="ApplicationHostBuilder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VisualMaster.Api\VisualMaster.Api.csproj">
       <Project>{A26D8F2A-6B61-4F73-AD55-A8E4C51F8D12}</Project>
       <Name>VisualMaster.Api</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VisualMaster.Impl\VisualMaster.Impl.csproj">
+      <Project>{79E351EA-ED7A-4C22-B24B-239AA1E37141}</Project>
+      <Name>VisualMaster.Impl</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VisualMaster.UI\VisualMaster.UI.csproj">
+      <Project>{4E02F57A-7245-45A7-A3BE-9B8046F4DB4C}</Project>
+      <Name>VisualMaster.UI</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
