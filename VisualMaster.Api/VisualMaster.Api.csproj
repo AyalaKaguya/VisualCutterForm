@@ -41,9 +41,13 @@
     <Compile Include="Application\IApplicationBootstrapContext.cs" />
     <Compile Include="Application\IApplicationModule.cs" />
     <Compile Include="Configuration\ApplicationBootstrapOptions.cs" />
+    <Compile Include="Configuration\ConfigurationFileAttribute.cs" />
+    <Compile Include="Configuration\IApplicationConfigurationStore.cs" />
+    <Compile Include="Configuration\IConfigurationSerializer.cs" />
     <Compile Include="Configuration\ModuleOptions.cs" />
     <Compile Include="Configuration\PathOptions.cs" />
     <Compile Include="Configuration\StartupOptions.cs" />
+    <Compile Include="FileSystem\IFileSystem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
